@@ -59,12 +59,32 @@ def create_sample_sar_image(filepath: str, width: int = 256, height: int = 256):
     img.save(filepath, format="PNG")
 
 
+def create_vrsbench_optical_image(filepath: str, width: int = 256, height: int = 256):
+    """Generate distinct airfield / logistics hub optical remote sensing scene."""
+    img = Image.new("RGB", (width, height), color=(189, 183, 107))  # Arid / sandy base
+    draw = ImageDraw.Draw(img)
+
+    # Diagonal runway and taxiways
+    draw.line([(0, 30), (256, 220)], fill=(50, 50, 50), width=16)
+    draw.line([(0, 30), (256, 220)], fill=(255, 255, 255), width=2)
+    draw.line([(60, 0), (200, 256)], fill=(70, 70, 70), width=10)
+
+    # Aircraft hangars / round storage tanks
+    draw.rectangle([20, 140, 70, 190], fill=(192, 192, 192), outline=(80, 80, 80))
+    draw.rectangle([80, 150, 120, 200], fill=(160, 160, 160), outline=(80, 80, 80))
+    draw.ellipse([180, 50, 210, 80], fill=(220, 220, 220), outline=(100, 100, 100))
+    draw.ellipse([215, 60, 245, 90], fill=(220, 220, 220), outline=(100, 100, 100))
+
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    img.save(filepath, format="PNG")
+
+
 def get_vrsbench_subset(out_dir: str = "data/raw/vrsbench"):
     """Prepare VRSBench subset including sample_001.png for single-image VQA/caption/grounding."""
     os.makedirs(out_dir, exist_ok=True)
     sample_path = os.path.join(out_dir, "sample_001.png")
-    if not os.path.exists(sample_path):
-        create_sample_optical_image(sample_path)
+    create_vrsbench_optical_image(sample_path)
+
 
     # Also store subset metadata
     meta = {
