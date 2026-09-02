@@ -47,3 +47,10 @@ models/weights/*
 *.swo
 .DS_Store
 Thumbs.db
+
+.env
+.env.*
+!.env.example
+
+*.db
+__pycache__/
