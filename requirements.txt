@@ -68,7 +68,7 @@ multidict==6.7.1
 multiprocess==0.70.19
 narwhals==2.25.0
 networkx==3.4.2
-numpy==2.2.6
+numpy
 opencv-python==5.0.0.93
 orjson==3.12.0
 ormsgpack==1.12.2
