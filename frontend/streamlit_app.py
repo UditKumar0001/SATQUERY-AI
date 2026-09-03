@@ -256,9 +256,12 @@ st.markdown(f"""
         padding-left: 2rem;
         padding-right: 2rem;
         background-image: 
+            radial-gradient(circle, rgba(45, 212, 191, 0.08) 1px, transparent 1px),
+            radial-gradient(circle, rgba(96, 165, 250, 0.05) 1px, transparent 1px),
             linear-gradient(to right, rgba(255, 255, 255, 0.016) 1px, transparent 1px),
             linear-gradient(to bottom, rgba(255, 255, 255, 0.016) 1px, transparent 1px);
-        background-size: 36px 36px;
+        background-size: 48px 48px, 96px 96px, 36px 36px, 36px 36px;
+        background-position: 0 0, 24px 24px, 0 0, 0 0;
     }}
     @media (max-width: 768px) {{
         .main .block-container {{
@@ -1134,12 +1137,12 @@ st.markdown(f"""
     }}
     .ref-section-title {{
         font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: 1.60rem;
+        font-size: 1.62rem;
         font-weight: 700;
         color: var(--text-primary);
         margin-bottom: 6px;
-        letter-spacing: -0.015em;
-        text-shadow: 0 0 20px rgba(96, 165, 250, 0.25);
+        letter-spacing: 0.02em;
+        text-shadow: 0 0 16px rgba(45, 212, 191, 0.35), 0 0 32px rgba(96, 165, 250, 0.20);
     }}
     .ref-section-desc {{
         font-family: 'Inter', sans-serif;
@@ -1148,16 +1151,26 @@ st.markdown(f"""
         margin-bottom: 6px;
         line-height: 1.5;
     }}
+    .hud-telemetry-row {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(45, 212, 191, 0.15);
+    }}
     .hud-telemetry-meta {{
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.70rem;
         color: rgba(45, 212, 191, 0.85);
         letter-spacing: 0.10em;
-        margin-top: 8px;
         display: flex;
         align-items: center;
         gap: 10px;
         flex-wrap: wrap;
+        margin: 0;
     }}
     .hud-telemetry-tag {{
         background: rgba(45, 212, 191, 0.12);
@@ -1170,7 +1183,7 @@ st.markdown(f"""
         display: inline-flex;
         align-items: center;
         gap: 3px;
-        margin-top: 6px;
+        margin: 0;
     }}
     .hud-tick {{
         width: 6px;
@@ -1183,17 +1196,7 @@ st.markdown(f"""
         box-shadow: 0 0 6px #2dd4bf;
     }}
 
-    /* NASA Viewfinder Reticle Corners */
-    .hud-card-container {{
-        position: relative;
-        padding: 18px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        background: rgba(10, 15, 24, 0.70);
-        backdrop-filter: blur(12px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.40);
-        margin-bottom: 8px;
-    }}
+    /* Systematized NASA Viewfinder Reticle Corners */
     .hud-corner-tl, .hud-corner-tr, .hud-corner-bl, .hud-corner-br {{
         position: absolute;
         width: 10px;
@@ -1202,72 +1205,186 @@ st.markdown(f"""
         z-index: 5;
     }}
     .hud-corner-tl {{
-        top: 6px; left: 6px;
-        border-top: 2px solid #2dd4bf; border-left: 2px solid #2dd4bf;
+        top: 5px; left: 5px;
+        border-top: 1.5px solid #2dd4bf; border-left: 1.5px solid #2dd4bf;
     }}
     .hud-corner-tr {{
-        top: 6px; right: 6px;
-        border-top: 2px solid #2dd4bf; border-right: 2px solid #2dd4bf;
+        top: 5px; right: 5px;
+        border-top: 1.5px solid #2dd4bf; border-right: 1.5px solid #2dd4bf;
     }}
     .hud-corner-bl {{
-        bottom: 6px; left: 6px;
-        border-bottom: 2px solid #2dd4bf; border-left: 2px solid #2dd4bf;
+        bottom: 5px; left: 5px;
+        border-bottom: 1.5px solid #2dd4bf; border-left: 1.5px solid #2dd4bf;
     }}
     .hud-corner-br {{
-        bottom: 6px; right: 6px;
-        border-bottom: 2px solid #2dd4bf; border-right: 2px solid #2dd4bf;
+        bottom: 5px; right: 5px;
+        border-bottom: 1.5px solid #2dd4bf; border-right: 1.5px solid #2dd4bf;
     }}
 
+    /* Tile Card Headers with Satellite / Aerial Imagery Backdrops */
+    .tile-header-banner {{
+        position: relative;
+        border-radius: 10px;
+        padding: 14px 16px 12px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.40);
+    }}
+    .tile-banner-a {{
+        background-color: #0b1220;
+        background-image: 
+            linear-gradient(90deg, rgba(7, 11, 19, 0.94) 0%, rgba(7, 11, 19, 0.82) 55%, rgba(7, 11, 19, 0.60) 100%),
+            url('{img_opt_url}');
+        background-size: cover;
+        background-position: center;
+        border-left: 3px solid #60A5FA;
+    }}
+    .tile-banner-b {{
+        background-color: #0b151e;
+        background-image: 
+            linear-gradient(90deg, rgba(7, 11, 19, 0.94) 0%, rgba(7, 11, 19, 0.82) 55%, rgba(7, 11, 19, 0.60) 100%),
+            url('{img_chg_url}');
+        background-size: cover;
+        background-position: center;
+        border-left: 3px solid #2dd4bf;
+    }}
     .ref-card-header {{
         font-family: 'Inter', sans-serif;
-        font-size: 0.95rem;
+        font-size: 0.96rem;
         font-weight: 600;
         color: var(--text-primary);
-        margin-bottom: 4px;
         display: flex;
         align-items: center;
         gap: 8px;
+        margin: 0;
     }}
     .ref-card-desc {{
         font-family: 'Inter', sans-serif;
-        font-size: 0.80rem;
+        font-size: 0.79rem;
         color: var(--text-secondary);
-        margin-bottom: 12px;
+        margin: 6px 0 0 0;
         line-height: 1.45;
     }}
 
-    /* Aceternity-Style Moving-Border Spotlight File Uploader Cards with Satellite Previews */
+    /* Chip & Dynamic Status Badges */
+    .hud-chip-tag {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        padding: 2px 6px;
+        border-radius: 3px;
+        display: inline-block;
+    }}
+    .tag-blue {{
+        color: #60A5FA;
+        background: rgba(96, 165, 250, 0.12);
+        border: 1px solid rgba(96, 165, 250, 0.30);
+    }}
+    .tag-teal {{
+        color: #2dd4bf;
+        background: rgba(45, 212, 191, 0.12);
+        border: 1px solid rgba(45, 212, 191, 0.30);
+    }}
+    .hud-status-tag {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        padding: 2px 7px;
+        border-radius: 3px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+    }}
+    .tag-standby {{
+        color: #94a3b8;
+        background: rgba(148, 163, 184, 0.12);
+        border: 1px solid rgba(148, 163, 184, 0.25);
+    }}
+    .tag-active {{
+        color: #2dd4bf;
+        background: rgba(45, 212, 191, 0.15);
+        border: 1px solid rgba(45, 212, 191, 0.40);
+        box-shadow: 0 0 10px rgba(45, 212, 191, 0.25);
+    }}
+    .hud-status-dot {{
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        display: inline-block;
+    }}
+    .dot-standby {{
+        background: #64748b;
+    }}
+    .dot-active {{
+        background: #2dd4bf;
+        box-shadow: 0 0 6px #2dd4bf;
+        animation: hudPulse 1.8s infinite;
+    }}
+
+    /* Drag-and-Drop Zones with Scanline Grid, Marching Dashed Border & Viewfinder Reticles */
     [data-testid="stFileUploader"] section {{
-        background-color: rgba(10, 16, 26, 0.75) !important;
+        background-color: rgba(9, 14, 23, 0.85) !important;
+        background-image: 
+            linear-gradient(rgba(9, 14, 23, 0.88), rgba(9, 14, 23, 0.94)),
+            repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 4px),
+            radial-gradient(circle, rgba(45, 212, 191, 0.08) 1px, transparent 1px) !important;
+        background-size: 100% 100%, 100% 4px, 20px 20px !important;
         backdrop-filter: blur(14px) !important;
         -webkit-backdrop-filter: blur(14px) !important;
-        border: 1px solid rgba(45, 212, 191, 0.25) !important;
-        border-radius: 12px !important;
-        padding: 26px 20px !important;
+        border: 1.5px dashed rgba(45, 212, 191, 0.40) !important;
+        border-radius: 10px !important;
+        padding: 24px 18px !important;
         position: relative !important;
         overflow: hidden !important;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.40), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45), inset 0 0 16px rgba(10, 16, 26, 0.80) !important;
+        animation: hudDropzonePulse 3.5s ease-in-out infinite alternate !important;
         transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }}
+    @keyframes hudDropzonePulse {{
+        0% {{
+            border-color: rgba(45, 212, 191, 0.35);
+            box-shadow: 0 0 12px rgba(45, 212, 191, 0.08), inset 0 0 15px rgba(10, 16, 26, 0.7);
+        }}
+        50% {{
+            border-color: rgba(96, 165, 250, 0.65);
+            box-shadow: 0 0 22px rgba(96, 165, 250, 0.20), inset 0 0 20px rgba(10, 16, 26, 0.8);
+        }}
+        100% {{
+            border-color: rgba(45, 212, 191, 0.35);
+            box-shadow: 0 0 12px rgba(45, 212, 191, 0.08), inset 0 0 15px rgba(10, 16, 26, 0.7);
+        }}
+    }}
+    [data-testid="stFileUploader"] section::before {{
+        content: '';
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        width: 8px;
+        height: 8px;
+        border-top: 1.5px solid #2dd4bf;
+        border-left: 1.5px solid #2dd4bf;
+        pointer-events: none;
+        z-index: 2;
+    }}
+    [data-testid="stFileUploader"] section::after {{
+        content: '';
+        position: absolute;
+        bottom: 5px;
+        right: 5px;
+        width: 8px;
+        height: 8px;
+        border-bottom: 1.5px solid #2dd4bf;
+        border-right: 1.5px solid #2dd4bf;
+        pointer-events: none;
+        z-index: 2;
+    }}
     [data-testid="stFileUploader"] section:hover {{
-        border-color: rgba(96, 165, 250, 0.70) !important;
-        background-color: rgba(13, 22, 38, 0.85) !important;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.60), 0 0 25px rgba(45, 212, 191, 0.20), inset 0 0 20px rgba(96, 165, 250, 0.10) !important;
+        border-color: #2dd4bf !important;
+        box-shadow: 0 0 28px rgba(45, 212, 191, 0.35), inset 0 0 25px rgba(45, 212, 191, 0.12) !important;
         transform: translateY(-2px);
-    }}
-    .uploader-tile-a [data-testid="stFileUploader"] section {{
-        background-image: 
-            linear-gradient(to bottom, rgba(10, 16, 26, 0.86), rgba(10, 16, 26, 0.94)),
-            url('{img_opt_url}') !important;
-        background-size: cover !important;
-        background-position: center !important;
-    }}
-    .uploader-tile-b [data-testid="stFileUploader"] section {{
-        background-image: 
-            linear-gradient(to bottom, rgba(10, 16, 26, 0.86), rgba(10, 16, 26, 0.94)),
-            url('{img_sar_url}') !important;
-        background-size: cover !important;
-        background-position: center !important;
     }}
     [data-testid="stFileUploader"] button {{
         background: rgba(15, 23, 42, 0.85) !important;
@@ -2152,6 +2269,19 @@ st.markdown(f"""
 
 
 # --- Section 1: Ingestion ---
+has_img1 = bool(st.session_state.get("uploader_img1"))
+has_img2 = bool(st.session_state.get("uploader_img2"))
+
+if has_img1:
+    status_tag_a = '<span class="hud-status-tag tag-active"><span class="hud-status-dot dot-active"></span>STATUS: FILE LOADED</span>'
+else:
+    status_tag_a = '<span class="hud-status-tag tag-standby"><span class="hud-status-dot dot-standby"></span>STATUS: AWAITING UPLOAD</span>'
+
+if has_img2:
+    status_tag_b = '<span class="hud-status-tag tag-active"><span class="hud-status-dot dot-active"></span>STATUS: FILE LOADED</span>'
+else:
+    status_tag_b = '<span class="hud-status-tag tag-standby"><span class="hud-status-dot dot-standby"></span>STATUS: AWAITING UPLOAD</span>'
+
 st.markdown(f"""
 <div id="section-ingestion" class="ingestion-hero-banner">
     <div class="hud-corner-tl"></div>
@@ -2161,25 +2291,27 @@ st.markdown(f"""
     <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">STEP 01</span> <span class="hud-bracket">]</span> • SENSOR INGESTION PIPELINE</div>
     <div class="ref-section-title">Imagery Ingestion & Tile Registration</div>
     <div class="ref-section-desc">Upload primary observation raster tile and an optional secondary / temporal pair for automated multi-modal reasoning.</div>
-    <div class="hud-telemetry-meta">
-        <span class="hud-telemetry-tag">✦ SENSOR BUS ACTIVE</span>
-        <span>COORD: 28.6139° N, 77.2090° E</span>
-        <span>•</span>
-        <span>BAND: MULTISPECTRAL-OPTICAL / SAR</span>
-        <span>•</span>
-        <span>GSD: 0.5M/PX</span>
-    </div>
-    <div class="hud-telemetry-ticks">
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick"></span>
-        <span class="hud-tick"></span>
+    <div class="hud-telemetry-row">
+        <div class="hud-telemetry-meta">
+            <span class="hud-telemetry-tag">✦ SENSOR BUS ACTIVE</span>
+            <span>COORD: 28.6139° N, 77.2090° E</span>
+            <span>•</span>
+            <span>BAND: MULTISPECTRAL-OPTICAL / SAR</span>
+            <span>•</span>
+            <span>GSD: 0.5M/PX</span>
+        </div>
+        <div class="hud-telemetry-ticks">
+            <span class="hud-tick active"></span>
+            <span class="hud-tick active"></span>
+            <span class="hud-tick active"></span>
+            <span class="hud-tick active"></span>
+            <span class="hud-tick active"></span>
+            <span class="hud-tick active"></span>
+            <span class="hud-tick active"></span>
+            <span class="hud-tick active"></span>
+            <span class="hud-tick"></span>
+            <span class="hud-tick"></span>
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
@@ -2187,17 +2319,21 @@ st.markdown(f"""
 col_up1, col_up2 = st.columns(2, gap="large")
 
 with col_up1:
-    st.markdown("""
-    <div class="hud-card-container uploader-tile-a">
+    st.markdown(f"""
+    <div class="tile-header-banner tile-banner-a">
         <div class="hud-corner-tl"></div>
         <div class="hud-corner-tr"></div>
         <div class="hud-corner-bl"></div>
         <div class="hud-corner-br"></div>
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
             <div class="ref-card-header"><span style="color: #60A5FA;">✦</span> Tile A — Primary Observation</div>
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #60A5FA; background: rgba(96, 165, 250, 0.12); border: 1px solid rgba(96, 165, 250, 0.3); padding: 2px 6px; border-radius: 3px;">CH 01 // VIS-RGB</span>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <span class="hud-chip-tag tag-blue">CH 01 // VIS-RGB</span>
+                {status_tag_a}
+            </div>
         </div>
         <div class="ref-card-desc">High-resolution optical raster tile, multispectral band, or base SAR backscatter (GeoTIFF, PNG, JPG).</div>
+    </div>
     """, unsafe_allow_html=True)
     img1_file = st.file_uploader(
         "Upload primary satellite/aerial tile",
@@ -2211,20 +2347,23 @@ with col_up1:
             st.image(pil_img1, caption=f"Tile A: {img1_file.name} ({pil_img1.width}×{pil_img1.height}px)", use_container_width=True)
         except Exception:
             st.info(f"Loaded {img1_file.name} (GeoTIFF/Multi-band Sensor Tile)")
-    st.markdown("</div>", unsafe_allow_html=True)
 
 with col_up2:
-    st.markdown("""
-    <div class="hud-card-container uploader-tile-b">
+    st.markdown(f"""
+    <div class="tile-header-banner tile-banner-b">
         <div class="hud-corner-tl"></div>
         <div class="hud-corner-tr"></div>
         <div class="hud-corner-bl"></div>
         <div class="hud-corner-br"></div>
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
             <div class="ref-card-header"><span style="color: #2dd4bf;">✦</span> Tile B — Secondary / Temporal Pair</div>
-            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #2dd4bf; background: rgba(45, 212, 191, 0.12); border: 1px solid rgba(45, 212, 191, 0.3); padding: 2px 6px; border-radius: 3px;">CH 02 // SAR-OPT</span>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <span class="hud-chip-tag tag-teal">CH 02 // SAR-OPT</span>
+                {status_tag_b}
+            </div>
         </div>
         <div class="ref-card-desc">Post-event comparative tile for change detection or co-registered SAR for cross-sensor fusion.</div>
+    </div>
     """, unsafe_allow_html=True)
     img2_file = st.file_uploader(
         "Upload comparison image for bi-temporal tasks",
@@ -2238,7 +2377,6 @@ with col_up2:
             st.image(pil_img2, caption=f"Tile B: {img2_file.name} ({pil_img2.width}×{pil_img2.height}px)", use_container_width=True)
         except Exception:
             st.info(f"Loaded {img2_file.name} (GeoTIFF/Multi-band Sensor Tile)")
-    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # --- Section 2: Query Specification ---
