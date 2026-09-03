@@ -495,83 +495,129 @@ st.markdown(f"""
         margin-bottom: 8px;
     }}
 
-    /* File Uploader Sharp Technical Frame */
-    [data-testid="stFileUploader"] section {{
-        background: var(--bg-panel-sub) !important;
-        border: 1px solid var(--border-color) !important;
-        border-radius: 2px !important;
-        padding: 14px !important;
-        transition: border-color 0.15s ease !important;
+    /* Section Titles and Card Headers */
+    .ref-section-kicker {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 4px;
     }}
-    [data-testid="stFileUploader"] section:hover {{
-        border-color: var(--border-focus) !important;
+    .ref-section-title {{
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 4px;
+        letter-spacing: -0.01em;
     }}
-    [data-testid="stFileUploader"] button {{
-        background: var(--bg-panel) !important;
-        color: var(--text-primary) !important;
-        border: 1px solid var(--border-color) !important;
-        border-radius: 2px !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 0.78rem !important;
-        font-weight: 600 !important;
-        text-transform: uppercase !important;
+    .ref-section-desc {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.88rem;
+        color: var(--text-secondary);
+        margin-bottom: 18px;
+    }}
+    .ref-card-header {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }}
+    .ref-card-desc {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.80rem;
+        color: var(--text-secondary);
+        margin-bottom: 10px;
     }}
 
-    /* Technical Input Field */
+    /* Reference File Uploader Cards */
+    [data-testid="stFileUploader"] section {{
+        background: var(--hero-card-bg) !important;
+        border: 1px dashed var(--border-color) !important;
+        border-radius: 10px !important;
+        padding: 24px 18px !important;
+        transition: all 0.2s ease !important;
+    }}
+    [data-testid="stFileUploader"] section:hover {{
+        border-color: var(--accent-primary) !important;
+        box-shadow: 0 2px 10px rgba(2, 132, 199, 0.08) !important;
+    }}
+    [data-testid="stFileUploader"] button {{
+        background: var(--btn-secondary-bg) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.82rem !important;
+        font-weight: 500 !important;
+        padding: 6px 14px !important;
+        transition: all 0.15s ease !important;
+    }}
+    [data-testid="stFileUploader"] button:hover {{
+        border-color: var(--accent-primary) !important;
+        color: var(--accent-primary) !important;
+    }}
+
+    /* Reference Input Field */
     [data-testid="stTextInput"] input {{
         background: var(--bg-input) !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 2px !important;
+        border-radius: 8px !important;
         color: var(--text-primary) !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 0.90rem !important;
-        padding: 10px 14px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.94rem !important;
+        padding: 12px 16px !important;
         transition: border-color 0.15s ease !important;
     }}
     [data-testid="stTextInput"] input:focus {{
-        border-color: var(--border-focus) !important;
-        box-shadow: none !important;
+        border-color: var(--accent-primary) !important;
+        box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12) !important;
     }}
 
-    /* Preset Secondary Buttons (Chips) */
+    /* Reference Style Preset Chips */
     div[data-testid="stButton"] > button[kind="secondary"] {{
-        background: var(--chip-bg) !important;
-        color: var(--chip-text) !important;
-        border: 1px solid var(--chip-border) !important;
-        border-radius: 2px !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 0.74rem !important;
+        background: var(--hero-card-bg) !important;
+        color: var(--accent-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 8px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.86rem !important;
         font-weight: 600 !important;
-        letter-spacing: 0.05em !important;
-        text-transform: uppercase !important;
-        padding: 8px 12px !important;
+        letter-spacing: 0.01em !important;
+        text-transform: none !important;
+        padding: 10px 16px !important;
         width: 100% !important;
-        transition: all 0.15s ease !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
     }}
     div[data-testid="stButton"] > button[kind="secondary"]:hover {{
-        background: var(--chip-hover-bg) !important;
-        color: var(--chip-hover-text) !important;
-        border-color: var(--border-focus) !important;
+        background: var(--accent-primary) !important;
+        color: #ffffff !important;
+        border-color: var(--accent-primary) !important;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25) !important;
     }}
 
-    /* Primary Dispatch Action Button */
+    /* Reference Style Primary Action Button */
     div[data-testid="stButton"] > button[kind="primary"] {{
         background: var(--btn-primary-bg) !important;
         color: var(--btn-primary-text) !important;
-        border: 1px solid var(--border-focus) !important;
-        border-radius: 2px !important;
-        font-family: 'Space Grotesk', sans-serif !important;
-        font-size: 0.95rem !important;
-        font-weight: 700 !important;
-        letter-spacing: 0.08em !important;
-        text-transform: uppercase !important;
-        padding: 12px 24px !important;
-        box-shadow: none !important;
-        transition: background 0.15s ease !important;
+        border: 1px solid transparent !important;
+        border-radius: 8px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.96rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.02em !important;
+        text-transform: none !important;
+        padding: 14px 28px !important;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25) !important;
+        transition: all 0.2s ease !important;
     }}
     div[data-testid="stButton"] > button[kind="primary"]:hover {{
         background: var(--btn-primary-hover) !important;
-        filter: brightness(1.05);
+        box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35) !important;
     }}
 
     /* LED Indicators */
@@ -888,9 +934,10 @@ st.markdown(f"""
 
 # --- Section 1: Ingestion ---
 st.markdown("""
-<div id="section-ingestion" class="section-header-tag">
-    <span>01 // SENSOR INGESTION SUBSYSTEM</span>
-    <span style="font-size: 0.72rem; color: var(--text-muted);">SUPPORTED: GTIFF / PNG / MULTI-BAND</span>
+<div id="section-ingestion">
+    <div class="ref-section-kicker">STEP 01 • SENSOR INGESTION</div>
+    <div class="ref-section-title">Imagery Ingestion</div>
+    <div class="ref-section-desc">Upload primary observation imagery and an optional secondary or temporal tile for multi-modal analysis.</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -898,8 +945,8 @@ col_up1, col_up2 = st.columns(2, gap="large")
 
 with col_up1:
     st.markdown("""
-    <div class="tile-sub-title">TILE A — PRIMARY OBSERVATION</div>
-    <div class="tile-sub-desc">High-resolution optical raster tile, multispectral band, or reference SAR backscatter.</div>
+    <div class="ref-card-header">Tile A — Primary Observation</div>
+    <div class="ref-card-desc">High-resolution optical raster tile, multispectral band, or base SAR backscatter (GeoTIFF, PNG, JPG).</div>
     """, unsafe_allow_html=True)
     img1_file = st.file_uploader(
         "Upload primary satellite/aerial tile",
@@ -910,14 +957,14 @@ with col_up1:
     if img1_file:
         try:
             pil_img1 = Image.open(img1_file)
-            st.image(pil_img1, caption=f"TILE A: {img1_file.name} [{pil_img1.width}×{pil_img1.height}px]", use_container_width=True)
+            st.image(pil_img1, caption=f"Tile A: {img1_file.name} ({pil_img1.width}×{pil_img1.height}px)", use_container_width=True)
         except Exception:
             st.info(f"Loaded {img1_file.name} (GeoTIFF/Multi-band Sensor Tile)")
 
 with col_up2:
     st.markdown("""
-    <div class="tile-sub-title">TILE B — SECONDARY / TEMPORAL PAIR (OPTIONAL)</div>
-    <div class="tile-sub-desc">Post-event comparative tile for change analysis or co-registered SAR for cross-sensor fusion.</div>
+    <div class="ref-card-header">Tile B — Secondary / Temporal Pair (Optional)</div>
+    <div class="ref-card-desc">Post-event comparative tile for change detection or co-registered SAR for cross-sensor fusion.</div>
     """, unsafe_allow_html=True)
     img2_file = st.file_uploader(
         "Upload comparison image for bi-temporal tasks",
@@ -928,42 +975,44 @@ with col_up2:
     if img2_file:
         try:
             pil_img2 = Image.open(img2_file)
-            st.image(pil_img2, caption=f"TILE B: {img2_file.name} [{pil_img2.width}×{pil_img2.height}px]", use_container_width=True)
+            st.image(pil_img2, caption=f"Tile B: {img2_file.name} ({pil_img2.width}×{pil_img2.height}px)", use_container_width=True)
         except Exception:
             st.info(f"Loaded {img2_file.name} (GeoTIFF/Multi-band Sensor Tile)")
 
 
 # --- Section 2: Query Specification ---
+st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 st.markdown("""
-<div class="section-header-tag">
-    <span>02 // QUERY SPECIFICATION & TASK ROUTING</span>
-    <span style="font-size: 0.72rem; color: var(--text-muted);">ORCHESTRATOR: GEMINI / HEURISTIC FALLBACK</span>
+<div>
+    <div class="ref-section-kicker">STEP 02 • DIRECTIVE & INSTRUCTION</div>
+    <div class="ref-section-title">Mission Instruction & Query</div>
+    <div class="ref-section-desc">Choose a pre-configured analysis template or enter custom natural language instructions.</div>
 </div>
 """, unsafe_allow_html=True)
 
 # Preset Technical Buttons
 col_p1, col_p2, col_p3 = st.columns(3, gap="small")
 with col_p1:
-    if st.button("[TASK: VQA // AIRCRAFT RECON]", key="preset_air", help="Target detection and runway inventory"):
+    if st.button("✈️  Aircraft Detection", key="preset_air", help="Target detection and runway inventory"):
         st.session_state.query_input_val = "Detect and count the aircraft parked at the airport terminals."
 with col_p2:
-    if st.button("[TASK: CAPTION // SURFACE BIOME]", key="preset_land", help="Macro land-cover and surface categorization"):
+    if st.button("🌲  Land Classification", key="preset_land", help="Macro land-cover and surface categorization"):
         st.session_state.query_input_val = "Identify the dominant land cover and vegetation types across this scene."
 with col_p3:
-    if st.button("[TASK: DELTA // BI-TEMPORAL CHANGE]", key="preset_change", help="Topological delta detection across epochs"):
+    if st.button("🔄  Change Analysis", key="preset_change", help="Topological delta detection across epochs"):
         st.session_state.query_input_val = "Compare both images and identify newly constructed buildings or infrastructure."
 
 # Query Input Field
 query_input = st.text_input(
     "Query Specification Input",
     value=st.session_state.query_input_val,
-    placeholder="ENTER NATURAL LANGUAGE DIRECTIVE OR MISSION QUERY (e.g. 'Assess shoreline erosion and detect infrastructure modifications')...",
+    placeholder="Enter your observation question (e.g. 'Detect and count aircraft', 'Identify newly constructed infrastructure')...",
     label_visibility="collapsed"
 )
 
 # Analyze Button
-st.markdown("<div style='height: 6px;'></div>", unsafe_allow_html=True)
-analyze_clicked = st.button("[ INITIATE INFERENCE & DISPATCH ORCHESTRATOR ]", type="primary", use_container_width=True)
+st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+analyze_clicked = st.button("⚡  Analyze Imagery & Orchestrate Pipeline", type="primary", use_container_width=True)
 
 # --- Analysis Execution ---
 if analyze_clicked:
