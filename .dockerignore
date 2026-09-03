@@ -1,0 +1,21 @@
+# .dockerignore
+.git
+.github
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.pytest_cache/
+*.db
+*.sqlite3
+.env
+.env.*
+!.env.example
+data/raw/uploads/*
+data/processed/reports/*
+docs/*.pdf
+tests/__pycache__
