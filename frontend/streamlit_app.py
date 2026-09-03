@@ -1457,6 +1457,7 @@ st.markdown(f"""
     }}
 
     /* Reference Footer Styles (Fully Responsive) */
+    /* Planet.com Reference Footer Styles */
     .ref-footer-wrap {{
         width: 100vw;
         position: relative;
@@ -1464,15 +1465,31 @@ st.markdown(f"""
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        background: var(--footer-bg);
-        border-top: 1px solid var(--footer-border);
-        padding: 48px 0 32px;
-        margin-top: 56px;
+        background: #060910;
+        border-top: 1px solid var(--border-color);
+        padding: 56px 0 32px;
+        margin-top: 64px;
+        overflow: hidden;
+        box-sizing: border-box;
+    }}
+    .footer-bg-orbital {{
+        position: absolute;
+        right: -50px;
+        bottom: -60px;
+        width: 520px;
+        height: 520px;
+        pointer-events: none;
+        opacity: 0.07;
+        z-index: 1;
+        color: #60A5FA;
     }}
     .ref-footer-inner {{
         max-width: 1260px;
         margin: 0 auto;
         padding: 0 2rem;
+        position: relative;
+        z-index: 2;
+        box-sizing: border-box;
     }}
     @media (max-width: 768px) {{
         .ref-footer-inner {{
@@ -1480,15 +1497,16 @@ st.markdown(f"""
         }}
     }}
     .ref-footer-strip {{
-        background: var(--hero-card-bg);
+        background: rgba(12, 17, 24, 0.85);
         border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 22px 24px;
+        border-radius: 12px;
+        padding: 20px 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin-bottom: 36px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        margin-bottom: 44px;
+        backdrop-filter: blur(8px);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
     }}
     @media (max-width: 768px) {{
         .ref-footer-strip {{
@@ -1510,64 +1528,116 @@ st.markdown(f"""
         padding: 8px 14px;
         width: 240px;
         outline: none;
+        transition: border-color 0.15s ease;
+    }}
+    .ref-footer-input:focus {{
+        border-color: var(--accent-primary);
     }}
     .ref-footer-grid {{
         display: grid;
-        grid-template-columns: 2fr 1fr 1fr 1.2fr;
-        gap: 36px;
-        margin-bottom: 28px;
+        grid-template-columns: 1.8fr 1fr 1fr 1.1fr 1.1fr;
+        gap: 32px;
+        margin-bottom: 32px;
     }}
-    @media (max-width: 920px) {{
+    @media (max-width: 1024px) {{
         .ref-footer-grid {{
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 24px !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 28px !important;
         }}
     }}
-    @media (max-width: 550px) {{
+    @media (max-width: 640px) {{
+        .ref-footer-grid {{
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 22px !important;
+        }}
+    }}
+    @media (max-width: 440px) {{
         .ref-footer-grid {{
             grid-template-columns: 1fr !important;
             gap: 20px !important;
         }}
     }}
     .ref-footer-col-title {{
-        font-family: 'Inter', sans-serif;
+        font-family: 'Inter', -apple-system, sans-serif;
         font-size: 0.72rem;
         font-weight: 700;
-        letter-spacing: 0.10em;
+        letter-spacing: 0.14em;
         text-transform: uppercase;
         color: var(--text-muted);
-        margin-bottom: 14px;
+        margin-bottom: 16px;
     }}
     .ref-footer-link {{
         display: block;
-        font-family: 'Inter', sans-serif;
-        font-size: 0.84rem;
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.85rem;
         color: var(--text-secondary);
         text-decoration: none;
-        margin-bottom: 9px;
-        transition: color 0.15s ease;
+        margin-bottom: 10px;
+        transition: color 0.15s ease, transform 0.15s ease;
     }}
     .ref-footer-link:hover {{
-        color: var(--accent-primary);
+        color: #60A5FA;
+        transform: translateX(2px);
     }}
     .ref-footer-divider {{
         height: 1px;
-        background: var(--border-color);
-        margin: 28px 0 20px;
+        background: var(--border-subtle);
+        margin: 36px 0 22px;
+        border: none;
     }}
     .ref-footer-bottom {{
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Inter', -apple-system, sans-serif;
         font-size: 0.80rem;
         color: var(--text-muted);
+        gap: 16px;
+        flex-wrap: wrap;
     }}
-    @media (max-width: 550px) {{
+    .ref-footer-legal {{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+    }}
+    .ref-footer-legal-link {{
+        color: var(--text-muted);
+        text-decoration: none;
+        transition: color 0.15s ease;
+    }}
+    .ref-footer-legal-link:hover {{
+        color: var(--text-primary);
+    }}
+    .ref-footer-socials {{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }}
+    .ref-footer-icon-btn {{
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid var(--border-color);
+        background: rgba(255, 255, 255, 0.03);
+        color: var(--text-secondary);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }}
+    .ref-footer-icon-btn:hover {{
+        border-color: #60A5FA;
+        color: #ffffff;
+        background: rgba(96, 165, 250, 0.12);
+        transform: translateY(-2px);
+    }}
+    @media (max-width: 680px) {{
         .ref-footer-bottom {{
             flex-direction: column !important;
-            gap: 10px !important;
-            text-align: center !important;
+            gap: 14px !important;
+            align-items: flex-start !important;
         }}
     }}
 </style>
@@ -2068,8 +2138,25 @@ except Exception as ex:
     st.caption(f"Telemetry database unavailable: {ex}")
 
 
-# --- Reference Product Footer ---
+# --- Reference Product Footer (Planet.com Reference Style) ---
 footer_html = f"""<div class="ref-footer-wrap">
+<!-- Subtle Wireframe Orbital Globe Graphic in Background -->
+<svg class="footer-bg-orbital" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+<circle cx="260" cy="260" r="210" stroke="currentColor" stroke-width="1" stroke-opacity="0.35" stroke-dasharray="2 6"/>
+<circle cx="260" cy="260" r="185" stroke="currentColor" stroke-width="1.2" stroke-opacity="0.6"/>
+<ellipse cx="260" cy="260" rx="185" ry="75" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
+<ellipse cx="260" cy="260" rx="185" ry="135" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
+<ellipse cx="260" cy="260" rx="75" ry="185" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
+<ellipse cx="260" cy="260" rx="135" ry="185" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
+<line x1="260" y1="75" x2="260" y2="445" stroke="currentColor" stroke-width="1" stroke-opacity="0.6"/>
+<line x1="75" y1="260" x2="445" y2="260" stroke="currentColor" stroke-width="1" stroke-opacity="0.6"/>
+<path d="M 40,360 C 100,100 420,60 480,260" stroke="currentColor" stroke-width="1.8" stroke-dasharray="6 5" stroke-opacity="0.85"/>
+<path d="M 120,470 C 200,320 340,160 410,30" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 6" stroke-opacity="0.6"/>
+<circle cx="345" cy="118" r="4.5" fill="#60A5FA"/>
+<circle cx="345" cy="118" r="9" stroke="#60A5FA" stroke-width="1" stroke-opacity="0.5"/>
+<line x1="333" y1="118" x2="357" y2="118" stroke="#60A5FA" stroke-width="1.4"/>
+<circle cx="210" cy="335" r="3" fill="#60A5FA" fill-opacity="0.7"/>
+</svg>
 <div class="ref-footer-inner">
 <div class="ref-footer-strip">
 <div style="display: flex; align-items: center; gap: 14px;">
@@ -2112,32 +2199,72 @@ Autonomous multimodal Earth Observation reasoning and deterministic audit trail 
 </div>
 </div>
 <div>
-<div class="ref-footer-col-title">PROJECT</div>
-<a href="#section-ingestion" class="ref-footer-link">How It Works</a>
-<a href="#section-ingestion" class="ref-footer-link">Ingestion Pipeline</a>
-<a href="#section-audit" class="ref-footer-link">State Machine Audit</a>
-<a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">Benchmarks & F1</a>
+<div class="ref-footer-col-title">CAPABILITIES</div>
+<a href="#section-ingestion" class="ref-footer-link">Visual Question Answering</a>
+<a href="#section-ingestion" class="ref-footer-link">Grounding & Captioning</a>
+<a href="#section-ingestion" class="ref-footer-link">Bi-Temporal Change</a>
+<a href="#section-ingestion" class="ref-footer-link">Optical-SAR Fusion</a>
+<a href="#section-audit" class="ref-footer-link">Audit Trail Verification</a>
 </div>
 <div>
-<div class="ref-footer-col-title">TEAM</div>
-<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">Team Debuggers Den</a>
-<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">About Project</a>
-<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">Source Repository</a>
-<a href="mailto:team@debuggersden.space" class="ref-footer-link">Direct Inquiries</a>
+<div class="ref-footer-col-title">MODELS & PIPELINE</div>
+<a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">GeoChat 7B Weights</a>
+<a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">EarthGPT Architecture</a>
+<a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">GeoLLaVA Vision Stack</a>
+<a href="#section-query" class="ref-footer-link">Deterministic Routing</a>
+<a href="#section-audit" class="ref-footer-link">Telemetry State Machine</a>
 </div>
 <div>
-<div class="ref-footer-col-title">RESOURCES</div>
-<a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">Documentation</a>
-<a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">API Reference</a>
+<div class="ref-footer-col-title">RESOURCES & DOCS</div>
+<a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">FastAPI Documentation</a>
+<a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">Swagger Interactive UI</a>
+<a href="#section-ingestion" class="ref-footer-link">Sensor Studio Workspace</a>
 <a href="{default_api_url}/health" target="_blank" class="ref-footer-link">System Health Bus</a>
 <a href="https://github.com/UditKumar0001/SATQUERY-AI/issues" target="_blank" class="ref-footer-link">Submit Feedback</a>
+</div>
+<div>
+<div class="ref-footer-col-title">TEAM & SUPPORT</div>
+<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">Team Debuggers Den</a>
+<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">Source Repository</a>
+<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">Architecture Guide</a>
+<a href="mailto:team@debuggersden.space" class="ref-footer-link">Direct Inquiries</a>
+<a href="https://github.com/UditKumar0001/SATQUERY-AI/issues" target="_blank" class="ref-footer-link">Report an Issue</a>
 </div>
 </div>
 <div class="ref-footer-divider"></div>
 <div class="ref-footer-bottom">
-<div>© 2026 Team Debuggers Den. All rights reserved.</div>
-<div style="display: flex; align-items: center; gap: 8px;">
-<span class="ref-hero-badge" style="margin-bottom: 0; padding: 3px 10px; font-size: 0.68rem;">✦ BUILT FOR ISRO</span>
+<div class="ref-footer-legal">
+<span>© 2026 Team Debuggers Den. All rights reserved.</span>
+<span style="opacity: 0.3;">|</span>
+<a href="#" class="ref-footer-legal-link">Privacy Policy</a>
+<span style="opacity: 0.3;">•</span>
+<a href="#" class="ref-footer-legal-link">Terms of Use</a>
+<span style="opacity: 0.3;">•</span>
+<a href="#" class="ref-footer-legal-link">Security Notice</a>
+<span style="opacity: 0.3;">•</span>
+<a href="#" class="ref-footer-legal-link">Sitemap</a>
+</div>
+<div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+<span class="ref-hero-badge" style="margin-bottom: 0; padding: 4px 12px; font-size: 0.70rem; letter-spacing: 0.08em;">✦ BUILT FOR ISRO</span>
+<div class="ref-footer-socials">
+<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-icon-btn" title="GitHub Repository">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
+</svg>
+</a>
+<a href="{default_api_url}/docs" target="_blank" class="ref-footer-icon-btn" title="API Documentation & Swagger">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<polyline points="16 18 22 12 16 6"></polyline>
+<polyline points="8 6 2 12 8 18"></polyline>
+</svg>
+</a>
+<a href="mailto:team@debuggersden.space" class="ref-footer-icon-btn" title="Engineering Contact">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+<rect width="20" height="16" x="2" y="4" rx="2"></rect>
+<path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path>
+</svg>
+</a>
+</div>
 </div>
 </div>
 </div>
