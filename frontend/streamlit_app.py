@@ -589,6 +589,151 @@ st.markdown(f"""
             align-items: flex-start;
             gap: 14px;
         }}
+    /* Planet.com Featured Highlight Cards (Hero Anchor Row) */
+    .planet-highlights-wrap {{
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        margin-top: -46px;
+        margin-bottom: 32px;
+        z-index: 15;
+        box-sizing: border-box;
+    }}
+    .planet-highlights-inner {{
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 0 2rem;
+        box-sizing: border-box;
+    }}
+    .planet-highlights-grid {{
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+    }}
+    .planet-feat-card {{
+        position: relative;
+        height: 210px;
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 16px;
+        text-decoration: none !important;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.45);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease, border-color 0.25s ease;
+        box-sizing: border-box;
+        cursor: pointer;
+    }}
+    .planet-feat-card:hover {{
+        transform: translateY(-5px);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.65);
+        filter: brightness(1.10);
+        border-color: rgba(255, 255, 255, 0.35);
+    }}
+    .card-optical {{
+        background: 
+            linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.45) 55%, rgba(3, 7, 18, 0.15) 100%),
+            radial-gradient(ellipse at 80% 20%, rgba(14, 165, 233, 0.75) 0%, rgba(5, 150, 105, 0.6) 50%, #064e3b 100%);
+    }}
+    .card-change {{
+        background: 
+            linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.45) 55%, rgba(3, 7, 18, 0.15) 100%),
+            linear-gradient(135deg, rgba(225, 29, 72, 0.75) 0%, rgba(159, 18, 57, 0.6) 45%, rgba(14, 116, 144, 0.75) 100%);
+    }}
+    .card-fusion {{
+        background: 
+            linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.45) 55%, rgba(3, 7, 18, 0.15) 100%),
+            radial-gradient(circle at 20% 30%, rgba(245, 158, 11, 0.75) 0%, rgba(120, 53, 15, 0.6) 50%, #1e1b4b 100%);
+    }}
+    .card-lora {{
+        background: 
+            linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.45) 55%, rgba(3, 7, 18, 0.15) 100%),
+            linear-gradient(135deg, rgba(147, 51, 234, 0.75) 0%, rgba(107, 33, 168, 0.6) 50%, rgba(30, 27, 75, 0.85) 100%);
+    }}
+    .planet-card-badge-row {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }}
+    .planet-card-tag {{
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.64rem;
+        font-weight: 700;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        backdrop-filter: blur(4px);
+    }}
+    .tag-cyan {{
+        background: rgba(14, 165, 233, 0.90);
+        color: #ffffff;
+        box-shadow: 0 0 8px rgba(14, 165, 233, 0.4);
+    }}
+    .tag-rose {{
+        background: rgba(244, 63, 94, 0.90);
+        color: #ffffff;
+        box-shadow: 0 0 8px rgba(244, 63, 94, 0.4);
+    }}
+    .tag-amber {{
+        background: rgba(245, 158, 11, 0.90);
+        color: #ffffff;
+        box-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+    }}
+    .tag-purple {{
+        background: rgba(168, 85, 247, 0.90);
+        color: #ffffff;
+        box-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+    }}
+    .planet-card-content {{
+        display: flex;
+        flex-direction: column;
+    }}
+    .planet-card-title {{
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: #ffffff;
+        margin: 0 0 4px;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+        letter-spacing: -0.01em;
+    }}
+    .planet-card-desc {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        color: #cbd5e1;
+        line-height: 1.4;
+        text-shadow: 0 1px 4px rgba(0, 0, 0, 0.85);
+    }}
+    @media (max-width: 960px) {{
+        .planet-highlights-wrap {{
+            margin-top: -24px;
+        }}
+        .planet-highlights-grid {{
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }}
+    }}
+    @media (max-width: 520px) {{
+        .planet-highlights-wrap {{
+            margin-top: -16px;
+        }}
+        .planet-highlights-inner {{
+            padding: 0 1rem;
+        }}
+        .planet-highlights-grid {{
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }}
+        .planet-feat-card {{
+            height: 170px;
+        }}
     }}
 
     /* Reference Style Stats Grid (4 Cards - Responsive) */
@@ -1447,6 +1592,53 @@ API Documentation ↗
 </div>"""
 
 st.markdown(hero_html, unsafe_allow_html=True)
+
+
+# --- Featured Highlight Cards (Planet.com Reference Row) ---
+highlights_html = f"""<div class="planet-highlights-wrap">
+<div class="planet-highlights-inner">
+<div class="planet-highlights-grid">
+<a href="#section-ingestion" class="planet-feat-card card-optical">
+<div class="planet-card-badge-row">
+<span class="planet-card-tag tag-cyan">TASK A</span>
+</div>
+<div class="planet-card-content">
+<div class="planet-card-title">VQA, Caption & Grounding</div>
+<div class="planet-card-desc">GeoChat • Visual QA, Scene Understanding & Coordinate Grounding</div>
+</div>
+</a>
+<a href="#section-ingestion" class="planet-feat-card card-change">
+<div class="planet-card-badge-row">
+<span class="planet-card-tag tag-rose">TASK B</span>
+</div>
+<div class="planet-card-content">
+<div class="planet-card-title">Bi-Temporal Change Analysis</div>
+<div class="planet-card-desc">GeoLLaVA • Multi-Epoch Topological & Infrastructure Delta</div>
+</div>
+</a>
+<a href="#section-ingestion" class="planet-feat-card card-fusion">
+<div class="planet-card-badge-row">
+<span class="planet-card-tag tag-amber">TASK C</span>
+</div>
+<div class="planet-card-content">
+<div class="planet-card-title">Optical-SAR Fusion</div>
+<div class="planet-card-desc">EarthGPT • Cross-Sensor Optical RGB & Radar Backscatter Reasoning</div>
+</div>
+</a>
+<a href="#section-audit" class="planet-feat-card card-lora">
+<div class="planet-card-badge-row">
+<span class="planet-card-tag tag-purple">FINE-TUNED</span>
+</div>
+<div class="planet-card-content">
+<div class="planet-card-title">LoRA on BigEarthNet</div>
+<div class="planet-card-desc">PEFT Adapters • Macro Land Cover Classification on Multispectral Bands</div>
+</div>
+</a>
+</div>
+</div>
+</div>"""
+
+st.markdown(highlights_html, unsafe_allow_html=True)
 
 
 # --- Reference Stats Bar (4 Metric Cards) ---
