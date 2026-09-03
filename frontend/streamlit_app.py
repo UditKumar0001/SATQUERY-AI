@@ -589,6 +589,8 @@ st.markdown(f"""
             align-items: flex-start;
             gap: 14px;
         }}
+    }}
+
     /* Planet.com Featured Highlight Cards (Hero Anchor Row) */
     .planet-highlights-wrap {{
         width: 100vw;
