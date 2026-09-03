@@ -8,7 +8,15 @@ from PIL import Image
 
 load_dotenv()
 
-API_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000")
+# Resolve default backend API URL from Streamlit Cloud Secrets, environment, or localhost
+default_api_url = "http://localhost:8000"
+try:
+    if hasattr(st, "secrets") and "BACKEND_API_URL" in st.secrets:
+        default_api_url = str(st.secrets["BACKEND_API_URL"]).rstrip("/")
+    elif os.getenv("BACKEND_API_URL"):
+        default_api_url = str(os.getenv("BACKEND_API_URL")).rstrip("/")
+except Exception:
+    default_api_url = os.getenv("BACKEND_API_URL", "http://localhost:8000").rstrip("/")
 
 st.set_page_config(
     page_title="SatQuery AI — Earth Observation Intelligence",
@@ -95,6 +103,13 @@ with st.sidebar:
     st.image("https://img.icons8.com/isometric/100/satellite.png", width=64)
     st.title("SatQuery AI")
     st.caption("Multi-Modal Earth Observation Orchestrator")
+
+    with st.expander("⚙️ Connection Settings", expanded=False):
+        API_URL = st.text_input(
+            "Backend API URL",
+            value=default_api_url,
+            help="Connect to local (http://localhost:8000) or remote Hugging Face Space / Render URL"
+        ).rstrip("/")
 
     st.divider()
     st.subheader("System Health")
