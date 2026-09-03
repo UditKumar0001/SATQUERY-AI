@@ -255,6 +255,10 @@ st.markdown(f"""
         padding-bottom: 3.5rem;
         padding-left: 2rem;
         padding-right: 2rem;
+        background-image: 
+            linear-gradient(to right, rgba(255, 255, 255, 0.016) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(255, 255, 255, 0.016) 1px, transparent 1px);
+        background-size: 36px 36px;
     }}
     @media (max-width: 768px) {{
         .main .block-container {{
@@ -1055,128 +1059,249 @@ st.markdown(f"""
     }}
 
     /* Section Titles and Card Headers */
+    /* NASA Eyes & Aceternity UI Mission-Control HUD Workflow Section */
+    .hud-step-header {{
+        position: relative;
+        margin-bottom: 24px;
+        padding-bottom: 12px;
+    }}
+    .hud-scanline {{
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 1px;
+        background: linear-gradient(90deg, #60A5FA 0%, #2dd4bf 30%, rgba(45, 212, 191, 0.15) 70%, transparent 100%);
+    }}
+    .hud-scanline::after {{
+        content: '';
+        position: absolute;
+        top: -1px;
+        left: 0;
+        width: 48px;
+        height: 3px;
+        background: #2dd4bf;
+        box-shadow: 0 0 8px #2dd4bf;
+    }}
     .ref-section-kicker {{
-        font-family: 'Inter', sans-serif;
-        font-size: 0.72rem;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.74rem;
         font-weight: 700;
-        letter-spacing: 0.10em;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: 4px;
+        color: #60A5FA;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }}
+    .hud-dot {{
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #2dd4bf;
+        box-shadow: 0 0 8px #2dd4bf;
+        display: inline-block;
+        animation: hudPulse 2.5s infinite;
+    }}
+    @keyframes hudPulse {{
+        0%, 100% {{ opacity: 1; transform: scale(1); }}
+        50% {{ opacity: 0.4; transform: scale(0.85); }}
+    }}
+    .hud-bracket {{
+        color: #2dd4bf;
+        font-weight: 800;
+    }}
+    .hud-step-num {{
+        color: #ffffff;
+        font-weight: 700;
     }}
     .ref-section-title {{
         font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: 1.45rem;
+        font-size: 1.55rem;
         font-weight: 700;
         color: var(--text-primary);
-        margin-bottom: 4px;
-        letter-spacing: -0.01em;
+        margin-bottom: 6px;
+        letter-spacing: -0.015em;
     }}
     .ref-section-desc {{
         font-family: 'Inter', sans-serif;
         font-size: 0.88rem;
         color: var(--text-secondary);
-        margin-bottom: 18px;
+        margin-bottom: 6px;
+        line-height: 1.5;
     }}
     .ref-card-header {{
         font-family: 'Inter', sans-serif;
         font-size: 0.95rem;
         font-weight: 600;
         color: var(--text-primary);
-        margin-bottom: 2px;
+        margin-bottom: 4px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }}
     .ref-card-desc {{
         font-family: 'Inter', sans-serif;
         font-size: 0.80rem;
         color: var(--text-secondary);
-        margin-bottom: 10px;
+        margin-bottom: 12px;
+        line-height: 1.45;
     }}
 
-    /* Reference File Uploader Cards */
+    /* Aceternity-Style Moving-Border Spotlight File Uploader Cards */
     [data-testid="stFileUploader"] section {{
-        background: var(--hero-card-bg) !important;
-        border: 1px dashed var(--border-color) !important;
-        border-radius: 10px !important;
-        padding: 24px 18px !important;
-        transition: all 0.2s ease !important;
+        background: rgba(10, 16, 26, 0.65) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border: 1px solid rgba(45, 212, 191, 0.25) !important;
+        border-radius: 12px !important;
+        padding: 26px 20px !important;
+        position: relative !important;
+        overflow: hidden !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.40), inset 0 0 0 1px rgba(255, 255, 255, 0.05) !important;
+        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }}
     [data-testid="stFileUploader"] section:hover {{
-        border-color: var(--accent-primary) !important;
-        box-shadow: 0 2px 10px rgba(37, 99, 235, 0.10) !important;
+        border-color: rgba(96, 165, 250, 0.70) !important;
+        background: rgba(13, 22, 38, 0.75) !important;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.60), 0 0 25px rgba(45, 212, 191, 0.20), inset 0 0 20px rgba(96, 165, 250, 0.10) !important;
+        transform: translateY(-2px);
     }}
     [data-testid="stFileUploader"] button {{
-        background: var(--btn-secondary-bg) !important;
-        color: var(--text-primary) !important;
-        border: 1px solid var(--border-color) !important;
+        background: rgba(15, 23, 42, 0.85) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(96, 165, 250, 0.35) !important;
         border-radius: 8px !important;
         font-family: 'Inter', sans-serif !important;
         font-size: 0.82rem !important;
         font-weight: 500 !important;
-        padding: 6px 14px !important;
-        transition: all 0.15s ease !important;
+        padding: 7px 16px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+        transition: all 0.2s ease !important;
     }}
     [data-testid="stFileUploader"] button:hover {{
-        border-color: var(--accent-primary) !important;
-        color: var(--accent-primary) !important;
+        border-color: #60A5FA !important;
+        color: #60A5FA !important;
+        background: rgba(30, 58, 138, 0.35) !important;
+        box-shadow: 0 0 12px rgba(96, 165, 250, 0.35) !important;
     }}
 
-    /* Reference Input Field */
-    [data-testid="stTextInput"] input {{
-        background: var(--bg-input) !important;
-        border: 1px solid var(--border-color) !important;
-        border-radius: 8px !important;
-        color: var(--text-primary) !important;
-        font-family: 'Inter', sans-serif !important;
-        font-size: 0.94rem !important;
-        padding: 12px 16px !important;
-        transition: border-color 0.15s ease !important;
-    }}
-    [data-testid="stTextInput"] input:focus {{
-        border-color: var(--accent-primary) !important;
-        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.20) !important;
-    }}
-
-    /* Reference Style Preset Chips */
+    /* Aceternity-Style Hover-Border-Gradient Preset Buttons */
     div[data-testid="stButton"] > button[kind="secondary"] {{
-        background: var(--hero-card-bg) !important;
-        color: var(--accent-primary) !important;
-        border: 1px solid var(--border-color) !important;
-        border-radius: 8px !important;
-        font-family: 'Inter', sans-serif !important;
+        background: rgba(13, 19, 33, 0.65) !important;
+        color: rgba(255, 255, 255, 0.85) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 10px !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
         font-size: 0.86rem !important;
         font-weight: 600 !important;
         letter-spacing: 0.01em !important;
         text-transform: none !important;
-        padding: 10px 16px !important;
+        padding: 11px 16px !important;
         width: 100% !important;
-        transition: all 0.2s ease !important;
-        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
     }}
     div[data-testid="stButton"] > button[kind="secondary"]:hover {{
-        background: var(--accent-primary) !important;
+        background: linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(15, 23, 42, 0.9)) !important;
         color: #ffffff !important;
-        border-color: var(--accent-primary) !important;
-        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
+        border-color: #2dd4bf !important;
+        transform: scale(1.02) translateY(-1px) !important;
+        box-shadow: 0 6px 20px rgba(45, 212, 191, 0.25), 0 0 15px rgba(96, 165, 250, 0.30) !important;
     }}
 
-    /* Reference Style Primary Action Button */
-    div[data-testid="stButton"] > button[kind="primary"] {{
-        background: var(--btn-primary-bg) !important;
-        color: var(--btn-primary-text) !important;
-        border: 1px solid transparent !important;
-        border-radius: 8px !important;
+    /* Aceternity-Style Glow Text Input Field */
+    [data-testid="stTextInput"] input {{
+        background: rgba(8, 14, 24, 0.80) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        border-radius: 10px !important;
+        color: #ffffff !important;
         font-family: 'Inter', sans-serif !important;
-        font-size: 0.96rem !important;
+        font-size: 0.94rem !important;
+        padding: 14px 18px !important;
+        backdrop-filter: blur(8px) !important;
+        -webkit-backdrop-filter: blur(8px) !important;
+        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45) !important;
+        transition: all 0.25s ease !important;
+    }}
+    [data-testid="stTextInput"] input:focus {{
+        border-color: #60A5FA !important;
+        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.20), 0 0 22px rgba(45, 212, 191, 0.20), inset 0 2px 6px rgba(0, 0, 0, 0.35) !important;
+        background: rgba(10, 18, 30, 0.95) !important;
+    }}
+
+    /* Aceternity-Style Animated Shimmering Primary Action Button */
+    div[data-testid="stButton"] > button[kind="primary"] {{
+        background: linear-gradient(135deg, #1D4ED8 0%, #0284C7 35%, #0D9488 70%, #1D4ED8 100%) !important;
+        background-size: 300% 300% !important;
+        animation: primaryBtnShimmer 5s ease infinite !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.25) !important;
+        border-radius: 10px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.98rem !important;
         font-weight: 600 !important;
         letter-spacing: 0.02em !important;
         text-transform: none !important;
-        padding: 14px 28px !important;
-        box-shadow: 0 2px 8px rgba(29, 111, 216, 0.35) !important;
-        transition: all 0.2s ease !important;
+        padding: 15px 30px !important;
+        box-shadow: 0 4px 24px rgba(2, 132, 199, 0.40), 0 0 30px rgba(13, 148, 136, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+        transition: all 0.25s ease !important;
+    }}
+    @keyframes primaryBtnShimmer {{
+        0% {{ background-position: 0% 50%; }}
+        50% {{ background-position: 100% 50%; }}
+        100% {{ background-position: 0% 50%; }}
     }}
     div[data-testid="stButton"] > button[kind="primary"]:hover {{
-        background: var(--btn-primary-hover) !important;
-        box-shadow: 0 4px 14px rgba(29, 111, 216, 0.45) !important;
+        transform: translateY(-2px) scale(1.008) !important;
+        box-shadow: 0 8px 32px rgba(2, 132, 199, 0.60), 0 0 45px rgba(13, 148, 136, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+    }}
+
+    /* NASA Eye Telemetry Status Cards */
+    .telemetry-status-card {{
+        background: rgba(12, 18, 28, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 12px;
+        padding: 18px 22px;
+        margin: 14px 0 20px;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    }}
+    .status-card-warn {{
+        border-left: 4px solid #f59e0b;
+        background: linear-gradient(90deg, rgba(245, 158, 11, 0.08) 0%, rgba(12, 18, 28, 0.75) 100%);
+    }}
+    .status-card-error {{
+        border-left: 4px solid #ef4444;
+        background: linear-gradient(90deg, rgba(239, 68, 68, 0.08) 0%, rgba(12, 18, 28, 0.75) 100%);
+    }}
+    .telemetry-status-icon-warn {{
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: rgba(245, 158, 11, 0.15);
+        border: 1px solid rgba(245, 158, 11, 0.30);
+        color: #f59e0b;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }}
+    .telemetry-status-icon-error {{
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.15);
+        border: 1px solid rgba(239, 68, 68, 0.30);
+        color: #ef4444;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
     }}
 
     /* LED Indicators */
@@ -1916,10 +2041,11 @@ st.markdown(f"""
 
 # --- Section 1: Ingestion ---
 st.markdown("""
-<div id="section-ingestion">
-    <div class="ref-section-kicker">STEP 01 • SENSOR INGESTION</div>
+<div id="section-ingestion" class="hud-step-header">
+    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">01</span> <span class="hud-bracket">]</span> • SENSOR INGESTION</div>
     <div class="ref-section-title">Imagery Ingestion</div>
     <div class="ref-section-desc">Upload primary observation imagery and an optional secondary or temporal tile for multi-modal analysis.</div>
+    <div class="hud-scanline"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1927,7 +2053,7 @@ col_up1, col_up2 = st.columns(2, gap="large")
 
 with col_up1:
     st.markdown("""
-    <div class="ref-card-header">Tile A — Primary Observation</div>
+    <div class="ref-card-header"><span style="color: #60A5FA;">✦</span> Tile A — Primary Observation</div>
     <div class="ref-card-desc">High-resolution optical raster tile, multispectral band, or base SAR backscatter (GeoTIFF, PNG, JPG).</div>
     """, unsafe_allow_html=True)
     img1_file = st.file_uploader(
@@ -1945,7 +2071,7 @@ with col_up1:
 
 with col_up2:
     st.markdown("""
-    <div class="ref-card-header">Tile B — Secondary / Temporal Pair (Optional)</div>
+    <div class="ref-card-header"><span style="color: #2dd4bf;">✦</span> Tile B — Secondary / Temporal Pair (Optional)</div>
     <div class="ref-card-desc">Post-event comparative tile for change detection or co-registered SAR for cross-sensor fusion.</div>
     """, unsafe_allow_html=True)
     img2_file = st.file_uploader(
@@ -1965,10 +2091,11 @@ with col_up2:
 # --- Section 2: Query Specification ---
 st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 st.markdown("""
-<div>
-    <div class="ref-section-kicker">STEP 02 • DIRECTIVE & INSTRUCTION</div>
+<div class="hud-step-header">
+    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">02</span> <span class="hud-bracket">]</span> • DIRECTIVE & INSTRUCTION</div>
     <div class="ref-section-title">Mission Instruction & Query</div>
     <div class="ref-section-desc">Choose a pre-configured analysis template or enter custom natural language instructions.</div>
+    <div class="hud-scanline"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -2099,10 +2226,11 @@ if analyze_clicked:
 # --- Section 3: History & Audit Log ---
 st.markdown("<div style='height: 32px;'></div>", unsafe_allow_html=True)
 st.markdown("""
-<div id="section-audit">
-    <div class="ref-section-kicker">STEP 03 • TELEMETRY AUDIT</div>
+<div id="section-audit" class="hud-step-header">
+    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">03</span> <span class="hud-bracket">]</span> • TELEMETRY AUDIT</div>
     <div class="ref-section-title">Recent Queries & Audit Log</div>
     <div class="ref-section-desc">Historical pipeline execution records, verified task traces, and generated PDF audit reports.</div>
+    <div class="hud-scanline"></div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -2148,9 +2276,51 @@ try:
                         st.link_button("📄 PDF Report", f"{API_URL}/report/{qid}", use_container_width=True)
                 st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     else:
-        st.caption(f"Audit log communication fault (HTTP {hist_resp.status_code})")
+        st.markdown(f"""
+        <div class="telemetry-status-card status-card-warn">
+            <div style="display: flex; align-items: flex-start; gap: 14px;">
+                <div class="telemetry-status-icon-warn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                        <line x1="12" y1="9" x2="12" y2="13"/>
+                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                    </svg>
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-family: 'Space Grotesk', sans-serif; font-size: 0.96rem; font-weight: 700; color: #f59e0b; letter-spacing: 0.02em;">
+                        TELEMETRY BUS DEGRADED (HTTP {hist_resp.status_code})
+                    </div>
+                    <div style="font-family: 'Inter', sans-serif; font-size: 0.84rem; color: var(--text-secondary); margin-top: 3px;">
+                        The audit bus returned a non-200 status code while querying the execution log.
+                    </div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 except Exception as ex:
-    st.caption(f"Telemetry database unavailable: {ex}")
+    st.markdown(f"""
+    <div class="telemetry-status-card status-card-warn">
+        <div style="display: flex; align-items: flex-start; gap: 14px;">
+            <div class="telemetry-status-icon-warn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+            </div>
+            <div style="flex: 1;">
+                <div style="font-family: 'Space Grotesk', sans-serif; font-size: 0.96rem; font-weight: 700; color: #f59e0b; letter-spacing: 0.02em;">
+                    TELEMETRY CONNECTION STANDBY
+                </div>
+                <div style="font-family: 'Inter', sans-serif; font-size: 0.84rem; color: var(--text-secondary); margin-top: 3px;">
+                    Audit database daemon is currently initializing or awaiting live query telemetry dispatch.
+                </div>
+            </div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    with st.expander("Telemetry Diagnostics Detail", expanded=False):
+        st.code(f"Daemon trace: {ex}", language="bash")
 
 
 # --- Reference Product Footer (Planet.com Reference Style) ---
