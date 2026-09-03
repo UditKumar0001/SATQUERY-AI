@@ -9,6 +9,14 @@ if repo_root not in sys.path:
     sys.path.insert(0, repo_root)
 
 # Mock external ML/LLM packages if not installed in current test environment
+if "rasterio" not in sys.modules:
+    try:
+        import rasterio
+    except ImportError:
+        mock_r = MagicMock()
+        mock_r.open.side_effect = Exception("Rasterio unavailable")
+        sys.modules["rasterio"] = mock_r
+
 for mod in ["google", "google.generativeai", "torch", "transformers", "langchain_core", "langgraph"]:
     if mod not in sys.modules:
         try:
