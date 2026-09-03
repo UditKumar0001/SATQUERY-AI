@@ -482,28 +482,28 @@ st.markdown(f"""
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        min-height: 84vh;
+        height: 100vh;
+        min-height: 100vh;
         background-color: #020409;
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        justify-content: space-between;
-        padding: 86px 0 36px !important;
+        justify-content: flex-start;
+        padding: 96px 0 36px !important;
         margin-top: 0 !important;
-        margin-bottom: 40px;
+        margin-bottom: 0 !important;
         border-bottom: 1px solid var(--border-color);
         box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.90);
         box-sizing: border-box;
     }}
     .nasa-hero-video {{
         position: absolute;
-        top: 50%;
-        left: 50%;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
         min-width: 100%;
         min-height: 100%;
-        width: auto;
-        height: auto;
-        transform: translate(-50%, -50%);
         object-fit: cover;
         z-index: 1;
         opacity: 0.92;
@@ -682,8 +682,9 @@ st.markdown(f"""
     }}
     @media (max-width: 500px) {{
         .nasa-hero-wrap {{
-            min-height: 68vh;
-            padding: 28px 0 20px;
+            height: auto;
+            min-height: 100vh;
+            padding: 80px 0 24px !important;
         }}
         .nasa-hero-inner {{
             padding: 0 0.85rem !important;
@@ -712,7 +713,8 @@ st.markdown(f"""
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        margin-top: -46px;
+        margin-top: 0 !important;
+        padding-top: 24px;
         margin-bottom: 32px;
         z-index: 15;
         box-sizing: border-box;
