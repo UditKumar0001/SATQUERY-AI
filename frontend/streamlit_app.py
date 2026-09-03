@@ -25,69 +25,216 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- Custom Styling & Visual Identity ---
-st.markdown("""
+# --- Session State Management ---
+if "theme" not in st.session_state:
+    st.session_state.theme = "dark"
+
+if "query_input_val" not in st.session_state:
+    st.session_state.query_input_val = ""
+
+# --- Theme Definitions ---
+is_dark = (st.session_state.theme == "dark")
+
+theme_vars = {
+    "dark": {
+        "bg_app": "radial-gradient(circle at 15% 15%, #0d1527 0%, #060913 75%, #03050a 100%)",
+        "text_main": "#f1f5f9",
+        "text_sub": "#94a3b8",
+        "text_dim": "#64748b",
+        "card_bg": "rgba(12, 20, 39, 0.65)",
+        "card_border": "rgba(56, 189, 248, 0.18)",
+        "nav_bg": "rgba(7, 11, 22, 0.88)",
+        "nav_border": "rgba(56, 189, 248, 0.15)",
+        "sidebar_bg": "#070b16",
+        "sidebar_border": "rgba(56, 189, 248, 0.12)",
+        "input_bg": "rgba(12, 20, 39, 0.85)",
+        "input_border": "rgba(56, 189, 248, 0.22)",
+        "accent": "#00f0ff",
+        "accent_gradient": "linear-gradient(135deg, #0284c7 0%, #06b6d4 50%, #00f0ff 100%)",
+        "btn_text": "#030712",
+        "hero_gradient": "linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)",
+        "hero_border": "rgba(56, 189, 248, 0.2)",
+        "footer_bg": "rgba(7, 11, 22, 0.9)",
+        "footer_border": "rgba(56, 189, 248, 0.15)",
+        "divider_color": "rgba(56, 189, 248, 0.18)",
+        "metric_bg": "rgba(15, 23, 42, 0.55)",
+    },
+    "light": {
+        "bg_app": "radial-gradient(circle at 15% 15%, #f0f9ff 0%, #f8fafc 70%, #f1f5f9 100%)",
+        "text_main": "#0f172a",
+        "text_sub": "#475569",
+        "text_dim": "#94a3b8",
+        "card_bg": "#ffffff",
+        "card_border": "rgba(2, 132, 199, 0.2)",
+        "nav_bg": "rgba(255, 255, 255, 0.9)",
+        "nav_border": "rgba(2, 132, 199, 0.18)",
+        "sidebar_bg": "#f8fafc",
+        "sidebar_border": "rgba(2, 132, 199, 0.15)",
+        "input_bg": "#ffffff",
+        "input_border": "rgba(2, 132, 199, 0.3)",
+        "accent": "#0284c7",
+        "accent_gradient": "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
+        "btn_text": "#ffffff",
+        "hero_gradient": "linear-gradient(135deg, rgba(224, 242, 254, 0.6) 0%, #ffffff 100%)",
+        "hero_border": "rgba(2, 132, 199, 0.25)",
+        "footer_bg": "rgba(248, 250, 252, 0.95)",
+        "footer_border": "rgba(2, 132, 199, 0.18)",
+        "divider_color": "rgba(2, 132, 199, 0.2)",
+        "metric_bg": "#ffffff",
+    }
+}
+
+active_theme = theme_vars["dark" if is_dark else "light"]
+
+# --- Custom Styling via CSS Variables ---
+st.markdown(f"""
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-    /* Global Typography & Deep Space Canvas */
-    html, body, [class*="css"] {
-        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-    
-    .stApp {
-        background: radial-gradient(circle at 15% 15%, #0d1527 0%, #060913 75%, #03050a 100%);
-        color: #f1f5f9;
-    }
+    :root {{
+        --bg-app: {active_theme['bg_app']};
+        --text-main: {active_theme['text_main']};
+        --text-sub: {active_theme['text_sub']};
+        --text-dim: {active_theme['text_dim']};
+        --card-bg: {active_theme['card_bg']};
+        --card-border: {active_theme['card_border']};
+        --nav-bg: {active_theme['nav_bg']};
+        --nav-border: {active_theme['nav_border']};
+        --sidebar-bg: {active_theme['sidebar_bg']};
+        --sidebar-border: {active_theme['sidebar_border']};
+        --input-bg: {active_theme['input_bg']};
+        --input-border: {active_theme['input_border']};
+        --accent: {active_theme['accent']};
+        --accent-gradient: {active_theme['accent_gradient']};
+        --btn-text: {active_theme['btn_text']};
+        --hero-gradient: {active_theme['hero_gradient']};
+        --hero-border: {active_theme['hero_border']};
+        --footer-bg: {active_theme['footer_bg']};
+        --footer-border: {active_theme['footer_border']};
+        --divider-color: {active_theme['divider_color']};
+        --metric-bg: {active_theme['metric_bg']};
+    }}
 
-    /* Container Max Width & Spacing */
-    .main .block-container {
-        max-width: 1280px;
-        padding-top: 1.8rem;
-        padding-bottom: 5rem;
-        padding-left: 2.5rem;
-        padding-right: 2.5rem;
-    }
+    /* Global Base */
+    html, body, [class*="css"] {{
+        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+    }}
+    
+    .stApp {{
+        background: var(--bg-app);
+        color: var(--text-main);
+    }}
+
+    /* Container Max Width & Clean Centering */
+    .main .block-container {{
+        max-width: 1240px;
+        padding-top: 1rem;
+        padding-bottom: 3rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+    }}
+
+    /* Sticky Top Navigation Bar */
+    .top-nav-bar {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--nav-bg);
+        border: 1px solid var(--nav-border);
+        border-radius: 14px;
+        padding: 12px 20px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(16px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, {'0.3' if is_dark else '0.06'});
+        position: sticky;
+        top: 12px;
+        z-index: 100;
+    }}
+
+    .nav-brand {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        color: var(--text-main);
+    }}
+    .nav-brand-title {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.15rem;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+        background: linear-gradient(135deg, var(--text-main) 0%, var(--accent) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }}
+    .nav-badge {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        padding: 2px 7px;
+        border-radius: 9999px;
+        background: rgba(14, 165, 233, 0.12);
+        color: var(--accent);
+        border: 1px solid rgba(14, 165, 233, 0.3);
+    }}
+
+    .nav-links {{
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }}
+    .nav-link-item {{
+        color: var(--text-sub);
+        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 500;
+        transition: color 0.15s ease;
+    }}
+    .nav-link-item:hover {{
+        color: var(--accent);
+    }}
 
     /* Sidebar Glassmorphic Treatment */
-    [data-testid="stSidebar"] {
-        background-color: #070b16 !important;
-        border-right: 1px solid rgba(56, 189, 248, 0.12) !important;
-    }
-    [data-testid="stSidebar"] .block-container {
+    [data-testid="stSidebar"] {{
+        background-color: var(--sidebar-bg) !important;
+        border-right: 1px solid var(--sidebar-border) !important;
+    }}
+    [data-testid="stSidebar"] .block-container {{
         padding-top: 2rem;
         padding-left: 1.5rem;
         padding-right: 1.5rem;
-    }
+    }}
 
-    /* Headings Hierarchy */
-    h1, h2, h3, .heading-font {
+    /* Headings */
+    h1, h2, h3 {{
         font-family: 'Space Grotesk', sans-serif !important;
         letter-spacing: -0.02em;
-    }
+        color: var(--text-main) !important;
+    }}
 
-    /* Hero Banner Styling */
-    .hero-banner {
-        background: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%);
-        border: 1px solid rgba(56, 189, 248, 0.2);
+    /* Hero Banner */
+    .hero-banner {{
+        background: var(--hero-gradient);
+        border: 1px solid var(--hero-border);
         border-radius: 16px;
         padding: 28px 32px;
-        margin-bottom: 32px;
+        margin-bottom: 28px;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
-    }
-    .hero-banner::before {
+        box-shadow: 0 8px 32px rgba(0, 0, 0, {'0.35' if is_dark else '0.06'});
+    }}
+    .hero-banner::before {{
         content: "";
         position: absolute;
         top: -60px;
         right: -60px;
         width: 220px;
         height: 220px;
-        background: radial-gradient(circle, rgba(0, 240, 255, 0.18) 0%, rgba(0,0,0,0) 70%);
+        background: radial-gradient(circle, rgba(14, 165, 233, 0.16) 0%, rgba(0,0,0,0) 70%);
         pointer-events: none;
-    }
-    .hero-tag {
+    }}
+    .hero-tag {{
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -96,114 +243,114 @@ st.markdown("""
         font-weight: 600;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #00f0ff;
-        background: rgba(0, 240, 255, 0.1);
-        border: 1px solid rgba(0, 240, 255, 0.3);
+        color: var(--accent);
+        background: rgba(14, 165, 233, 0.1);
+        border: 1px solid rgba(14, 165, 233, 0.3);
         padding: 4px 10px;
         border-radius: 9999px;
         margin-bottom: 12px;
-    }
-    .hero-title {
-        font-size: 2.35rem;
+    }}
+    .hero-title {{
+        font-size: 2.25rem;
         font-weight: 700;
         line-height: 1.15;
         margin: 0 0 10px 0;
-        background: linear-gradient(135deg, #ffffff 0%, #e0f2fe 50%, #38bdf8 100%);
+        background: linear-gradient(135deg, var(--text-main) 0%, var(--accent) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-    }
-    .hero-desc {
-        color: #94a3b8;
-        font-size: 1.05rem;
+    }}
+    .hero-desc {{
+        color: var(--text-sub);
+        font-size: 1.02rem;
         line-height: 1.5;
         max-width: 820px;
         margin: 0;
-    }
+    }}
 
-    /* Section Cards */
-    .section-card {
-        background: rgba(12, 20, 39, 0.65);
-        border: 1px solid rgba(255, 255, 255, 0.07);
-        border-radius: 14px;
-        padding: 22px;
-        margin-bottom: 24px;
-        backdrop-filter: blur(16px);
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
-        transition: border-color 0.2s ease;
-    }
-    .section-card:hover {
-        border-color: rgba(56, 189, 248, 0.25);
-    }
-    .section-header {
-        font-size: 1.05rem;
+    /* Section Divider with Accent Glow */
+    .section-divider {{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        margin: 36px 0 20px 0;
+    }}
+    .section-divider-line {{
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, rgba(14, 165, 233, 0.25) 0%, rgba(14, 165, 233, 0.05) 100%);
+    }}
+    .section-divider-line.right {{
+        background: linear-gradient(270deg, rgba(14, 165, 233, 0.25) 0%, rgba(14, 165, 233, 0.05) 100%);
+    }}
+    .section-divider-badge {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.98rem;
         font-weight: 600;
-        color: #e2e8f0;
-        margin-bottom: 14px;
+        color: var(--text-main);
         display: flex;
         align-items: center;
         gap: 8px;
-    }
+    }}
 
     /* File Uploader Custom Aesthetics */
-    [data-testid="stFileUploader"] section {
-        background: rgba(15, 23, 42, 0.6) !important;
-        border: 1px dashed rgba(56, 189, 248, 0.28) !important;
+    [data-testid="stFileUploader"] section {{
+        background: var(--card-bg) !important;
+        border: 1px dashed var(--input-border) !important;
         border-radius: 12px !important;
         padding: 16px !important;
         transition: all 0.2s ease-in-out !important;
-    }
-    [data-testid="stFileUploader"] section:hover {
-        border-color: #00f0ff !important;
-        background: rgba(15, 23, 42, 0.85) !important;
-        box-shadow: 0 0 18px rgba(0, 240, 255, 0.12) !important;
-    }
-    [data-testid="stFileUploader"] button {
-        background: rgba(30, 41, 59, 0.8) !important;
-        color: #f8fafc !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }}
+    [data-testid="stFileUploader"] section:hover {{
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 18px rgba(14, 165, 233, 0.15) !important;
+    }}
+    [data-testid="stFileUploader"] button {{
+        background: var(--input-bg) !important;
+        color: var(--text-main) !important;
+        border: 1px solid var(--card-border) !important;
         border-radius: 8px !important;
         font-weight: 500 !important;
-    }
+    }}
 
     /* Input Field Styling */
-    [data-testid="stTextInput"] input {
-        background: rgba(12, 20, 39, 0.85) !important;
-        border: 1px solid rgba(56, 189, 248, 0.22) !important;
+    [data-testid="stTextInput"] input {{
+        background: var(--input-bg) !important;
+        border: 1px solid var(--input-border) !important;
         border-radius: 10px !important;
-        color: #f8fafc !important;
+        color: var(--text-main) !important;
         font-size: 0.95rem !important;
         padding: 12px 14px !important;
         transition: all 0.2s ease !important;
-    }
-    [data-testid="stTextInput"] input:focus {
-        border-color: #00f0ff !important;
-        box-shadow: 0 0 14px rgba(0, 240, 255, 0.2) !important;
-    }
+    }}
+    [data-testid="stTextInput"] input:focus {{
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 14px rgba(14, 165, 233, 0.22) !important;
+    }}
 
-    /* Preset Chips (Secondary Buttons) */
-    div[data-testid="stButton"] > button[kind="secondary"] {
-        background: rgba(15, 23, 42, 0.75) !important;
-        border: 1px solid rgba(56, 189, 248, 0.25) !important;
+    /* Preset Chips */
+    div[data-testid="stButton"] > button[kind="secondary"] {{
+        background: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
         border-radius: 9999px !important;
-        color: #cbd5e1 !important;
+        color: var(--text-sub) !important;
         font-size: 0.82rem !important;
         font-weight: 500 !important;
         padding: 6px 14px !important;
         transition: all 0.2s ease !important;
         width: 100% !important;
-    }
-    div[data-testid="stButton"] > button[kind="secondary"]:hover {
-        background: rgba(14, 165, 233, 0.15) !important;
-        border-color: #00f0ff !important;
-        color: #ffffff !important;
+    }}
+    div[data-testid="stButton"] > button[kind="secondary"]:hover {{
+        background: rgba(14, 165, 233, 0.12) !important;
+        border-color: var(--accent) !important;
+        color: var(--text-main) !important;
         transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0, 240, 255, 0.18);
-    }
+        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.18);
+    }}
 
     /* Primary Action Button (Analyze Imagery) */
-    div[data-testid="stButton"] > button[kind="primary"] {
-        background: linear-gradient(135deg, #0284c7 0%, #06b6d4 50%, #00f0ff 100%) !important;
-        color: #030712 !important;
+    div[data-testid="stButton"] > button[kind="primary"] {{
+        background: var(--accent_gradient) !important;
+        color: var(--btn-text) !important;
         font-family: 'Space Grotesk', sans-serif !important;
         font-size: 1.05rem !important;
         font-weight: 700 !important;
@@ -211,20 +358,20 @@ st.markdown("""
         border: none !important;
         border-radius: 12px !important;
         padding: 14px 28px !important;
-        box-shadow: 0 6px 24px rgba(0, 240, 255, 0.35) !important;
+        box-shadow: 0 6px 24px rgba(14, 165, 233, 0.35) !important;
         transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    }
-    div[data-testid="stButton"] > button[kind="primary"]:hover {
+    }}
+    div[data-testid="stButton"] > button[kind="primary"]:hover {{
         transform: translateY(-2px) scale(1.008);
-        box-shadow: 0 8px 30px rgba(0, 240, 255, 0.5) !important;
-        filter: brightness(1.08);
-    }
-    div[data-testid="stButton"] > button[kind="primary"]:active {
+        box-shadow: 0 8px 30px rgba(14, 165, 233, 0.5) !important;
+        filter: brightness(1.06);
+    }}
+    div[data-testid="stButton"] > button[kind="primary"]:active {{
         transform: translateY(1px);
-    }
+    }}
 
     /* Status Badges */
-    .status-badge {
+    .status-badge {{
         display: inline-flex;
         align-items: center;
         gap: 6px;
@@ -235,108 +382,156 @@ st.markdown("""
         letter-spacing: 0.03em;
         text-transform: uppercase;
         font-family: 'JetBrains Mono', monospace;
-    }
-    .status-badge-cyan {
+    }}
+    .status-badge-cyan {{
         background: rgba(6, 182, 212, 0.15);
-        color: #22d3ee;
+        color: var(--accent);
         border: 1px solid rgba(6, 182, 212, 0.35);
-    }
-    .status-badge-emerald {
+    }}
+    .status-badge-emerald {{
         background: rgba(16, 185, 129, 0.15);
-        color: #34d399;
+        color: #10b981;
         border: 1px solid rgba(16, 185, 129, 0.35);
-    }
-    .status-badge-amber {
+    }}
+    .status-badge-amber {{
         background: rgba(245, 158, 11, 0.15);
-        color: #fbbf24;
+        color: #f59e0b;
         border: 1px solid rgba(245, 158, 11, 0.35);
-    }
-    .status-badge-rose {
+    }}
+    .status-badge-rose {{
         background: rgba(244, 63, 94, 0.15);
-        color: #fb7185;
+        color: #f43f5e;
         border: 1px solid rgba(244, 63, 94, 0.35);
-    }
+    }}
 
     /* Pulsing Indicator Dot */
-    .pulse-dot {
+    .pulse-dot {{
         width: 8px;
         height: 8px;
         border-radius: 50%;
         display: inline-block;
-    }
-    .pulse-green {
+    }}
+    .pulse-green {{
         background-color: #10b981;
         box-shadow: 0 0 8px #10b981;
-    }
-    .pulse-red {
+    }}
+    .pulse-red {{
         background-color: #f43f5e;
         box-shadow: 0 0 8px #f43f5e;
-    }
+    }}
 
     /* KPI Metrics Boxes */
-    [data-testid="stMetric"] {
-        background: rgba(15, 23, 42, 0.55);
-        border: 1px solid rgba(255, 255, 255, 0.08);
+    [data-testid="stMetric"] {{
+        background: var(--metric-bg);
+        border: 1px solid var(--card-border);
         border-radius: 12px;
         padding: 14px 18px;
         backdrop-filter: blur(10px);
-    }
-    [data-testid="stMetricLabel"] {
-        color: #94a3b8 !important;
+    }}
+    [data-testid="stMetricLabel"] {{
+        color: var(--text-sub) !important;
         font-size: 0.78rem !important;
         letter-spacing: 0.06em !important;
         text-transform: uppercase !important;
-    }
-    [data-testid="stMetricValue"] {
+    }}
+    [data-testid="stMetricValue"] {{
         font-family: 'Space Grotesk', sans-serif !important;
-        color: #00f0ff !important;
+        color: var(--accent) !important;
         font-size: 1.7rem !important;
         font-weight: 700 !important;
-    }
+    }}
 
     /* Result Card Display */
-    .result-box {
-        background: linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(8, 14, 28, 0.95) 100%);
-        border: 1px solid rgba(56, 189, 248, 0.3);
+    .result-box {{
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
         border-radius: 14px;
         padding: 22px;
         margin: 18px 0;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-    }
-    .result-text {
+        box-shadow: 0 8px 30px rgba(0, 0, 0, {'0.35' if is_dark else '0.06'});
+    }}
+    .result-text {{
         font-size: 1.05rem;
         line-height: 1.65;
-        color: #f8fafc;
-    }
+        color: var(--text-main);
+    }}
 
     /* Expanders & Accordions */
-    div[data-testid="stExpander"] {
-        background: rgba(12, 20, 39, 0.5) !important;
-        border: 1px solid rgba(255, 255, 255, 0.07) !important;
+    div[data-testid="stExpander"] {{
+        background: var(--card-bg) !important;
+        border: 1px solid var(--card-border) !important;
         border-radius: 12px !important;
         margin-bottom: 12px !important;
-    }
-    div[data-testid="stExpander"] > details > summary {
-        color: #e2e8f0 !important;
+    }}
+    div[data-testid="stExpander"] > details > summary {{
+        color: var(--text-main) !important;
         font-weight: 500 !important;
-    }
+    }}
+
+    /* Footer Container */
+    .footer-container {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--footer-bg);
+        border-top: 1px solid var(--footer-border);
+        border-radius: 14px;
+        padding: 20px 24px;
+        margin-top: 48px;
+        backdrop-filter: blur(12px);
+    }}
+    .footer-link {{
+        color: var(--text-sub);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        margin-left: 18px;
+        transition: color 0.15s ease;
+    }}
+    .footer-link:hover {{
+        color: var(--accent);
+    }}
 </style>
 """, unsafe_allow_html=True)
 
 
-# --- State Management for Preset Prompts ---
-if "query_input_val" not in st.session_state:
-    st.session_state.query_input_val = ""
+# --- Sticky Top Navigation Bar ---
+nav_left, nav_right = st.columns([3, 2])
+
+with nav_left:
+    st.markdown("""
+    <div style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
+        <img src="https://img.icons8.com/isometric/100/satellite.png" width="30"/>
+        <span class="nav-brand-title">SatQuery AI</span>
+        <span class="nav-badge">v1.0 ORCHESTRATOR</span>
+    </div>
+    """, unsafe_allow_html=True)
+
+with nav_right:
+    btn_col1, btn_col2, btn_col3, btn_col4 = st.columns([1, 1, 1, 0.8])
+    with btn_col1:
+        st.markdown('<div style="padding-top: 8px; text-align: center;"><a href="#imagery-ingestion" class="nav-link-item">Studio</a></div>', unsafe_allow_html=True)
+    with btn_col2:
+        st.markdown('<div style="padding-top: 8px; text-align: center;"><a href="#audit-log" class="nav-link-item">Audit</a></div>', unsafe_allow_html=True)
+    with btn_col3:
+        st.markdown(f'<div style="padding-top: 8px; text-align: center;"><a href="{default_api_url}/docs" target="_blank" class="nav-link-item">Docs ↗</a></div>', unsafe_allow_html=True)
+    with btn_col4:
+        theme_icon = "☀️ Light" if is_dark else "🌙 Dark"
+        if st.button(theme_icon, key="theme_toggle_btn", help="Switch between Dark and Light mode"):
+            st.session_state.theme = "light" if is_dark else "dark"
+            st.rerun()
+
+st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
 
 # --- Sidebar: System Diagnostics & Health ---
 with st.sidebar:
     st.markdown("""
     <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-        <img src="https://img.icons8.com/isometric/100/satellite.png" width="46"/>
+        <img src="https://img.icons8.com/isometric/100/satellite.png" width="44"/>
         <div>
-            <h2 style="font-size: 1.35rem; margin: 0; color: #ffffff;">SatQuery AI</h2>
-            <div style="font-size: 0.72rem; color: #00f0ff; letter-spacing: 0.08em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;">EO Orchestrator</div>
+            <h2 style="font-size: 1.3rem; margin: 0;">SatQuery AI</h2>
+            <div style="font-size: 0.72rem; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;">EO Orchestrator</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -348,7 +543,7 @@ with st.sidebar:
             help="Connect to local (http://localhost:8000) or remote Hugging Face Space / Render URL"
         ).rstrip("/")
 
-    st.markdown("<div style='margin-top: 14px; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em;'>System Health</div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 14px; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em;'>System Health</div>", unsafe_allow_html=True)
     
     try:
         health_resp = requests.get(f"{API_URL}/health", timeout=3)
@@ -357,7 +552,7 @@ with st.sidebar:
             st.markdown("""
             <div style="display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px;">
                 <span class="pulse-dot pulse-green"></span>
-                <span style="color: #34d399; font-size: 0.85rem; font-weight: 600;">API Connected & Ready</span>
+                <span style="color: #10b981; font-size: 0.85rem; font-weight: 600;">API Connected & Ready</span>
             </div>
             """, unsafe_allow_html=True)
             
@@ -377,14 +572,14 @@ with st.sidebar:
             st.markdown(f"""
             <div style="display: flex; align-items: center; gap: 8px; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px;">
                 <span class="pulse-dot pulse-red"></span>
-                <span style="color: #fb7185; font-size: 0.85rem; font-weight: 600;">HTTP {health_resp.status_code} Degraded</span>
+                <span style="color: #f43f5e; font-size: 0.85rem; font-weight: 600;">HTTP {health_resp.status_code} Degraded</span>
             </div>
             """, unsafe_allow_html=True)
     except Exception:
         st.markdown(f"""
         <div style="display: flex; align-items: center; gap: 8px; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px;">
             <span class="pulse-dot pulse-red"></span>
-            <span style="color: #fb7185; font-size: 0.85rem; font-weight: 600;">Backend Offline</span>
+            <span style="color: #f43f5e; font-size: 0.85rem; font-weight: 600;">Backend Offline</span>
         </div>
         """, unsafe_allow_html=True)
         st.caption(f"Waiting for backend at `{API_URL}`. Start it with:\n`uvicorn backend.main:app --port 8000`")
@@ -404,17 +599,23 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-# --- Dual Imagery Ingestion Section ---
-st.markdown("<div class='section-header'>📥 Imagery Ingestion</div>", unsafe_allow_html=True)
+
+# --- Section Divider 1: Imagery Ingestion ---
+st.markdown("""
+<div id="imagery-ingestion" class="section-divider">
+    <div class="section-divider-badge">📥 1. Imagery Ingestion</div>
+    <div class="section-divider-line right"></div>
+</div>
+""", unsafe_allow_html=True)
 
 col_up1, col_up2 = st.columns(2, gap="large")
 
 with col_up1:
     st.markdown("""
-    <div style="font-weight: 600; font-size: 0.95rem; color: #e2e8f0; margin-bottom: 4px;">
+    <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">
         Tile A — Primary Observation
     </div>
-    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px;">
+    <div style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 10px;">
         High-res optical tile, multispectral band, or base SAR image
     </div>
     """, unsafe_allow_html=True)
@@ -433,10 +634,10 @@ with col_up1:
 
 with col_up2:
     st.markdown("""
-    <div style="font-weight: 600; font-size: 0.95rem; color: #e2e8f0; margin-bottom: 4px;">
+    <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">
         Tile B — Comparison / Sensor Pair (Optional)
     </div>
-    <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 10px;">
+    <div style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 10px;">
         Post-event tile for change analysis or co-registered SAR for optical-SAR fusion
     </div>
     """, unsafe_allow_html=True)
@@ -453,9 +654,14 @@ with col_up2:
         except Exception:
             st.info(f"Loaded {img2_file.name} (GeoTIFF/Multi-band Sensor Tile)")
 
-# --- Query & Preset Section ---
-st.markdown("<div style='height: 18px;'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-header'>💬 Mission Instruction & Query</div>", unsafe_allow_html=True)
+
+# --- Section Divider 2: Mission Instruction & Query ---
+st.markdown("""
+<div class="section-divider">
+    <div class="section-divider-badge">💬 2. Mission Instruction & Query</div>
+    <div class="section-divider-line right"></div>
+</div>
+""", unsafe_allow_html=True)
 
 # Preset Query Buttons
 col_p1, col_p2, col_p3 = st.columns(3, gap="medium")
@@ -490,7 +696,6 @@ if analyze_clicked:
     else:
         with st.spinner("🛰️ Routing query, evaluating guardrails, and invoking vision-language model..."):
             try:
-                # Prepare multipart payload
                 files_payload = [
                     ("files", (img1_file.name, img1_file.getvalue(), img1_file.type or "application/octet-stream"))
                 ]
@@ -515,10 +720,10 @@ if analyze_clicked:
                     if is_rejected:
                         st.markdown(f"""
                         <div style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35); border-radius: 12px; padding: 16px 20px; margin: 18px 0;">
-                            <div style="font-weight: 700; color: #fb7185; font-size: 1.05rem; margin-bottom: 4px;">
+                            <div style="font-weight: 700; color: #f43f5e; font-size: 1.05rem; margin-bottom: 4px;">
                                 🚫 Request Rejected by Guardrails
                             </div>
-                            <div style="color: #fecdd3; font-size: 0.92rem;">
+                            <div style="color: var(--text-main); font-size: 0.92rem;">
                                 {resp.get('validation_msg', 'Query or imagery incompatible with registered task specifications.')}
                             </div>
                         </div>
@@ -530,7 +735,7 @@ if analyze_clicked:
                     else:
                         st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
                         st.markdown("""
-                        <div style="display: flex; align-items: center; gap: 8px; color: #34d399; font-weight: 600; font-size: 1.1rem;">
+                        <div style="display: flex; align-items: center; gap: 8px; color: #10b981; font-weight: 600; font-size: 1.1rem;">
                             <span>✓</span> Analysis Orchestration Complete
                         </div>
                         """, unsafe_allow_html=True)
@@ -554,7 +759,7 @@ if analyze_clicked:
 
                         st.markdown("""
                         <div class="result-box">
-                            <div style="font-size: 0.8rem; color: #38bdf8; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;">
+                            <div style="font-size: 0.8rem; color: var(--accent); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;">
                                 📝 SYNTHESIZED INTELLIGENCE RESULT
                             </div>
                             <div class="result-text">
@@ -587,9 +792,13 @@ if analyze_clicked:
                 st.error(f"Failed to communicate with API server: {req_err}")
 
 
-# --- History Section ---
-st.markdown("<div style='height: 36px;'></div>", unsafe_allow_html=True)
-st.markdown("<div class='section-header'>📜 Mission Audit History & Previous Queries</div>", unsafe_allow_html=True)
+# --- Section Divider 3: History & Audit Log ---
+st.markdown("""
+<div id="audit-log" class="section-divider">
+    <div class="section-divider-badge">📜 3. Mission Audit History & Records</div>
+    <div class="section-divider-line right"></div>
+</div>
+""", unsafe_allow_html=True)
 
 try:
     hist_resp = requests.get(f"{API_URL}/history?limit=10", timeout=5)
@@ -615,10 +824,10 @@ try:
                         st.markdown(f"""
                         <div style="margin-bottom: 8px;">
                             <span class="status-badge {badge_class}">{task}</span>
-                            <span style="color: #94a3b8; font-size: 0.85rem; margin-left: 8px;">Model: <strong>{model}</strong></span>
-                            <span style="color: #64748b; font-size: 0.85rem; margin-left: 8px;">Validation: {item.get('validation_msg')}</span>
+                            <span style="color: var(--text-sub); font-size: 0.85rem; margin-left: 8px;">Model: <strong>{model}</strong></span>
+                            <span style="color: var(--text-dim); font-size: 0.85rem; margin-left: 8px;">Validation: {item.get('validation_msg')}</span>
                         </div>
-                        <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 8px;">Recorded timestamp: {created} UTC</div>
+                        <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px;">Recorded timestamp: {created} UTC</div>
                         """, unsafe_allow_html=True)
                         if item.get("trace"):
                             st.json(item["trace"])
@@ -629,3 +838,25 @@ try:
         st.caption(f"Could not load history (HTTP {hist_resp.status_code})")
 except Exception as ex:
     st.caption(f"History unavailable: {ex}")
+
+
+# --- Product Footer ---
+st.markdown(f"""
+<div class="footer-container">
+    <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <img src="https://img.icons8.com/isometric/100/satellite.png" width="22"/>
+            <span style="font-weight: 700; font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem;">SatQuery AI</span>
+            <span style="color: var(--text-dim); font-size: 0.82rem;">• © 2026 Team Debuggers Den</span>
+        </div>
+        <div style="color: var(--text-dim); font-size: 0.78rem; margin-top: 4px;">
+            Autonomous Multi-Modal Earth Observation Orchestration & Audit Platform
+        </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 18px;">
+        <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="footer-link">GitHub</a>
+        <a href="{default_api_url}/docs" target="_blank" class="footer-link">API Docs</a>
+        <a href="{default_api_url}/health" target="_blank" class="footer-link">Health API</a>
+    </div>
+</div>
+""", unsafe_allow_html=True)
