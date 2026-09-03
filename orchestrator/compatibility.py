@@ -3,6 +3,9 @@ import os
 import torch
 import numpy as np
 from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 try:
     from transformers import AutoProcessor, CLIPVisionModelWithProjection
@@ -21,9 +24,13 @@ def _get_clip():
     global _clip_model, _clip_processor
     if _clip_model is None and CLIP_AVAILABLE:
         try:
-            device = "cuda" if torch.cuda.is_available() else "cpu"
-            if torch.cuda.is_available() and torch.cuda.get_device_capability(0)[0] > 9:
-                device = "cpu"  # CPU fallback for sm_120
+            configured = os.getenv("MODEL_DEVICE")
+            if configured:
+                device = configured.lower()
+            else:
+                device = "cuda" if torch.cuda.is_available() else "cpu"
+                if torch.cuda.is_available() and torch.cuda.get_device_capability(0)[0] > 9:
+                    device = "cpu"  # CPU fallback for sm_120
             model_id = "openai/clip-vit-base-patch32"
             _clip_processor = AutoProcessor.from_pretrained(model_id)
             _clip_model = CLIPVisionModelWithProjection.from_pretrained(model_id).to(device)

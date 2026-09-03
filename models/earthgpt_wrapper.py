@@ -3,6 +3,9 @@ import os
 import torch
 import numpy as np
 from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 try:
     from transformers import AutoModelForCausalLM, AutoProcessor
@@ -24,7 +27,7 @@ class EarthGPTModel:
     ):
         if device is None:
             device = os.getenv("MODEL_DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
-        self.device = device
+        self.device = str(device).lower()
         self.base_model_id = base_model_id
         self.lora_adapter_path = lora_adapter_path
         self.processor = None

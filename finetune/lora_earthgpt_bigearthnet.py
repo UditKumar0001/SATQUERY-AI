@@ -11,6 +11,9 @@ from transformers import (
     TrainingArguments,
     DataCollatorForSeq2Seq
 )
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_MODEL = os.getenv("EARTHGPT_BASE_MODEL", "hf-internal-testing/tiny-random-LlamaForCausalLM")
 OUTPUT_DIR = "models/weights/earthgpt-bigearthnet-lora"
@@ -49,13 +52,17 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token or "<pad>"
 
-    # 2. Determine safe execution device (fall back to CPU if GPU compute capability exceeds PyTorch kernel support)
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    if torch.cuda.is_available():
-        major_cap = torch.cuda.get_device_capability(0)[0]
-        if major_cap > 9:  # sm_120 (Blackwell) requires CPU fallback until torch provides sm_120 binary kernels
-            print(f"[LoRA Fine-Tune] Detected CUDA capability sm_{major_cap}0. Falling back to CPU for kernel compatibility.")
-            device = "cpu"
+    # 2. Determine safe execution device (respect MODEL_DEVICE or fall back to CPU for incompatible GPUs)
+    configured_device = os.getenv("MODEL_DEVICE")
+    if configured_device:
+        device = configured_device.lower()
+    else:
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.cuda.is_available():
+            major_cap = torch.cuda.get_device_capability(0)[0]
+            if major_cap > 9:  # sm_120 (Blackwell) requires CPU fallback until torch provides sm_120 binary kernels
+                print(f"[LoRA Fine-Tune] Detected CUDA capability sm_{major_cap}0. Falling back to CPU for kernel compatibility.")
+                device = "cpu"
 
     print(f"[LoRA Fine-Tune] Training device: {device}")
 

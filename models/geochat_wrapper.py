@@ -3,6 +3,9 @@ import os
 import re
 import torch
 from PIL import Image
+from dotenv import load_dotenv
+
+load_dotenv()
 
 try:
     from transformers import AutoModelForCausalLM, AutoProcessor
@@ -17,7 +20,7 @@ class GeoChatModel:
     def __init__(self, model_id: str = "MBZUAI/GeoChat-7B", device: str = None, load_weights: bool = None):
         if device is None:
             device = os.getenv("MODEL_DEVICE", "cuda" if torch.cuda.is_available() else "cpu")
-        self.device = device
+        self.device = str(device).lower()
         self.model_id = model_id
         self.processor = None
         self.model = None

@@ -10,6 +10,9 @@ from typing import List
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Ensure project root is on sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -71,7 +74,7 @@ def health_check(db: Session = Depends(get_db)):
     device_info = {
         "cuda_available": cuda_available,
         "device_name": torch.cuda.get_device_name(0) if cuda_available else "CPU",
-        "configured_device": os.getenv("MODEL_DEVICE", "cuda" if cuda_available else "cpu")
+        "configured_device": os.getenv("MODEL_DEVICE", "cuda" if cuda_available else "cpu").lower()
     }
 
     # 3. Router configuration check
