@@ -19,8 +19,7 @@ except Exception:
     default_api_url = os.getenv("BACKEND_API_URL", "http://localhost:8000").rstrip("/")
 
 st.set_page_config(
-    page_title="SatQuery AI — Earth Observation Intelligence",
-    page_icon="🛰️",
+    page_title="SatQuery AI — Ground Station EO Console",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -32,579 +31,611 @@ if "theme" not in st.session_state:
 if "query_input_val" not in st.session_state:
     st.session_state.query_input_val = ""
 
-# --- Theme Definitions ---
 is_dark = (st.session_state.theme == "dark")
 
+# --- Mission Control Theme Variables (ISRO / Ground Station Spec) ---
 theme_vars = {
     "dark": {
-        "bg_app": "radial-gradient(circle at 15% 15%, #0d1527 0%, #060913 75%, #03050a 100%)",
-        "text_main": "#f1f5f9",
-        "text_sub": "#94a3b8",
-        "text_dim": "#64748b",
-        "card_bg": "rgba(12, 20, 39, 0.65)",
-        "card_border": "rgba(56, 189, 248, 0.18)",
-        "nav_bg": "rgba(7, 11, 22, 0.88)",
-        "nav_border": "rgba(56, 189, 248, 0.15)",
-        "sidebar_bg": "#070b16",
-        "sidebar_border": "rgba(56, 189, 248, 0.12)",
-        "input_bg": "rgba(12, 20, 39, 0.85)",
-        "input_border": "rgba(56, 189, 248, 0.22)",
-        "accent": "#00f0ff",
-        "accent_gradient": "linear-gradient(135deg, #0284c7 0%, #06b6d4 50%, #00f0ff 100%)",
-        "btn_text": "#030712",
-        "hero_gradient": "linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(15, 23, 42, 0.6) 100%)",
-        "hero_border": "rgba(56, 189, 248, 0.2)",
-        "footer_bg": "rgba(7, 11, 22, 0.9)",
-        "footer_border": "rgba(56, 189, 248, 0.15)",
-        "divider_color": "rgba(56, 189, 248, 0.18)",
-        "metric_bg": "rgba(15, 23, 42, 0.55)",
+        "bg_app": "#070a0f",
+        "bg_panel": "#0c1118",
+        "bg_panel_sub": "#121924",
+        "bg_input": "#090d14",
+        "border_color": "#1e293b",
+        "border_subtle": "#16202e",
+        "border_focus": "#00e5ff",
+        "text_primary": "#f8fafc",
+        "text_secondary": "#94a3b8",
+        "text_muted": "#64748b",
+        "accent_primary": "#00e5ff",
+        "accent_hover": "#38bdf8",
+        "btn_primary_bg": "#00e5ff",
+        "btn_primary_text": "#05080e",
+        "btn_primary_hover": "#38e1f0",
+        "chip_bg": "#121924",
+        "chip_text": "#cbd5e1",
+        "chip_border": "#243247",
+        "chip_hover_bg": "#1c2638",
+        "chip_hover_text": "#00e5ff",
+        "nav_bg": "#080c13",
+        "nav_border": "#1e293b",
+        "sidebar_bg": "#080c13",
+        "sidebar_border": "#1e293b",
+        "footer_bg": "#080c13",
+        "footer_border": "#1e293b",
+        "metric_bg": "#0c1118",
+        "metric_value": "#00e5ff",
+        "result_bg": "#0a0e16",
+        "result_border": "#1e293b",
+        "status_tag_bg": "rgba(0, 229, 255, 0.08)",
+        "status_tag_border": "rgba(0, 229, 255, 0.25)",
+        "status_tag_text": "#00e5ff",
     },
     "light": {
-        "bg_app": "radial-gradient(circle at 15% 15%, #f0f9ff 0%, #f8fafc 70%, #f1f5f9 100%)",
-        "text_main": "#0f172a",
-        "text_sub": "#475569",
-        "text_dim": "#94a3b8",
-        "card_bg": "#ffffff",
-        "card_border": "rgba(2, 132, 199, 0.2)",
-        "nav_bg": "rgba(255, 255, 255, 0.9)",
-        "nav_border": "rgba(2, 132, 199, 0.18)",
-        "sidebar_bg": "#f8fafc",
-        "sidebar_border": "rgba(2, 132, 199, 0.15)",
-        "input_bg": "#ffffff",
-        "input_border": "rgba(2, 132, 199, 0.3)",
-        "accent": "#0284c7",
-        "accent_gradient": "linear-gradient(135deg, #0284c7 0%, #0ea5e9 100%)",
-        "btn_text": "#ffffff",
-        "hero_gradient": "linear-gradient(135deg, rgba(224, 242, 254, 0.6) 0%, #ffffff 100%)",
-        "hero_border": "rgba(2, 132, 199, 0.25)",
-        "footer_bg": "rgba(248, 250, 252, 0.95)",
-        "footer_border": "rgba(2, 132, 199, 0.18)",
-        "divider_color": "rgba(2, 132, 199, 0.2)",
-        "metric_bg": "#ffffff",
+        "bg_app": "#d9e0e8",
+        "bg_panel": "#eaeff5",
+        "bg_panel_sub": "#e0e7ef",
+        "bg_input": "#ffffff",
+        "border_color": "#94a3b8",
+        "border_subtle": "#cbd5e1",
+        "border_focus": "#0284c7",
+        "text_primary": "#090d16",
+        "text_secondary": "#334155",
+        "text_muted": "#64748b",
+        "accent_primary": "#0284c7",
+        "accent_hover": "#0369a1",
+        "btn_primary_bg": "#0284c7",
+        "btn_primary_text": "#ffffff",
+        "btn_primary_hover": "#0369a1",
+        "chip_bg": "#e2e8f0",
+        "chip_text": "#0f172a",
+        "chip_border": "#94a3b8",
+        "chip_hover_bg": "#cbd5e1",
+        "chip_hover_text": "#0284c7",
+        "nav_bg": "#eaeff5",
+        "nav_border": "#94a3b8",
+        "sidebar_bg": "#e2e8f0",
+        "sidebar_border": "#94a3b8",
+        "footer_bg": "#eaeff5",
+        "footer_border": "#94a3b8",
+        "metric_bg": "#edf2f7",
+        "metric_value": "#0284c7",
+        "result_bg": "#edf2f7",
+        "result_border": "#94a3b8",
+        "status_tag_bg": "rgba(2, 132, 199, 0.1)",
+        "status_tag_border": "rgba(2, 132, 199, 0.35)",
+        "status_tag_text": "#0284c7",
     }
 }
 
-active_theme = theme_vars["dark" if is_dark else "light"]
+t = theme_vars["dark" if is_dark else "light"]
 
-# --- Custom Styling via CSS Variables ---
+# --- Strict CSS Architecture (Aerospace Ground Control Specification) ---
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
     :root {{
-        --bg-app: {active_theme['bg_app']};
-        --text-main: {active_theme['text_main']};
-        --text-sub: {active_theme['text_sub']};
-        --text-dim: {active_theme['text_dim']};
-        --card-bg: {active_theme['card_bg']};
-        --card-border: {active_theme['card_border']};
-        --nav-bg: {active_theme['nav_bg']};
-        --nav-border: {active_theme['nav_border']};
-        --sidebar-bg: {active_theme['sidebar_bg']};
-        --sidebar-border: {active_theme['sidebar_border']};
-        --input-bg: {active_theme['input_bg']};
-        --input-border: {active_theme['input_border']};
-        --accent: {active_theme['accent']};
-        --accent-gradient: {active_theme['accent_gradient']};
-        --btn-text: {active_theme['btn_text']};
-        --hero-gradient: {active_theme['hero_gradient']};
-        --hero-border: {active_theme['hero_border']};
-        --footer-bg: {active_theme['footer_bg']};
-        --footer-border: {active_theme['footer_border']};
-        --divider-color: {active_theme['divider_color']};
-        --metric-bg: {active_theme['metric_bg']};
+        --bg-app: {t['bg_app']};
+        --bg-panel: {t['bg_panel']};
+        --bg-panel-sub: {t['bg_panel_sub']};
+        --bg-input: {t['bg_input']};
+        --border-color: {t['border_color']};
+        --border-subtle: {t['border_subtle']};
+        --border-focus: {t['border_focus']};
+        --text-primary: {t['text_primary']};
+        --text-secondary: {t['text_secondary']};
+        --text-muted: {t['text_muted']};
+        --accent-primary: {t['accent_primary']};
+        --accent-hover: {t['accent_hover']};
+        --btn-primary-bg: {t['btn_primary_bg']};
+        --btn-primary-text: {t['btn_primary_text']};
+        --btn-primary-hover: {t['btn_primary_hover']};
+        --chip-bg: {t['chip_bg']};
+        --chip-text: {t['chip_text']};
+        --chip-border: {t['chip_border']};
+        --chip-hover-bg: {t['chip_hover_bg']};
+        --chip-hover-text: {t['chip_hover_text']};
+        --nav-bg: {t['nav_bg']};
+        --nav-border: {t['nav_border']};
+        --sidebar-bg: {t['sidebar_bg']};
+        --sidebar-border: {t['sidebar_border']};
+        --footer-bg: {t['footer_bg']};
+        --footer-border: {t['footer_border']};
+        --metric-bg: {t['metric_bg']};
+        --metric-value: {t['metric_value']};
+        --result-bg: {t['result_bg']};
+        --result-border: {t['result_border']};
+        --status-tag-bg: {t['status_tag_bg']};
+        --status-tag-border: {t['status_tag_border']};
+        --status-tag-text: {t['status_tag_text']};
     }}
 
-    /* Global Base */
+    /* Global Typography & Canvas */
     html, body, [class*="css"] {{
-        font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-family: 'Inter', -apple-system, sans-serif;
     }}
     
     .stApp {{
-        background: var(--bg-app);
-        color: var(--text-main);
+        background-color: var(--bg-app);
+        color: var(--text-primary);
     }}
 
-    /* Container Max Width & Clean Centering */
+    /* Container Max Width & Precise Grid */
     .main .block-container {{
-        max-width: 1240px;
+        max-width: 1260px;
         padding-top: 1rem;
-        padding-bottom: 3rem;
+        padding-bottom: 3.5rem;
         padding-left: 2rem;
         padding-right: 2rem;
     }}
 
-    /* Sticky Top Navigation Bar */
-    .top-nav-bar {{
+    /* Mission Control Header Bar */
+    .mc-header-bar {{
         display: flex;
         align-items: center;
         justify-content: space-between;
         background: var(--nav-bg);
         border: 1px solid var(--nav-border);
-        border-radius: 14px;
-        padding: 12px 20px;
-        margin-bottom: 24px;
-        backdrop-filter: blur(16px);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, {'0.3' if is_dark else '0.06'});
-        position: sticky;
-        top: 12px;
-        z-index: 100;
+        border-radius: 2px;
+        padding: 10px 18px;
+        margin-bottom: 20px;
     }}
 
-    .nav-brand {{
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        text-decoration: none;
-        color: var(--text-main);
-    }}
-    .nav-brand-title {{
+    .mc-brand-title {{
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.15rem;
+        font-size: 1.05rem;
         font-weight: 700;
-        letter-spacing: -0.01em;
-        background: linear-gradient(135deg, var(--text-main) 0%, var(--accent) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: var(--text-primary);
     }}
-    .nav-badge {{
+    .mc-brand-sub {{
         font-family: 'JetBrains Mono', monospace;
-        font-size: 0.68rem;
+        font-size: 0.70rem;
         font-weight: 600;
-        letter-spacing: 0.08em;
-        padding: 2px 7px;
-        border-radius: 9999px;
-        background: rgba(14, 165, 233, 0.12);
-        color: var(--accent);
-        border: 1px solid rgba(14, 165, 233, 0.3);
+        letter-spacing: 0.12em;
+        color: var(--accent-primary);
+        margin-left: 8px;
+        border-left: 1px solid var(--border-color);
+        padding-left: 8px;
     }}
 
-    .nav-links {{
-        display: flex;
-        align-items: center;
-        gap: 18px;
-    }}
-    .nav-link-item {{
-        color: var(--text-sub);
+    .mc-nav-link {{
+        font-family: 'JetBrains Mono', monospace;
+        color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.88rem;
-        font-weight: 500;
-        transition: color 0.15s ease;
+        font-size: 0.78rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        padding: 4px 10px;
+        border: 1px solid transparent;
+        border-radius: 2px;
+        transition: all 0.15s ease;
     }}
-    .nav-link-item:hover {{
-        color: var(--accent);
+    .mc-nav-link:hover {{
+        color: var(--accent-primary);
+        border-color: var(--border-color);
+        background: var(--bg-panel-sub);
     }}
 
-    /* Sidebar Glassmorphic Treatment */
+    /* Sidebar Precision Instrumentation */
     [data-testid="stSidebar"] {{
         background-color: var(--sidebar-bg) !important;
         border-right: 1px solid var(--sidebar-border) !important;
     }}
     [data-testid="stSidebar"] .block-container {{
-        padding-top: 2rem;
-        padding-left: 1.5rem;
-        padding-right: 1.5rem;
+        padding-top: 1.5rem;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
     }}
 
-    /* Headings */
-    h1, h2, h3 {{
-        font-family: 'Space Grotesk', sans-serif !important;
-        letter-spacing: -0.02em;
-        color: var(--text-main) !important;
+    /* Technical Telemetry Banner */
+    .telemetry-banner {{
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-left: 4px solid var(--accent-primary);
+        border-radius: 2px;
+        padding: 22px 24px;
+        margin-bottom: 24px;
     }}
-
-    /* Hero Banner */
-    .hero-banner {{
-        background: var(--hero-gradient);
-        border: 1px solid var(--hero-border);
-        border-radius: 16px;
-        padding: 28px 32px;
-        margin-bottom: 28px;
-        position: relative;
-        overflow: hidden;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, {'0.35' if is_dark else '0.06'});
-    }}
-    .hero-banner::before {{
-        content: "";
-        position: absolute;
-        top: -60px;
-        right: -60px;
-        width: 220px;
-        height: 220px;
-        background: radial-gradient(circle, rgba(14, 165, 233, 0.16) 0%, rgba(0,0,0,0) 70%);
-        pointer-events: none;
-    }}
-    .hero-tag {{
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
+    .telemetry-tag {{
         font-family: 'JetBrains Mono', monospace;
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        color: var(--accent);
-        background: rgba(14, 165, 233, 0.1);
-        border: 1px solid rgba(14, 165, 233, 0.3);
-        padding: 4px 10px;
-        border-radius: 9999px;
-        margin-bottom: 12px;
-    }}
-    .hero-title {{
-        font-size: 2.25rem;
+        font-size: 0.68rem;
         font-weight: 700;
-        line-height: 1.15;
-        margin: 0 0 10px 0;
-        background: linear-gradient(135deg, var(--text-main) 0%, var(--accent) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--status-tag-text);
+        background: var(--status-tag-bg);
+        border: 1px solid var(--status-tag-border);
+        padding: 2px 8px;
+        border-radius: 2px;
+        display: inline-block;
+        margin-bottom: 10px;
     }}
-    .hero-desc {{
-        color: var(--text-sub);
-        font-size: 1.02rem;
+    .telemetry-title {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.85rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+        margin: 0 0 8px 0;
+        color: var(--text-primary);
+    }}
+    .telemetry-desc {{
+        font-family: 'Inter', sans-serif;
+        color: var(--text-secondary);
+        font-size: 0.95rem;
         line-height: 1.5;
-        max-width: 820px;
+        max-width: 860px;
         margin: 0;
     }}
 
-    /* Section Divider with Accent Glow */
-    .section-divider {{
+    /* Section Headers */
+    .section-header-tag {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--text-primary);
+        background: var(--bg-panel);
+        border: 1px solid var(--border-color);
+        border-left: 3px solid var(--accent-primary);
+        padding: 8px 14px;
+        margin: 28px 0 16px 0;
         display: flex;
         align-items: center;
-        gap: 14px;
-        margin: 36px 0 20px 0;
-    }}
-    .section-divider-line {{
-        flex: 1;
-        height: 1px;
-        background: linear-gradient(90deg, rgba(14, 165, 233, 0.25) 0%, rgba(14, 165, 233, 0.05) 100%);
-    }}
-    .section-divider-line.right {{
-        background: linear-gradient(270deg, rgba(14, 165, 233, 0.25) 0%, rgba(14, 165, 233, 0.05) 100%);
-    }}
-    .section-divider-badge {{
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 0.98rem;
-        font-weight: 600;
-        color: var(--text-main);
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        justify-content: space-between;
     }}
 
-    /* File Uploader Custom Aesthetics */
+    /* Sub-Headers */
+    .tile-sub-title {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-primary);
+        margin-bottom: 2px;
+    }}
+    .tile-sub-desc {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        margin-bottom: 8px;
+    }}
+
+    /* File Uploader Sharp Technical Frame */
     [data-testid="stFileUploader"] section {{
-        background: var(--card-bg) !important;
-        border: 1px dashed var(--input-border) !important;
-        border-radius: 12px !important;
-        padding: 16px !important;
-        transition: all 0.2s ease-in-out !important;
+        background: var(--bg-panel-sub) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 2px !important;
+        padding: 14px !important;
+        transition: border-color 0.15s ease !important;
     }}
     [data-testid="stFileUploader"] section:hover {{
-        border-color: var(--accent) !important;
-        box-shadow: 0 0 18px rgba(14, 165, 233, 0.15) !important;
+        border-color: var(--border-focus) !important;
     }}
     [data-testid="stFileUploader"] button {{
-        background: var(--input-bg) !important;
-        color: var(--text-main) !important;
-        border: 1px solid var(--card-border) !important;
-        border-radius: 8px !important;
-        font-weight: 500 !important;
+        background: var(--bg-panel) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 2px !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
     }}
 
-    /* Input Field Styling */
+    /* Technical Input Field */
     [data-testid="stTextInput"] input {{
-        background: var(--input-bg) !important;
-        border: 1px solid var(--input-border) !important;
-        border-radius: 10px !important;
-        color: var(--text-main) !important;
-        font-size: 0.95rem !important;
-        padding: 12px 14px !important;
-        transition: all 0.2s ease !important;
+        background: var(--bg-input) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 2px !important;
+        color: var(--text-primary) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.90rem !important;
+        padding: 10px 14px !important;
+        transition: border-color 0.15s ease !important;
     }}
     [data-testid="stTextInput"] input:focus {{
-        border-color: var(--accent) !important;
-        box-shadow: 0 0 14px rgba(14, 165, 233, 0.22) !important;
+        border-color: var(--border-focus) !important;
+        box-shadow: none !important;
     }}
 
-    /* Preset Chips */
+    /* Preset Secondary Buttons (Chips) */
     div[data-testid="stButton"] > button[kind="secondary"] {{
-        background: var(--card-bg) !important;
-        border: 1px solid var(--card-border) !important;
-        border-radius: 9999px !important;
-        color: var(--text-sub) !important;
-        font-size: 0.82rem !important;
-        font-weight: 500 !important;
-        padding: 6px 14px !important;
-        transition: all 0.2s ease !important;
+        background: var(--chip-bg) !important;
+        color: var(--chip-text) !important;
+        border: 1px solid var(--chip-border) !important;
+        border-radius: 2px !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.74rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+        padding: 8px 12px !important;
         width: 100% !important;
+        transition: all 0.15s ease !important;
     }}
     div[data-testid="stButton"] > button[kind="secondary"]:hover {{
-        background: rgba(14, 165, 233, 0.12) !important;
-        border-color: var(--accent) !important;
-        color: var(--text-main) !important;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(14, 165, 233, 0.18);
+        background: var(--chip-hover-bg) !important;
+        color: var(--chip-hover-text) !important;
+        border-color: var(--border-focus) !important;
     }}
 
-    /* Primary Action Button (Analyze Imagery) */
+    /* Primary Dispatch Action Button */
     div[data-testid="stButton"] > button[kind="primary"] {{
-        background: var(--accent_gradient) !important;
-        color: var(--btn-text) !important;
+        background: var(--btn-primary-bg) !important;
+        color: var(--btn-primary-text) !important;
+        border: 1px solid var(--border-focus) !important;
+        border-radius: 2px !important;
         font-family: 'Space Grotesk', sans-serif !important;
-        font-size: 1.05rem !important;
+        font-size: 0.95rem !important;
         font-weight: 700 !important;
-        letter-spacing: 0.02em !important;
-        border: none !important;
-        border-radius: 12px !important;
-        padding: 14px 28px !important;
-        box-shadow: 0 6px 24px rgba(14, 165, 233, 0.35) !important;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        letter-spacing: 0.08em !important;
+        text-transform: uppercase !important;
+        padding: 12px 24px !important;
+        box-shadow: none !important;
+        transition: background 0.15s ease !important;
     }}
     div[data-testid="stButton"] > button[kind="primary"]:hover {{
-        transform: translateY(-2px) scale(1.008);
-        box-shadow: 0 8px 30px rgba(14, 165, 233, 0.5) !important;
-        filter: brightness(1.06);
-    }}
-    div[data-testid="stButton"] > button[kind="primary"]:active {{
-        transform: translateY(1px);
+        background: var(--btn-primary-hover) !important;
+        filter: brightness(1.05);
     }}
 
-    /* Status Badges */
-    .status-badge {{
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 3px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        letter-spacing: 0.03em;
-        text-transform: uppercase;
-        font-family: 'JetBrains Mono', monospace;
-    }}
-    .status-badge-cyan {{
-        background: rgba(6, 182, 212, 0.15);
-        color: var(--accent);
-        border: 1px solid rgba(6, 182, 212, 0.35);
-    }}
-    .status-badge-emerald {{
-        background: rgba(16, 185, 129, 0.15);
-        color: #10b981;
-        border: 1px solid rgba(16, 185, 129, 0.35);
-    }}
-    .status-badge-amber {{
-        background: rgba(245, 158, 11, 0.15);
-        color: #f59e0b;
-        border: 1px solid rgba(245, 158, 11, 0.35);
-    }}
-    .status-badge-rose {{
-        background: rgba(244, 63, 94, 0.15);
-        color: #f43f5e;
-        border: 1px solid rgba(244, 63, 94, 0.35);
-    }}
-
-    /* Pulsing Indicator Dot */
-    .pulse-dot {{
-        width: 8px;
-        height: 8px;
-        border-radius: 50%;
+    /* LED Indicators */
+    .telemetry-led {{
+        width: 7px;
+        height: 7px;
+        border-radius: 1px;
         display: inline-block;
+        margin-right: 6px;
     }}
-    .pulse-green {{
+    .led-green {{
         background-color: #10b981;
-        box-shadow: 0 0 8px #10b981;
+        box-shadow: 0 0 5px #10b981;
     }}
-    .pulse-red {{
-        background-color: #f43f5e;
-        box-shadow: 0 0 8px #f43f5e;
+    .led-red {{
+        background-color: #ef4444;
+        box-shadow: 0 0 5px #ef4444;
+    }}
+    .led-amber {{
+        background-color: #f59e0b;
+        box-shadow: 0 0 5px #f59e0b;
     }}
 
-    /* KPI Metrics Boxes */
+    /* Metric Panels */
     [data-testid="stMetric"] {{
-        background: var(--metric-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 12px;
-        padding: 14px 18px;
-        backdrop-filter: blur(10px);
+        background: var(--metric-bg) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 2px !important;
+        padding: 12px 16px !important;
     }}
     [data-testid="stMetricLabel"] {{
-        color: var(--text-sub) !important;
-        font-size: 0.78rem !important;
-        letter-spacing: 0.06em !important;
+        color: var(--text-secondary) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.70rem !important;
+        letter-spacing: 0.10em !important;
         text-transform: uppercase !important;
     }}
     [data-testid="stMetricValue"] {{
-        font-family: 'Space Grotesk', sans-serif !important;
-        color: var(--accent) !important;
-        font-size: 1.7rem !important;
+        font-family: 'Space Grotesk', monospace !important;
+        color: var(--metric-value) !important;
+        font-size: 1.55rem !important;
         font-weight: 700 !important;
     }}
 
-    /* Result Card Display */
-    .result-box {{
-        background: var(--card-bg);
-        border: 1px solid var(--card-border);
-        border-radius: 14px;
-        padding: 22px;
-        margin: 18px 0;
-        box-shadow: 0 8px 30px rgba(0, 0, 0, {'0.35' if is_dark else '0.06'});
+    /* Synthesized Intelligence Output Panel */
+    .result-terminal {{
+        background: var(--result-bg);
+        border: 1px solid var(--result-border);
+        border-left: 3px solid var(--accent-primary);
+        border-radius: 2px;
+        padding: 18px 20px;
+        margin: 16px 0;
     }}
-    .result-text {{
-        font-size: 1.05rem;
-        line-height: 1.65;
-        color: var(--text-main);
+    .result-terminal-header {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: var(--accent-primary);
+        margin-bottom: 8px;
+    }}
+    .result-terminal-body {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.98rem;
+        line-height: 1.6;
+        color: var(--text-primary);
     }}
 
-    /* Expanders & Accordions */
+    /* Expanders */
     div[data-testid="stExpander"] {{
-        background: var(--card-bg) !important;
-        border: 1px solid var(--card-border) !important;
-        border-radius: 12px !important;
-        margin-bottom: 12px !important;
+        background: var(--bg-panel) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 2px !important;
+        margin-bottom: 10px !important;
     }}
     div[data-testid="stExpander"] > details > summary {{
-        color: var(--text-main) !important;
-        font-weight: 500 !important;
+        color: var(--text-primary) !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
     }}
 
-    /* Footer Container */
-    .footer-container {{
+    /* Action Links & Download Buttons */
+    div[data-testid="stDownloadButton"] > button {{
+        background: var(--bg-panel-sub) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 2px !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.78rem !important;
+        font-weight: 600 !important;
+        letter-spacing: 0.05em !important;
+        text-transform: uppercase !important;
+    }}
+    div[data-testid="stDownloadButton"] > button:hover {{
+        border-color: var(--border-focus) !important;
+        color: var(--accent-primary) !important;
+    }}
+
+    a[data-testid="stLinkButton"] {{
+        background: var(--bg-panel-sub) !important;
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color) !important;
+        border-radius: 2px !important;
+        font-family: 'JetBrains Mono', monospace !important;
+        font-size: 0.74rem !important;
+        font-weight: 600 !important;
+        text-transform: uppercase !important;
+    }}
+    a[data-testid="stLinkButton"]:hover {{
+        border-color: var(--border-focus) !important;
+        color: var(--accent-primary) !important;
+    }}
+
+    /* Footer Instrument */
+    .mc-footer {{
         display: flex;
         align-items: center;
         justify-content: space-between;
         background: var(--footer-bg);
-        border-top: 1px solid var(--footer-border);
-        border-radius: 14px;
-        padding: 20px 24px;
-        margin-top: 48px;
-        backdrop-filter: blur(12px);
+        border: 1px solid var(--footer-border);
+        border-radius: 2px;
+        padding: 16px 20px;
+        margin-top: 40px;
     }}
-    .footer-link {{
-        color: var(--text-sub);
-        text-decoration: none;
-        font-size: 0.85rem;
-        font-weight: 500;
-        margin-left: 18px;
-        transition: color 0.15s ease;
+    .mc-footer-title {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 0.88rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--text-primary);
     }}
-    .footer-link:hover {{
-        color: var(--accent);
+    .mc-footer-meta {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        color: var(--text-muted);
+        margin-top: 2px;
     }}
 </style>
 """, unsafe_allow_html=True)
 
 
-# --- Sticky Top Navigation Bar ---
+# --- Mission Control Top Navigation Bar ---
 nav_left, nav_right = st.columns([3, 2])
 
 with nav_left:
     st.markdown("""
-    <div style="display: flex; align-items: center; gap: 10px; padding: 6px 0;">
-        <img src="https://img.icons8.com/isometric/100/satellite.png" width="30"/>
-        <span class="nav-brand-title">SatQuery AI</span>
-        <span class="nav-badge">v1.0 ORCHESTRATOR</span>
+    <div style="display: flex; align-items: center; padding: 6px 0;">
+        <span class="mc-brand-title">SatQuery AI</span>
+        <span class="mc-brand-sub">ISRO EO ORCHESTRATION CONSOLE // v1.0</span>
     </div>
     """, unsafe_allow_html=True)
 
 with nav_right:
-    btn_col1, btn_col2, btn_col3, btn_col4 = st.columns([1, 1, 1, 0.8])
-    with btn_col1:
-        st.markdown('<div style="padding-top: 8px; text-align: center;"><a href="#imagery-ingestion" class="nav-link-item">Studio</a></div>', unsafe_allow_html=True)
-    with btn_col2:
-        st.markdown('<div style="padding-top: 8px; text-align: center;"><a href="#audit-log" class="nav-link-item">Audit</a></div>', unsafe_allow_html=True)
-    with btn_col3:
-        st.markdown(f'<div style="padding-top: 8px; text-align: center;"><a href="{default_api_url}/docs" target="_blank" class="nav-link-item">Docs ↗</a></div>', unsafe_allow_html=True)
-    with btn_col4:
-        theme_icon = "☀️ Light" if is_dark else "🌙 Dark"
-        if st.button(theme_icon, key="theme_toggle_btn", help="Switch between Dark and Light mode"):
+    nav_c1, nav_c2, nav_c3, nav_c4 = st.columns([1, 1, 1, 1.1])
+    with nav_c1:
+        st.markdown('<div style="padding-top: 8px; text-align: center;"><a href="#section-ingestion" class="mc-nav-link">[STUDIO]</a></div>', unsafe_allow_html=True)
+    with nav_c2:
+        st.markdown('<div style="padding-top: 8px; text-align: center;"><a href="#section-audit" class="mc-nav-link">[AUDIT]</a></div>', unsafe_allow_html=True)
+    with nav_c3:
+        st.markdown(f'<div style="padding-top: 8px; text-align: center;"><a href="{default_api_url}/docs" target="_blank" class="mc-nav-link">[SPECS ↗]</a></div>', unsafe_allow_html=True)
+    with nav_c4:
+        theme_label = "[MODE: DAY]" if is_dark else "[MODE: NIGHT]"
+        if st.button(theme_label, key="theme_toggle_btn", help="Toggle between Night Operations and Daylight Ground-Control palette"):
             st.session_state.theme = "light" if is_dark else "dark"
             st.rerun()
 
-st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
 
 
 # --- Sidebar: System Diagnostics & Health ---
 with st.sidebar:
     st.markdown("""
-    <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
-        <img src="https://img.icons8.com/isometric/100/satellite.png" width="44"/>
-        <div>
-            <h2 style="font-size: 1.3rem; margin: 0;">SatQuery AI</h2>
-            <div style="font-size: 0.72rem; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; font-family: 'JetBrains Mono', monospace;">EO Orchestrator</div>
+    <div style="margin-bottom: 16px;">
+        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
+            TELEMETRY MONITOR
+        </div>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--accent-primary); letter-spacing: 0.12em;">
+            SUBSYSTEM STATUS BUS
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander("⚙️ Connection Settings", expanded=False):
+    with st.expander("[CONFIG: ENDPOINT DISPATCH]", expanded=False):
         API_URL = st.text_input(
-            "Backend API URL",
+            "BACKEND URL",
             value=default_api_url,
-            help="Connect to local (http://localhost:8000) or remote Hugging Face Space / Render URL"
+            help="Target FastAPI orchestrator endpoint"
         ).rstrip("/")
 
-    st.markdown("<div style='margin-top: 14px; margin-bottom: 8px; font-weight: 600; font-size: 0.85rem; color: var(--text-sub); text-transform: uppercase; letter-spacing: 0.05em;'>System Health</div>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 14px; margin-bottom: 6px; font-family: \"JetBrains Mono\", monospace; font-weight: 700; font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.10em;'>SYSTEM READY STATE</div>", unsafe_allow_html=True)
     
     try:
         health_resp = requests.get(f"{API_URL}/health", timeout=3)
         if health_resp.status_code == 200:
             health = health_resp.json()
             st.markdown("""
-            <div style="display: flex; align-items: center; gap: 8px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px;">
-                <span class="pulse-dot pulse-green"></span>
-                <span style="color: #10b981; font-size: 0.85rem; font-weight: 600;">API Connected & Ready</span>
+            <div style="display: flex; align-items: center; background: var(--bg-panel-sub); border: 1px solid var(--border-color); border-left: 3px solid #10b981; padding: 7px 10px; margin-bottom: 12px;">
+                <span class="telemetry-led led-green"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; color: #10b981; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;">BUS ONLINE // 200 OK</span>
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown(f"**Database:** `{health.get('database')}`")
+            st.markdown(f"<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.76rem;'>DB LINK: <code>{health.get('database')}</code></span>", unsafe_allow_html=True)
             hw = health.get("hardware", {})
-            st.markdown(f"**Compute:** `{hw.get('device_name', 'Unknown')}` (`{hw.get('configured_device', 'cpu')}`)")
+            st.markdown(f"<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.76rem;'>ACCELERATOR: <code>{hw.get('device_name', 'Unknown')}</code> (<code>{hw.get('configured_device', 'cpu')}</code>)</span>", unsafe_allow_html=True)
             router_ready = health.get("router_llm_ready", False)
             if router_ready:
-                st.markdown("**Router LLM:** <span class='status-badge status-badge-emerald'>Ready</span>", unsafe_allow_html=True)
+                st.markdown("<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.76rem;'>ROUTER LLM: <strong style='color: #10b981;'>[ACTIVE]</strong></span>", unsafe_allow_html=True)
             else:
-                st.markdown("**Router LLM:** <span class='status-badge status-badge-amber'>Key Required</span>", unsafe_allow_html=True)
+                st.markdown("<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.76rem;'>ROUTER LLM: <strong style='color: #f59e0b;'>[KEY PENDING]</strong></span>", unsafe_allow_html=True)
 
-            with st.expander("Registered Tools"):
+            with st.expander("[ACTIVE TOOL REGISTRY]"):
                 for tool in health.get("registered_tools", []):
                     st.code(f"{tool['task']} -> {tool['model_wrapper']}", language="bash")
         else:
             st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 8px; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px;">
-                <span class="pulse-dot pulse-red"></span>
-                <span style="color: #f43f5e; font-size: 0.85rem; font-weight: 600;">HTTP {health_resp.status_code} Degraded</span>
+            <div style="display: flex; align-items: center; background: var(--bg-panel-sub); border: 1px solid var(--border-color); border-left: 3px solid #f43f5e; padding: 7px 10px; margin-bottom: 12px;">
+                <span class="telemetry-led led-red"></span>
+                <span style="font-family: 'JetBrains Mono', monospace; color: #ef4444; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;">HTTP {health_resp.status_code} DEGRADED</span>
             </div>
             """, unsafe_allow_html=True)
     except Exception:
         st.markdown(f"""
-        <div style="display: flex; align-items: center; gap: 8px; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.3); border-radius: 8px; padding: 8px 12px; margin-bottom: 12px;">
-            <span class="pulse-dot pulse-red"></span>
-            <span style="color: #f43f5e; font-size: 0.85rem; font-weight: 600;">Backend Offline</span>
+        <div style="display: flex; align-items: center; background: var(--bg-panel-sub); border: 1px solid var(--border-color); border-left: 3px solid #ef4444; padding: 7px 10px; margin-bottom: 12px;">
+            <span class="telemetry-led led-red"></span>
+            <span style="font-family: 'JetBrains Mono', monospace; color: #ef4444; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;">LINK OFFLINE // NO CARRIER</span>
         </div>
         """, unsafe_allow_html=True)
-        st.caption(f"Waiting for backend at `{API_URL}`. Start it with:\n`uvicorn backend.main:app --port 8000`")
+        st.caption(f"Host connection inactive at `{API_URL}`. Initialize with:\n`uvicorn backend.main:app --port 8000`")
 
-    st.divider()
-    st.caption("Team Debuggers Den • SatQuery v1.0")
+    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-family: \"JetBrains Mono\", monospace; font-size: 0.70rem; color: var(--text-muted);'>TEAM DEBUGGERS DEN // ISRO DEMO</div>", unsafe_allow_html=True)
 
 
-# --- Main Workspace: Hero Banner ---
+# --- Telemetry Hero Banner ---
 st.markdown("""
-<div class="hero-banner">
-    <div class="hero-tag">🛰️ MISSION ORCHESTRATION PLATFORM</div>
-    <h1 class="hero-title">SatQuery AI</h1>
-    <p class="hero-desc">
-        Next-generation multimodal Earth Observation intelligence. Natural language reasoning across high-resolution optical, SAR radar, and bi-temporal change imagery powered by <strong>GeoChat</strong>, <strong>GeoLLaVA</strong>, and <strong>EarthGPT</strong>.
+<div class="telemetry-banner">
+    <div class="telemetry-tag">MISSION DISPATCH // EARTH OBSERVATION MULTI-MODAL PIPELINE</div>
+    <div class="telemetry-title">SatQuery AI Ground Station</div>
+    <p class="telemetry-desc">
+        Deterministic multi-sensor routing and visual reasoning console for spaceborne observation payloads. Integrates LangGraph state machine with <strong>GeoChat</strong> (optical VQA / localization), <strong>GeoLLaVA</strong> (bi-temporal change analysis), and <strong>EarthGPT</strong> (optical-SAR cross-sensor fusion).
     </p>
 </div>
 """, unsafe_allow_html=True)
 
 
-# --- Section Divider 1: Imagery Ingestion ---
+# --- Section 1: Ingestion ---
 st.markdown("""
-<div id="imagery-ingestion" class="section-divider">
-    <div class="section-divider-badge">📥 1. Imagery Ingestion</div>
-    <div class="section-divider-line right"></div>
+<div id="section-ingestion" class="section-header-tag">
+    <span>01 // SENSOR INGESTION SUBSYSTEM</span>
+    <span style="font-size: 0.72rem; color: var(--text-muted);">SUPPORTED: GTIFF / PNG / MULTI-BAND</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -612,12 +643,8 @@ col_up1, col_up2 = st.columns(2, gap="large")
 
 with col_up1:
     st.markdown("""
-    <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">
-        Tile A — Primary Observation
-    </div>
-    <div style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 10px;">
-        High-res optical tile, multispectral band, or base SAR image
-    </div>
+    <div class="tile-sub-title">TILE A — PRIMARY OBSERVATION</div>
+    <div class="tile-sub-desc">High-resolution optical raster tile, multispectral band, or reference SAR backscatter.</div>
     """, unsafe_allow_html=True)
     img1_file = st.file_uploader(
         "Upload primary satellite/aerial tile",
@@ -628,18 +655,14 @@ with col_up1:
     if img1_file:
         try:
             pil_img1 = Image.open(img1_file)
-            st.image(pil_img1, caption=f"Tile A: {img1_file.name} ({pil_img1.width}×{pil_img1.height}px)", use_container_width=True)
+            st.image(pil_img1, caption=f"TILE A: {img1_file.name} [{pil_img1.width}×{pil_img1.height}px]", use_container_width=True)
         except Exception:
             st.info(f"Loaded {img1_file.name} (GeoTIFF/Multi-band Sensor Tile)")
 
 with col_up2:
     st.markdown("""
-    <div style="font-weight: 600; font-size: 0.95rem; margin-bottom: 4px;">
-        Tile B — Comparison / Sensor Pair (Optional)
-    </div>
-    <div style="font-size: 0.8rem; color: var(--text-sub); margin-bottom: 10px;">
-        Post-event tile for change analysis or co-registered SAR for optical-SAR fusion
-    </div>
+    <div class="tile-sub-title">TILE B — SECONDARY / TEMPORAL PAIR (OPTIONAL)</div>
+    <div class="tile-sub-desc">Post-event comparative tile for change analysis or co-registered SAR for cross-sensor fusion.</div>
     """, unsafe_allow_html=True)
     img2_file = st.file_uploader(
         "Upload comparison image for bi-temporal tasks",
@@ -650,51 +673,51 @@ with col_up2:
     if img2_file:
         try:
             pil_img2 = Image.open(img2_file)
-            st.image(pil_img2, caption=f"Tile B: {img2_file.name} ({pil_img2.width}×{pil_img2.height}px)", use_container_width=True)
+            st.image(pil_img2, caption=f"TILE B: {img2_file.name} [{pil_img2.width}×{pil_img2.height}px]", use_container_width=True)
         except Exception:
             st.info(f"Loaded {img2_file.name} (GeoTIFF/Multi-band Sensor Tile)")
 
 
-# --- Section Divider 2: Mission Instruction & Query ---
+# --- Section 2: Query Specification ---
 st.markdown("""
-<div class="section-divider">
-    <div class="section-divider-badge">💬 2. Mission Instruction & Query</div>
-    <div class="section-divider-line right"></div>
+<div class="section-header-tag">
+    <span>02 // QUERY SPECIFICATION & TASK ROUTING</span>
+    <span style="font-size: 0.72rem; color: var(--text-muted);">ORCHESTRATOR: GEMINI / HEURISTIC FALLBACK</span>
 </div>
 """, unsafe_allow_html=True)
 
-# Preset Query Buttons
-col_p1, col_p2, col_p3 = st.columns(3, gap="medium")
+# Preset Technical Buttons
+col_p1, col_p2, col_p3 = st.columns(3, gap="small")
 with col_p1:
-    if st.button("✈️  Aircraft Detection", key="preset_air", help="VQA prompt for counting and localizing aircraft"):
+    if st.button("[TASK: VQA // AIRCRAFT RECON]", key="preset_air", help="Target detection and runway inventory"):
         st.session_state.query_input_val = "Detect and count the aircraft parked at the airport terminals."
 with col_p2:
-    if st.button("🌲  Land Classification", key="preset_land", help="Captioning prompt for dominant vegetation and land cover"):
+    if st.button("[TASK: CAPTION // SURFACE BIOME]", key="preset_land", help="Macro land-cover and surface categorization"):
         st.session_state.query_input_val = "Identify the dominant land cover and vegetation types across this scene."
 with col_p3:
-    if st.button("🔄  Change Analysis", key="preset_change", help="Comparative prompt for bi-temporal structural changes"):
+    if st.button("[TASK: DELTA // BI-TEMPORAL CHANGE]", key="preset_change", help="Topological delta detection across epochs"):
         st.session_state.query_input_val = "Compare both images and identify newly constructed buildings or infrastructure."
 
 # Query Input Field
 query_input = st.text_input(
-    "Enter your analysis question or instruction:",
+    "Query Specification Input",
     value=st.session_state.query_input_val,
-    placeholder="e.g., 'Detect and count airplanes on the runway', 'What is the land cover?', 'Identify changes between Image 1 and Image 2'",
+    placeholder="ENTER NATURAL LANGUAGE DIRECTIVE OR MISSION QUERY (e.g. 'Assess shoreline erosion and detect infrastructure modifications')...",
     label_visibility="collapsed"
 )
 
 # Analyze Button
-st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-analyze_clicked = st.button("🚀  Analyze Imagery & Orchestrate Pipeline", type="primary", use_container_width=True)
+st.markdown("<div style='height: 6px;'></div>", unsafe_allow_html=True)
+analyze_clicked = st.button("[ INITIATE INFERENCE & DISPATCH ORCHESTRATOR ]", type="primary", use_container_width=True)
 
 # --- Analysis Execution ---
 if analyze_clicked:
     if not img1_file:
-        st.warning("⚠️ Please upload at least one image (Tile A) to proceed.")
+        st.warning("[ALERT] Ingestion fault: Tile A (Primary Observation) must be specified.")
     elif not query_input.strip():
-        st.warning("⚠️ Please enter a question or instruction about the imagery.")
+        st.warning("[ALERT] Directive fault: Query specification input cannot be empty.")
     else:
-        with st.spinner("🛰️ Routing query, evaluating guardrails, and invoking vision-language model..."):
+        with st.spinner("DISPATCHING TO ORCHESTRATOR: Extracting metadata, checking guardrails, executing neural inference..."):
             try:
                 files_payload = [
                     ("files", (img1_file.name, img1_file.getvalue(), img1_file.type or "application/octet-stream"))
@@ -708,7 +731,7 @@ if analyze_clicked:
                 response = requests.post(f"{API_URL}/query", data=data_payload, files=files_payload, timeout=120)
 
                 if response.status_code != 200:
-                    st.error(f"API Error ({response.status_code}): {response.text}")
+                    st.error(f"[SYSTEM FAULT] HTTP {response.status_code}: {response.text}")
                 else:
                     resp = response.json()
                     is_rejected = (
@@ -719,51 +742,46 @@ if analyze_clicked:
 
                     if is_rejected:
                         st.markdown(f"""
-                        <div style="background: rgba(244, 63, 94, 0.12); border: 1px solid rgba(244, 63, 94, 0.35); border-radius: 12px; padding: 16px 20px; margin: 18px 0;">
-                            <div style="font-weight: 700; color: #f43f5e; font-size: 1.05rem; margin-bottom: 4px;">
-                                🚫 Request Rejected by Guardrails
+                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-left: 4px solid #ef4444; padding: 14px 18px; margin: 16px 0;">
+                            <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #ef4444; font-size: 0.90rem; letter-spacing: 0.08em; text-transform: uppercase;">
+                                [GUARDRAIL REJECTION // REQUEST TERMINATED]
                             </div>
-                            <div style="color: var(--text-main); font-size: 0.92rem;">
-                                {resp.get('validation_msg', 'Query or imagery incompatible with registered task specifications.')}
+                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text-primary); margin-top: 4px;">
+                                {resp.get('validation_msg', 'Request geometry or sensor modality incompatible with tool registry.')}
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
 
                         if "trace" in resp and resp["trace"]:
-                            with st.expander("🔍 Inspection & Validation Trace"):
+                            with st.expander("[AUDIT TELEMETRY TRACE]"):
                                 st.json(resp["trace"])
                     else:
-                        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
-                        st.markdown("""
-                        <div style="display: flex; align-items: center; gap: 8px; color: #10b981; font-weight: 600; font-size: 1.1rem;">
-                            <span>✓</span> Analysis Orchestration Complete
-                        </div>
-                        """, unsafe_allow_html=True)
+                        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
                         # KPI Header Cards
                         kpi1, kpi2, kpi3, kpi4 = st.columns(4)
                         with kpi1:
-                            st.metric("Routed Task", resp.get("selected_task", "N/A"))
+                            st.metric("ROUTED TASK", resp.get("selected_task", "N/A"))
                         with kpi2:
-                            st.metric("Model Deployed", resp.get("model_used", "N/A"))
+                            st.metric("MODEL DEPLOYED", resp.get("model_used", "N/A"))
                         with kpi3:
                             conf = resp.get("trace", {}).get("output_confidence")
                             conf_val = f"{conf:.0%}" if isinstance(conf, (int, float)) else "N/A"
-                            st.metric("Confidence Score", conf_val)
+                            st.metric("CONFIDENCE SCORE", conf_val)
                         with kpi4:
-                            st.metric("Query Record", f"#{resp.get('query_id')}")
+                            st.metric("QUERY RECORD ID", f"#{resp.get('query_id')}")
 
-                        # Answer Section
+                        # Answer Terminal Section
                         result_data = resp.get("result", {})
                         answer_text = result_data.get("text") if isinstance(result_data, dict) else str(result_data)
 
-                        st.markdown("""
-                        <div class="result-box">
-                            <div style="font-size: 0.8rem; color: var(--accent); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; font-family: 'JetBrains Mono', monospace;">
-                                📝 SYNTHESIZED INTELLIGENCE RESULT
+                        st.markdown(f"""
+                        <div class="result-terminal">
+                            <div class="result-terminal-header">
+                                [SYNTHESIZED INTELLIGENCE RESULT // INFERENCE VERIFIED]
                             </div>
-                            <div class="result-text">
-                        """ + (answer_text or "No textual result returned.") + """
+                            <div class="result-terminal-body">
+                                {answer_text or 'No textual telemetry generated.'}
                             </div>
                         </div>
                         """, unsafe_allow_html=True)
@@ -775,28 +793,28 @@ if analyze_clicked:
                                 report_resp = requests.get(f"{API_URL}/report/{query_id}", timeout=10)
                                 if report_resp.status_code == 200:
                                     st.download_button(
-                                        label="📄  Download Official PDF Audit Report",
+                                        label="[ EXPORT AUDIT REPORT (PDF) ]",
                                         data=report_resp.content,
                                         file_name=f"satquery_audit_report_{query_id}.pdf",
                                         mime="application/pdf",
                                         use_container_width=True
                                     )
                             except Exception as err:
-                                st.caption(f"Report generation note: {err}")
+                                st.caption(f"Report export note: {err}")
 
                         # Auditable Execution Trace Details
-                        with st.expander("🔍 Auditable Execution Trace & Telemetry"):
+                        with st.expander("[AUDITABLE EXECUTION TRACE & TELEMETRY RECORD]"):
                             st.json(resp.get("trace", {}))
 
             except requests.exceptions.RequestException as req_err:
-                st.error(f"Failed to communicate with API server: {req_err}")
+                st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
 
 
-# --- Section Divider 3: History & Audit Log ---
+# --- Section 3: History & Audit Log ---
 st.markdown("""
-<div id="audit-log" class="section-divider">
-    <div class="section-divider-badge">📜 3. Mission Audit History & Records</div>
-    <div class="section-divider-line right"></div>
+<div id="section-audit" class="section-header-tag">
+    <span>03 // MISSION AUDIT TRAIL & HISTORICAL TELEMETRY</span>
+    <span style="font-size: 0.72rem; color: var(--text-muted);">DATABASE: SQLITE / AUDITABLE</span>
 </div>
 """, unsafe_allow_html=True)
 
@@ -806,7 +824,7 @@ try:
         hist_data = hist_resp.json()
         entries = hist_data.get("history", [])
         if not entries:
-            st.caption("No queries recorded in audit database yet.")
+            st.caption("[NOTICE] Database state: No historical records detected.")
         else:
             for item in entries:
                 task = item.get("selected_task", "unknown")
@@ -815,48 +833,42 @@ try:
                 qid = item.get("id")
                 created = item.get("created_at", "")[:19].replace("T", " ")
 
-                badge_class = "status-badge-cyan" if task == "vqa_caption_ground" else ("status-badge-amber" if task == "change_analysis" else "status-badge-emerald")
-
-                header_label = f"Query #{qid} — {item.get('query_text')} [{task.upper()}] ({conf:.0%})"
+                header_label = f"LOG #{qid:04d} // [{task.upper()}] // CONF: {conf:.0%} // {item.get('query_text')}"
                 with st.expander(header_label):
                     col_h1, col_h2 = st.columns([3, 1])
                     with col_h1:
                         st.markdown(f"""
-                        <div style="margin-bottom: 8px;">
-                            <span class="status-badge {badge_class}">{task}</span>
-                            <span style="color: var(--text-sub); font-size: 0.85rem; margin-left: 8px;">Model: <strong>{model}</strong></span>
-                            <span style="color: var(--text-dim); font-size: 0.85rem; margin-left: 8px;">Validation: {item.get('validation_msg')}</span>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.80rem; margin-bottom: 6px;">
+                            <span>TASK: <strong>{task}</strong></span> |
+                            <span>MODEL: <strong>{model}</strong></span> |
+                            <span>STATUS: {item.get('validation_msg')}</span>
                         </div>
-                        <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 8px;">Recorded timestamp: {created} UTC</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 8px;">
+                            TIMESTAMP: {created} UTC
+                        </div>
                         """, unsafe_allow_html=True)
                         if item.get("trace"):
                             st.json(item["trace"])
                     with col_h2:
                         if qid:
-                            st.link_button("📄 Download PDF", f"{API_URL}/report/{qid}", use_container_width=True)
+                            st.link_button("[PDF REPORT]", f"{API_URL}/report/{qid}", use_container_width=True)
     else:
-        st.caption(f"Could not load history (HTTP {hist_resp.status_code})")
+        st.caption(f"[NOTICE] Audit bus communication fault (HTTP {hist_resp.status_code})")
 except Exception as ex:
-    st.caption(f"History unavailable: {ex}")
+    st.caption(f"[NOTICE] Telemetry bus unavailable: {ex}")
 
 
-# --- Product Footer ---
+# --- Ground Control Footer ---
 st.markdown(f"""
-<div class="footer-container">
+<div class="mc-footer">
     <div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <img src="https://img.icons8.com/isometric/100/satellite.png" width="22"/>
-            <span style="font-weight: 700; font-family: 'Space Grotesk', sans-serif; font-size: 0.95rem;">SatQuery AI</span>
-            <span style="color: var(--text-dim); font-size: 0.82rem;">• © 2026 Team Debuggers Den</span>
-        </div>
-        <div style="color: var(--text-dim); font-size: 0.78rem; margin-top: 4px;">
-            Autonomous Multi-Modal Earth Observation Orchestration & Audit Platform
-        </div>
+        <div class="mc-footer-title">SATQUERY AI // EARTH OBSERVATION GROUND STATION</div>
+        <div class="mc-footer-meta">ISRO EO-AI DEMONSTRATOR // TEAM DEBUGGERS DEN • © 2026</div>
     </div>
-    <div style="display: flex; align-items: center; gap: 18px;">
-        <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="footer-link">GitHub</a>
-        <a href="{default_api_url}/docs" target="_blank" class="footer-link">API Docs</a>
-        <a href="{default_api_url}/health" target="_blank" class="footer-link">Health API</a>
+    <div style="display: flex; align-items: center; gap: 14px;">
+        <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="mc-nav-link">[GITHUB]</a>
+        <a href="{default_api_url}/docs" target="_blank" class="mc-nav-link">[API SPECS]</a>
+        <a href="{default_api_url}/health" target="_blank" class="mc-nav-link">[HEALTH BUS]</a>
     </div>
 </div>
 """, unsafe_allow_html=True)
