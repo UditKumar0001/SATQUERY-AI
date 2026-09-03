@@ -102,22 +102,22 @@ theme_vars = {
         "bg_input": "#090d14",
         "border_color": "#1e293b",
         "border_subtle": "#16202e",
-        "border_focus": "#4A7A9D",
+        "border_focus": "#3B82F6",
         "text_primary": "#f8fafc",
         "text_secondary": "#94a3b8",
         "text_muted": "#64748b",
-        "accent_primary": "#4A7A9D",
-        "accent_hover": "#5B8CAE",
-        "btn_primary_bg": "#3A6888",
+        "accent_primary": "#3B82F6",
+        "accent_hover": "#60A5FA",
+        "btn_primary_bg": "#1D6FD8",
         "btn_primary_text": "#ffffff",
-        "btn_primary_hover": "#2F5570",
+        "btn_primary_hover": "#1754A8",
         "btn_secondary_bg": "#121924",
         "hero_card_bg": "#0c1118",
         "chip_bg": "#121924",
         "chip_text": "#cbd5e1",
         "chip_border": "#243247",
         "chip_hover_bg": "#1c2638",
-        "chip_hover_text": "#7DA2C2",
+        "chip_hover_text": "#60A5FA",
         "nav_bg": "#0c1118",
         "nav_border": "#1e293b",
         "sidebar_bg": "#080c13",
@@ -125,12 +125,12 @@ theme_vars = {
         "footer_bg": "#080c13",
         "footer_border": "#1e293b",
         "metric_bg": "#0c1118",
-        "metric_value": "#7DA2C2",
+        "metric_value": "#60A5FA",
         "result_bg": "#0a0e16",
         "result_border": "#1e293b",
-        "status_tag_bg": "rgba(74, 122, 157, 0.16)",
-        "status_tag_border": "rgba(74, 122, 157, 0.38)",
-        "status_tag_text": "#8EB3D1",
+        "status_tag_bg": "rgba(37, 99, 235, 0.18)",
+        "status_tag_border": "rgba(96, 165, 250, 0.45)",
+        "status_tag_text": "#60A5FA",
     },
     "light": {
         "bg_app": "#f8fafc",
@@ -139,22 +139,22 @@ theme_vars = {
         "bg_input": "#ffffff",
         "border_color": "#e2e8f0",
         "border_subtle": "#e2e8f0",
-        "border_focus": "#3A6888",
+        "border_focus": "#1D6FD8",
         "text_primary": "#0f172a",
         "text_secondary": "#475569",
         "text_muted": "#64748b",
-        "accent_primary": "#3A6888",
-        "accent_hover": "#2F5570",
-        "btn_primary_bg": "#3A6888",
+        "accent_primary": "#1D6FD8",
+        "accent_hover": "#1E40AF",
+        "btn_primary_bg": "#1D6FD8",
         "btn_primary_text": "#ffffff",
-        "btn_primary_hover": "#2F5570",
+        "btn_primary_hover": "#1E40AF",
         "btn_secondary_bg": "#ffffff",
         "hero_card_bg": "#ffffff",
         "chip_bg": "#f1f5f9",
         "chip_text": "#0f172a",
         "chip_border": "#cbd5e1",
         "chip_hover_bg": "#e2e8f0",
-        "chip_hover_text": "#3A6888",
+        "chip_hover_text": "#1D6FD8",
         "nav_bg": "#ffffff",
         "nav_border": "#e2e8f0",
         "sidebar_bg": "#f8fafc",
@@ -162,12 +162,12 @@ theme_vars = {
         "footer_bg": "#ffffff",
         "footer_border": "#e2e8f0",
         "metric_bg": "#ffffff",
-        "metric_value": "#3A6888",
+        "metric_value": "#1D6FD8",
         "result_bg": "#f8fafc",
         "result_border": "#e2e8f0",
-        "status_tag_bg": "rgba(74, 122, 157, 0.12)",
-        "status_tag_border": "rgba(74, 122, 157, 0.30)",
-        "status_tag_text": "#2B506B",
+        "status_tag_bg": "rgba(37, 99, 235, 0.10)",
+        "status_tag_border": "rgba(37, 99, 235, 0.30)",
+        "status_tag_text": "#1D6FD8",
     }
 }
 
@@ -287,22 +287,22 @@ st.markdown(f"""
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #4A7A9D 0%, #2F5570 100%);
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         color: #ffffff;
         flex-shrink: 0;
-        box-shadow: 0 0 14px rgba(74, 122, 157, 0.40);
+        box-shadow: 0 0 14px rgba(37, 99, 235, 0.45);
     }}
     .ref-nav-logo {{
-        background: linear-gradient(135deg, #4A7A9D 0%, #2F5570 100%);
+        background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         color: #ffffff;
         flex-shrink: 0;
-        box-shadow: 0 0 10px rgba(74, 122, 157, 0.35);
+        box-shadow: 0 0 10px rgba(37, 99, 235, 0.40);
     }}
     .planet-nav-title {{
         font-family: 'Inter', -apple-system, sans-serif;
@@ -504,10 +504,10 @@ st.markdown(f"""
         font-weight: 700;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: #8EB3D1;
-        background: rgba(74, 122, 157, 0.16);
-        border: 1px solid rgba(74, 122, 157, 0.38);
-        padding: 5px 14px;
+        color: #60A5FA;
+        background: rgba(37, 99, 235, 0.18);
+        border: 1px solid rgba(96, 165, 250, 0.45);
+        padding: 6px 16px;
         border-radius: 9999px;
         margin-bottom: 24px;
         backdrop-filter: blur(8px);
@@ -525,7 +525,7 @@ st.markdown(f"""
         max-width: 800px;
     }}
     .nasa-hero-title-accent {{
-        background: linear-gradient(135deg, #B9D5EC 0%, #7DA2C2 50%, #4A7A9D 100%);
+        background: linear-gradient(135deg, #BFDBFE 0%, #60A5FA 50%, #2563EB 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         display: inline-block;
@@ -555,8 +555,8 @@ st.markdown(f"""
         padding: 12px 26px;
         border-radius: 8px;
         text-decoration: none;
-        border: 1px solid rgba(125, 162, 194, 0.35);
-        box-shadow: 0 4px 18px rgba(58, 104, 136, 0.35);
+        border: 1px solid rgba(96, 165, 250, 0.40);
+        box-shadow: 0 4px 18px rgba(29, 111, 216, 0.40);
         transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
@@ -564,8 +564,8 @@ st.markdown(f"""
     }}
     .nasa-btn-primary:hover {{
         background: var(--btn-primary-hover);
-        border-color: rgba(125, 162, 194, 0.55);
-        box-shadow: 0 6px 24px rgba(58, 104, 136, 0.50);
+        border-color: rgba(96, 165, 250, 0.65);
+        box-shadow: 0 6px 24px rgba(29, 111, 216, 0.55);
         transform: translateY(-1px);
     }}
     .nasa-btn-secondary {{
@@ -611,8 +611,8 @@ st.markdown(f"""
         height: 44px;
         border-radius: 50%;
         background: rgba(15, 23, 42, 0.75);
-        border: 1px solid rgba(125, 162, 194, 0.35);
-        color: #8EB3D1;
+        border: 1px solid rgba(96, 165, 250, 0.40);
+        color: #60A5FA;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -624,7 +624,7 @@ st.markdown(f"""
     }}
     .nasa-hero-ctrl-btn:hover {{
         background: rgba(30, 41, 59, 0.95);
-        border-color: #8EB3D1;
+        border-color: #60A5FA;
         transform: scale(1.06);
         color: #ffffff;
     }}
@@ -766,9 +766,9 @@ st.markdown(f"""
         backdrop-filter: blur(4px);
     }}
     .tag-cyan {{
-        background: rgba(58, 104, 136, 0.90);
+        background: rgba(29, 111, 216, 0.92);
         color: #ffffff;
-        box-shadow: 0 0 8px rgba(74, 122, 157, 0.4);
+        box-shadow: 0 0 10px rgba(37, 99, 235, 0.40);
     }}
     .tag-rose {{
         background: rgba(244, 63, 94, 0.90);
@@ -873,7 +873,7 @@ st.markdown(f"""
         margin-bottom: 6px;
     }}
     .val-green {{ color: #10b981; }}
-    .val-blue {{ color: #7DA2C2; }}
+    .val-blue {{ color: #60A5FA; }}
     .val-purple {{ color: #8b5cf6; }}
     .val-orange {{ color: #f59e0b; }}
     .ref-stat-sub {{
@@ -883,7 +883,7 @@ st.markdown(f"""
         line-height: 1.4;
     }}
 
-    /* Full Bleed Tech Ticker Strip (Muted Space Deep Navy + Steel Blue) */
+    /* Full Bleed Tech Ticker Strip (Deep Navy + Clear Azure Blue) */
     .tech-ticker-wrap {{
         width: 100vw;
         position: relative;
@@ -891,9 +891,9 @@ st.markdown(f"""
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        background: #060b14;
-        border-top: 1px solid rgba(74, 122, 157, 0.25);
-        border-bottom: 1px solid rgba(74, 122, 157, 0.25);
+        background: #071022;
+        border-top: 1px solid rgba(59, 130, 246, 0.28);
+        border-bottom: 1px solid rgba(59, 130, 246, 0.28);
         overflow: hidden;
         white-space: nowrap;
         padding: 12px 0;
@@ -919,12 +919,12 @@ st.markdown(f"""
         font-weight: 600;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: #8EB3D1;
+        color: #60A5FA;
         padding: 0 16px;
         white-space: nowrap;
     }}
     .ticker-sep {{
-        color: rgba(74, 122, 157, 0.45);
+        color: rgba(96, 165, 250, 0.45);
         font-size: 0.70rem;
     }}
 
@@ -1063,7 +1063,7 @@ st.markdown(f"""
     }}
     [data-testid="stFileUploader"] section:hover {{
         border-color: var(--accent-primary) !important;
-        box-shadow: 0 2px 10px rgba(74, 122, 157, 0.08) !important;
+        box-shadow: 0 2px 10px rgba(37, 99, 235, 0.10) !important;
     }}
     [data-testid="stFileUploader"] button {{
         background: var(--btn-secondary-bg) !important;
@@ -1094,7 +1094,7 @@ st.markdown(f"""
     }}
     [data-testid="stTextInput"] input:focus {{
         border-color: var(--accent-primary) !important;
-        box-shadow: 0 0 0 3px rgba(74, 122, 157, 0.18) !important;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.20) !important;
     }}
 
     /* Reference Style Preset Chips */
@@ -1117,7 +1117,7 @@ st.markdown(f"""
         background: var(--accent-primary) !important;
         color: #ffffff !important;
         border-color: var(--accent-primary) !important;
-        box-shadow: 0 2px 8px rgba(74, 122, 157, 0.25) !important;
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
     }}
 
     /* Reference Style Primary Action Button */
@@ -1132,12 +1132,12 @@ st.markdown(f"""
         letter-spacing: 0.02em !important;
         text-transform: none !important;
         padding: 14px 28px !important;
-        box-shadow: 0 2px 8px rgba(58, 104, 136, 0.35) !important;
+        box-shadow: 0 2px 8px rgba(29, 111, 216, 0.35) !important;
         transition: all 0.2s ease !important;
     }}
     div[data-testid="stButton"] > button[kind="primary"]:hover {{
         background: var(--btn-primary-hover) !important;
-        box-shadow: 0 4px 14px rgba(58, 104, 136, 0.45) !important;
+        box-shadow: 0 4px 14px rgba(29, 111, 216, 0.45) !important;
     }}
 
     /* LED Indicators */
@@ -1363,7 +1363,7 @@ st.markdown(f"""
     }}
     .ref-history-card:hover {{
         border-color: var(--accent-primary);
-        box-shadow: 0 2px 8px rgba(74, 122, 157, 0.08);
+        box-shadow: 0 2px 8px rgba(37, 99, 235, 0.10);
     }}
     .ref-history-query {{
         font-family: 'Inter', sans-serif;
@@ -1661,7 +1661,7 @@ hero_html = f"""<div class="nasa-hero-wrap">
 <div class="nasa-hero-overlay"></div>
 <div class="nasa-hero-inner">
 <div class="nasa-hero-eyebrow">
-<span style="font-size: 0.85rem; color: #8EB3D1;">✦</span> MISSION DIRECTIVE • LOW EARTH ORBIT OBSERVATION
+<span style="font-size: 0.85rem; color: #60A5FA;">✦</span> MISSION DIRECTIVE • LOW EARTH ORBIT OBSERVATION
 </div>
 <h1 class="nasa-hero-title">
 SatQuery AI<br/>
