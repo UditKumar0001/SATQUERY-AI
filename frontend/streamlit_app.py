@@ -36,28 +36,20 @@ if "query_input_val" not in st.session_state:
 is_dark = (st.session_state.theme == "dark")
 
 @st.cache_data
-def get_clean_hero_assets() -> tuple[str, str]:
-    assets_dir = Path(__file__).parent / "assets"
-    img_path = assets_dir / "clean_earth_hero.jpg"
-    vid_path = assets_dir / "earth_orbit_bg.webm"
-    
-    img_b64 = ""
-    vid_b64 = ""
-    if img_path.exists():
-        try:
-            with open(img_path, "rb") as f:
-                img_b64 = f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode('utf-8')}"
-        except Exception:
-            pass
-    if vid_path.exists():
-        try:
-            with open(vid_path, "rb") as f:
-                vid_b64 = f"data:video/webm;base64,{base64.b64encode(f.read()).decode('utf-8')}"
-        except Exception:
-            pass
-    return img_b64, vid_b64
+def generate_vector_starfield() -> str:
+    import random
+    rng = random.Random(42)
+    stars = []
+    for i in range(120):
+        cx = round(rng.uniform(1.5, 98.5), 2)
+        cy = round(rng.uniform(1.5, 98.5), 2)
+        r = round(rng.uniform(0.65, 1.8), 2)
+        twinkle_cls = f"star-twinkle-{(i % 4) + 1}"
+        base_op = round(rng.uniform(0.25, 0.90), 2)
+        stars.append(f'<circle cx="{cx}%" cy="{cy}%" r="{r}" fill="#ffffff" opacity="{base_op}" class="{twinkle_cls}"/>')
+    return "\n".join(stars)
 
-clean_earth_bg_url, hero_vid_url = get_clean_hero_assets()
+vector_stars_svg = generate_vector_starfield()
 
 @st.cache_data
 def get_card_images_b64() -> dict:
@@ -424,7 +416,7 @@ st.markdown(f"""
         color: var(--text-primary) !important;
     }}
 
-    /* NASA Science Eyes Editorial Hero (Full Bleed, High-Res Orbital Scene) */
+    /* Vector Deep Space Orbital Scene (100% SVG/CSS Vector Engine) */
     .nasa-hero-wrap {{
         width: 100vw;
         position: relative;
@@ -433,7 +425,9 @@ st.markdown(f"""
         margin-left: -50vw;
         margin-right: -50vw;
         min-height: 84vh;
-        background-color: #030712;
+        background-color: #020409;
+        background-image: 
+            radial-gradient(ellipse at 84% 65%, #081a38 0%, #030816 55%, #020409 100%);
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -442,130 +436,101 @@ st.markdown(f"""
         margin-top: -12px;
         margin-bottom: 40px;
         border-bottom: 1px solid var(--border-color);
-        box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.85);
+        box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.90);
         box-sizing: border-box;
     }}
-    .nasa-hero-bg-layer {{
+    .vector-space-canvas {{
         position: absolute;
-        top: -5%;
-        left: -5%;
-        width: 110%;
-        height: 110%;
-        background-image: url('{clean_earth_bg_url}');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        z-index: 1;
-        animation: earthSlowDrift 100s ease-in-out infinite alternate;
-        filter: contrast(1.05) brightness(0.96);
-        pointer-events: none;
-    }}
-    @keyframes earthSlowDrift {{
-        0% {{
-            transform: scale(1.0) translate(0, 0);
-        }}
-        50% {{
-            transform: scale(1.06) translate(-1%, -1.5%);
-        }}
-        100% {{
-            transform: scale(1.03) translate(1%, -0.5%);
-        }}
-    }}
-    /* Generic Unbranded Satellite Element (Drifting in LEO) */
-    .nasa-satellite-container {{
-        position: absolute;
-        top: 14%;
-        right: 7%;
-        width: 260px;
-        height: 160px;
-        z-index: 2;
-        pointer-events: none;
-        animation: satelliteOrbitPass 80s ease-in-out infinite alternate;
-    }}
-    @keyframes satelliteOrbitPass {{
-        0% {{
-            transform: translate(25px, -20px) rotate(-4deg);
-        }}
-        50% {{
-            transform: translate(-30px, 15px) rotate(2deg);
-        }}
-        100% {{
-            transform: translate(15px, 35px) rotate(-1deg);
-        }}
-    }}
-    .nasa-satellite-svg {{
+        top: 0;
+        left: 0;
         width: 100%;
-        height: auto;
-        filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.75));
-        animation: satelliteMicroAttitude 16s ease-in-out infinite alternate;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
     }}
-    @keyframes satelliteMicroAttitude {{
+    /* Twinkling Starfield Classes */
+    .star-twinkle-1 {{
+        animation: starBlink 4.2s ease-in-out infinite;
+    }}
+    .star-twinkle-2 {{
+        animation: starBlink 6.3s ease-in-out infinite 1.4s;
+    }}
+    .star-twinkle-3 {{
+        animation: starBlink 5.1s ease-in-out infinite 2.6s;
+    }}
+    .star-twinkle-4 {{
+        animation: starBlink 7.5s ease-in-out infinite 0.8s;
+    }}
+    @keyframes starBlink {{
+        0%, 100% {{
+            opacity: 0.25;
+            transform: scale(0.9);
+        }}
+        50% {{
+            opacity: 1;
+            transform: scale(1.25);
+        }}
+    }}
+    /* Earth Orbital Layer with Calm 140s Rotation */
+    .earth-system {{
+        transform-origin: 1200px 580px;
+        animation: earthCalmRotation 140s linear infinite;
+    }}
+    @keyframes earthCalmRotation {{
         0% {{
             transform: rotate(0deg);
         }}
         100% {{
-            transform: rotate(3.5deg);
+            transform: rotate(360deg);
         }}
     }}
-    .sat-radar-beam {{
-        animation: radarBeamScan 5s ease-in-out infinite alternate;
-        transform-origin: 132px 135px;
+    /* Clean Geometric Satellite in Elliptical Orbit (78s Loop) */
+    .vector-satellite-group {{
+        animation: satelliteOrbitLoop 78s ease-in-out infinite alternate;
+        transform-origin: 980px 180px;
     }}
-    @keyframes radarBeamScan {{
+    @keyframes satelliteOrbitLoop {{
         0% {{
-            opacity: 0.20;
-            transform: scaleX(0.92);
+            transform: translate(25px, -18px) rotate(-6deg);
         }}
-        50% {{
-            opacity: 0.55;
-            transform: scaleX(1.08);
+        35% {{
+            transform: translate(-50px, 30px) rotate(-1deg);
+        }}
+        70% {{
+            transform: translate(-120px, 80px) rotate(5deg);
         }}
         100% {{
-            opacity: 0.25;
-            transform: scaleX(0.96);
+            transform: translate(-180px, 125px) rotate(11deg);
         }}
     }}
-    .sat-telemetry-led {{
-        animation: ledTelemetryBlink 2.5s ease-in-out infinite;
+    .vector-sat-pulse {{
+        animation: satBeaconPulse 2.8s ease-in-out infinite;
     }}
-    @keyframes ledTelemetryBlink {{
+    @keyframes satBeaconPulse {{
         0%, 100% {{
-            opacity: 0.4;
+            opacity: 0.35;
             filter: drop-shadow(0 0 1px #10b981);
         }}
         50% {{
             opacity: 1;
-            filter: drop-shadow(0 0 6px #10b981);
+            filter: drop-shadow(0 0 7px #10b981);
         }}
     }}
-    .nasa-hero-sweep {{
-        position: absolute;
-        top: 0;
-        left: -100%;
-        width: 45%;
-        height: 100%;
-        background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.07) 50%, transparent 100%);
-        transform: skewX(-20deg);
-        z-index: 3;
-        pointer-events: none;
-        animation: radarSweep 24s ease-in-out infinite;
+    .vector-sat-sensor-cone {{
+        animation: sensorConePulse 6s ease-in-out infinite alternate;
     }}
-    @keyframes radarSweep {{
+    @keyframes sensorConePulse {{
         0% {{
-            left: -80%;
-            opacity: 0;
+            opacity: 0.20;
         }}
-        20% {{
-            opacity: 1;
-        }}
-        80% {{
-            opacity: 1;
+        50% {{
+            opacity: 0.60;
         }}
         100% {{
-            left: 140%;
-            opacity: 0;
+            opacity: 0.25;
         }}
     }}
+    /* High-contrast Readability Gradient Mask */
     .nasa-hero-overlay {{
         position: absolute;
         top: 0;
@@ -573,9 +538,9 @@ st.markdown(f"""
         width: 100%;
         height: 100%;
         background: 
-            linear-gradient(to right, rgba(3, 7, 18, 0.94) 0%, rgba(3, 7, 18, 0.85) 40%, rgba(3, 7, 18, 0.35) 75%, rgba(3, 7, 18, 0.70) 100%),
-            linear-gradient(to top, var(--bg-app) 0%, rgba(3, 7, 18, 0.3) 15%, transparent 35%);
-        z-index: 4;
+            linear-gradient(to right, rgba(2, 4, 9, 0.96) 0%, rgba(2, 4, 9, 0.88) 38%, rgba(2, 4, 9, 0.38) 72%, rgba(2, 4, 9, 0.70) 100%),
+            linear-gradient(to top, var(--bg-app) 0%, rgba(2, 4, 9, 0.35) 15%, transparent 35%);
+        z-index: 2;
         pointer-events: none;
     }}
     .nasa-hero-inner {{
@@ -585,18 +550,16 @@ st.markdown(f"""
         padding: 0 2rem;
         box-sizing: border-box;
         position: relative;
-        z-index: 5;
+        z-index: 3;
     }}
     @media (max-width: 960px) {{
-        .nasa-satellite-container {{
-            width: 190px !important;
-            right: 4% !important;
-            top: 8% !important;
-            opacity: 0.8 !important;
+        .vector-satellite-group {{
+            transform: scale(0.8);
+            transform-origin: 980px 180px;
         }}
     }}
     @media (max-width: 640px) {{
-        .nasa-satellite-container {{
+        .vector-satellite-group {{
             display: none !important;
         }}
     }}
@@ -1749,57 +1712,92 @@ with st.sidebar:
     st.caption("© 2026 Team Debuggers Den • SatQuery v1.0")
 
 
-# --- Hero Section (NASA Science Eyes Editorial Style with Orbital Satellite) ---
+# --- Hero Section (Custom Vector Space Orbital Scene - Pure SVG/CSS) ---
 hero_html = f"""<div class="nasa-hero-wrap">
-<div class="nasa-hero-bg-layer"></div>
-<div class="nasa-satellite-container">
-<svg class="nasa-satellite-svg" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<svg class="vector-space-canvas" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
 <defs>
-<linearGradient id="satGoldMli" x1="0" y1="0" x2="1" y2="1">
-<stop offset="0%" stop-color="#b45309"/>
-<stop offset="45%" stop-color="#d97706"/>
-<stop offset="100%" stop-color="#78350f"/>
+<radialGradient id="earthAtmoGlow" cx="50%" cy="50%" r="50%">
+<stop offset="70%" stop-color="rgba(56, 189, 248, 0)" />
+<stop offset="92%" stop-color="rgba(56, 189, 248, 0.28)" />
+<stop offset="100%" stop-color="rgba(14, 165, 233, 0.75)" />
+</radialGradient>
+<radialGradient id="earthOceanSphere" cx="42%" cy="38%" r="62%">
+<stop offset="0%" stop-color="#1e40af" />
+<stop offset="45%" stop-color="#0f2b6b" />
+<stop offset="85%" stop-color="#051438" />
+<stop offset="100%" stop-color="#020817" />
+</radialGradient>
+<linearGradient id="earthTerminator" x1="0%" y1="0%" x2="100%" y2="100%">
+<stop offset="0%" stop-color="rgba(255, 255, 255, 0.08)" />
+<stop offset="45%" stop-color="rgba(2, 4, 10, 0.15)" />
+<stop offset="68%" stop-color="rgba(2, 4, 10, 0.75)" />
+<stop offset="100%" stop-color="rgba(2, 4, 10, 0.98)" />
 </linearGradient>
-<linearGradient id="satSolarGrad" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="#0f172a"/>
-<stop offset="50%" stop-color="#1e293b"/>
-<stop offset="100%" stop-color="#090d16"/>
+<linearGradient id="satConeBeam" x1="0%" y1="0%" x2="0%" y2="100%">
+<stop offset="0%" stop-color="rgba(56, 189, 248, 0.55)" />
+<stop offset="40%" stop-color="rgba(56, 189, 248, 0.18)" />
+<stop offset="100%" stop-color="rgba(56, 189, 248, 0.0)" />
 </linearGradient>
-<linearGradient id="radarConeGrad" x1="0" y1="0" x2="0" y2="1">
-<stop offset="0%" stop-color="rgba(56, 189, 248, 0.45)"/>
-<stop offset="60%" stop-color="rgba(56, 189, 248, 0.15)"/>
-<stop offset="100%" stop-color="rgba(56, 189, 248, 0.0)"/>
+<linearGradient id="satSolarArray" x1="0%" y1="0%" x2="0%" y2="100%">
+<stop offset="0%" stop-color="#0284c7" />
+<stop offset="50%" stop-color="#0369a1" />
+<stop offset="100%" stop-color="#075985" />
 </linearGradient>
+<clipPath id="earthClip">
+<circle cx="1200" cy="580" r="380" />
+</clipPath>
 </defs>
-<polygon points="122,122 142,122 195,200 68,200" fill="url(#radarConeGrad)" class="sat-radar-beam"/>
-<g class="sat-solar-left">
-<rect x="8" y="44" width="82" height="48" rx="3" fill="url(#satSolarGrad)" stroke="#38bdf8" stroke-width="1.4"/>
-<line x1="28" y1="44" x2="28" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
-<line x1="48" y1="44" x2="48" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
-<line x1="68" y1="44" x2="68" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
-<line x1="8" y1="68" x2="90" y2="68" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
-<rect x="90" y="65" width="16" height="6" fill="#64748b" rx="1"/>
+<g class="starfield-layer">
+{vector_stars_svg}
 </g>
-<g class="sat-bus">
-<rect x="106" y="38" width="52" height="64" rx="5" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.6"/>
-<rect x="110" y="42" width="44" height="56" rx="3" fill="url(#satGoldMli)"/>
-<circle cx="132" cy="106" r="7" fill="#0284c7" stroke="#38bdf8" stroke-width="1.8"/>
-<circle cx="132" cy="106" r="3.5" fill="#030712"/>
-<circle cx="114" cy="46" r="2.8" fill="#10b981" class="sat-telemetry-led"/>
-<path d="M 120 114 L 144 114 L 152 124 L 112 124 Z" fill="#475569" stroke="#94a3b8" stroke-width="1.2"/>
-<circle cx="132" cy="38" r="5" fill="#334155" stroke="#94a3b8" stroke-width="1.2"/>
+<g class="orbital-rings-layer" opacity="0.65">
+<ellipse cx="1200" cy="580" rx="520" ry="240" fill="none" stroke="rgba(56, 189, 248, 0.22)" stroke-width="1.3" stroke-dasharray="10 14" transform="rotate(-24, 1200, 580)" />
+<ellipse cx="1200" cy="580" rx="640" ry="310" fill="none" stroke="rgba(14, 165, 233, 0.14)" stroke-width="1.0" stroke-dasharray="6 18" transform="rotate(-18, 1200, 580)" />
+<ellipse cx="1200" cy="580" rx="760" ry="380" fill="none" stroke="rgba(125, 211, 252, 0.08)" stroke-width="0.8" stroke-dasharray="4 24" transform="rotate(-12, 1200, 580)" />
 </g>
-<g class="sat-solar-right">
-<rect x="158" y="65" width="16" height="6" fill="#64748b" rx="1"/>
-<rect x="174" y="44" width="82" height="48" rx="3" fill="url(#satSolarGrad)" stroke="#38bdf8" stroke-width="1.4"/>
-<line x1="194" y1="44" x2="194" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
-<line x1="214" y1="44" x2="214" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
-<line x1="234" y1="44" x2="234" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
-<line x1="174" y1="68" x2="256" y2="68" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+<g id="earth-container">
+<circle cx="1200" cy="580" r="396" fill="url(#earthAtmoGlow)" />
+<circle cx="1200" cy="580" r="380" fill="url(#earthOceanSphere)" />
+<g clip-path="url(#earthClip)">
+<g class="earth-system">
+<path d="M 1080 440 Q 1120 400 1180 430 Q 1240 460 1220 520 Q 1190 560 1130 530 Q 1070 500 1080 440 Z" fill="#0d9488" opacity="0.75" />
+<path d="M 1240 370 Q 1300 350 1340 390 Q 1370 430 1330 470 Q 1280 460 1250 420 Z" fill="#059669" opacity="0.70" />
+<path d="M 1150 560 Q 1200 540 1260 580 Q 1280 640 1230 680 Q 1170 660 1140 610 Z" fill="#0d9488" opacity="0.75" />
+<path d="M 1020 530 Q 1060 500 1090 540 Q 1100 590 1050 610 Q 1010 580 1020 530 Z" fill="#047857" opacity="0.65" />
+<path d="M 1290 540 Q 1350 510 1380 560 Q 1390 620 1340 640 Q 1290 610 1290 540 Z" fill="#059669" opacity="0.70" />
+<path d="M 1040 410 Q 1160 380 1280 440 Q 1200 460 1100 440 Z" fill="rgba(255,255,255,0.28)" />
+<path d="M 1120 490 Q 1250 480 1360 530 Q 1270 560 1160 520 Z" fill="rgba(255,255,255,0.22)" />
+<path d="M 1070 590 Q 1190 570 1320 630 Q 1220 660 1110 620 Z" fill="rgba(255,255,255,0.25)" />
+<path d="M 1180 340 Q 1270 330 1350 370 Q 1290 390 1210 360 Z" fill="rgba(255,255,255,0.30)" />
+</g>
+<circle cx="1200" cy="580" r="380" fill="url(#earthTerminator)" />
+</g>
+</g>
+<g class="vector-satellite-group">
+<g transform="translate(980, 180) rotate(-14)">
+<polygon points="46,45 64,45 130,220 0,220" fill="url(#satConeBeam)" class="vector-sat-sensor-cone" />
+<rect x="-68" y="18" width="62" height="34" rx="2" fill="url(#satSolarArray)" stroke="#38bdf8" stroke-width="1.3" />
+<line x1="-52" y1="18" x2="-52" y2="52" stroke="#bae6fd" stroke-width="0.8" opacity="0.7" />
+<line x1="-36" y1="18" x2="-36" y2="52" stroke="#bae6fd" stroke-width="0.8" opacity="0.7" />
+<line x1="-20" y1="18" x2="-20" y2="52" stroke="#bae6fd" stroke-width="0.8" opacity="0.7" />
+<line x1="-68" y1="35" x2="-6" y2="35" stroke="#bae6fd" stroke-width="0.8" opacity="0.7" />
+<rect x="-6" y="32" width="12" height="6" fill="#94a3b8" />
+<rect x="6" y="12" width="44" height="52" rx="4" fill="#0f172a" stroke="#e2e8f0" stroke-width="1.6" />
+<rect x="10" y="16" width="36" height="44" rx="2" fill="#1e293b" stroke="#38bdf8" stroke-width="0.8" />
+<circle cx="28" cy="48" r="7" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5" />
+<circle cx="28" cy="48" r="3.5" fill="#030712" />
+<path d="M 22 12 Q 28 4 34 12" fill="none" stroke="#e2e8f0" stroke-width="1.6" />
+<line x1="28" y1="12" x2="28" y2="6" stroke="#e2e8f0" stroke-width="1.2" />
+<circle cx="15" cy="21" r="2.5" fill="#10b981" class="vector-sat-pulse" />
+<rect x="50" y="32" width="12" height="6" fill="#94a3b8" />
+<rect x="62" y="18" width="62" height="34" rx="2" fill="url(#satSolarArray)" stroke="#38bdf8" stroke-width="1.3" />
+<line x1="78" y1="18" x2="78" y2="52" stroke="#bae6fd" stroke-width="0.8" opacity="0.7" />
+<line x1="94" y1="18" x2="94" y2="52" stroke="#bae6fd" stroke-width="0.8" opacity="0.7" />
+<line x1="110" y1="18" x2="110" y2="52" stroke="#bae6fd" stroke-width="0.8" opacity="0.7" />
+<line x1="62" y1="35" x2="124" y2="35" stroke="#bae6fd" stroke-width="0.8" opacity="0.7" />
+</g>
 </g>
 </svg>
-</div>
-<div class="nasa-hero-sweep"></div>
 <div class="nasa-hero-overlay"></div>
 <div class="nasa-hero-inner">
 <div class="nasa-hero-eyebrow">
