@@ -102,22 +102,22 @@ theme_vars = {
         "bg_input": "#090d14",
         "border_color": "#1e293b",
         "border_subtle": "#16202e",
-        "border_focus": "#f59e0b",
+        "border_focus": "#4A7A9D",
         "text_primary": "#f8fafc",
         "text_secondary": "#94a3b8",
         "text_muted": "#64748b",
-        "accent_primary": "#f59e0b",
-        "accent_hover": "#fbbf24",
-        "btn_primary_bg": "#d97706",
+        "accent_primary": "#4A7A9D",
+        "accent_hover": "#5B8CAE",
+        "btn_primary_bg": "#3A6888",
         "btn_primary_text": "#ffffff",
-        "btn_primary_hover": "#b45309",
+        "btn_primary_hover": "#2F5570",
         "btn_secondary_bg": "#121924",
         "hero_card_bg": "#0c1118",
         "chip_bg": "#121924",
         "chip_text": "#cbd5e1",
         "chip_border": "#243247",
         "chip_hover_bg": "#1c2638",
-        "chip_hover_text": "#f59e0b",
+        "chip_hover_text": "#7DA2C2",
         "nav_bg": "#0c1118",
         "nav_border": "#1e293b",
         "sidebar_bg": "#080c13",
@@ -125,12 +125,12 @@ theme_vars = {
         "footer_bg": "#080c13",
         "footer_border": "#1e293b",
         "metric_bg": "#0c1118",
-        "metric_value": "#f59e0b",
+        "metric_value": "#7DA2C2",
         "result_bg": "#0a0e16",
         "result_border": "#1e293b",
-        "status_tag_bg": "rgba(245, 158, 11, 0.12)",
-        "status_tag_border": "rgba(245, 158, 11, 0.35)",
-        "status_tag_text": "#f59e0b",
+        "status_tag_bg": "rgba(74, 122, 157, 0.16)",
+        "status_tag_border": "rgba(74, 122, 157, 0.38)",
+        "status_tag_text": "#8EB3D1",
     },
     "light": {
         "bg_app": "#f8fafc",
@@ -139,22 +139,22 @@ theme_vars = {
         "bg_input": "#ffffff",
         "border_color": "#e2e8f0",
         "border_subtle": "#e2e8f0",
-        "border_focus": "#d97706",
+        "border_focus": "#3A6888",
         "text_primary": "#0f172a",
         "text_secondary": "#475569",
         "text_muted": "#64748b",
-        "accent_primary": "#d97706",
-        "accent_hover": "#b45309",
-        "btn_primary_bg": "#d97706",
+        "accent_primary": "#3A6888",
+        "accent_hover": "#2F5570",
+        "btn_primary_bg": "#3A6888",
         "btn_primary_text": "#ffffff",
-        "btn_primary_hover": "#b45309",
+        "btn_primary_hover": "#2F5570",
         "btn_secondary_bg": "#ffffff",
         "hero_card_bg": "#ffffff",
         "chip_bg": "#f1f5f9",
         "chip_text": "#0f172a",
         "chip_border": "#cbd5e1",
         "chip_hover_bg": "#e2e8f0",
-        "chip_hover_text": "#d97706",
+        "chip_hover_text": "#3A6888",
         "nav_bg": "#ffffff",
         "nav_border": "#e2e8f0",
         "sidebar_bg": "#f8fafc",
@@ -162,12 +162,12 @@ theme_vars = {
         "footer_bg": "#ffffff",
         "footer_border": "#e2e8f0",
         "metric_bg": "#ffffff",
-        "metric_value": "#d97706",
+        "metric_value": "#3A6888",
         "result_bg": "#f8fafc",
         "result_border": "#e2e8f0",
-        "status_tag_bg": "rgba(217, 119, 6, 0.10)",
-        "status_tag_border": "rgba(217, 119, 6, 0.30)",
-        "status_tag_text": "#d97706",
+        "status_tag_bg": "rgba(74, 122, 157, 0.12)",
+        "status_tag_border": "rgba(74, 122, 157, 0.30)",
+        "status_tag_text": "#2B506B",
     }
 }
 
@@ -287,22 +287,22 @@ st.markdown(f"""
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        background: linear-gradient(135deg, #4A7A9D 0%, #2F5570 100%);
         display: flex;
         align-items: center;
         justify-content: center;
         color: #ffffff;
         flex-shrink: 0;
-        box-shadow: 0 0 14px rgba(245, 158, 11, 0.45);
+        box-shadow: 0 0 14px rgba(74, 122, 157, 0.40);
     }}
     .ref-nav-logo {{
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        background: linear-gradient(135deg, #4A7A9D 0%, #2F5570 100%);
         display: inline-flex;
         align-items: center;
         justify-content: center;
         color: #ffffff;
         flex-shrink: 0;
-        box-shadow: 0 0 10px rgba(245, 158, 11, 0.35);
+        box-shadow: 0 0 10px rgba(74, 122, 157, 0.35);
     }}
     .planet-nav-title {{
         font-family: 'Inter', -apple-system, sans-serif;
@@ -504,9 +504,9 @@ st.markdown(f"""
         font-weight: 700;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: #f59e0b;
-        background: rgba(245, 158, 11, 0.12);
-        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #8EB3D1;
+        background: rgba(74, 122, 157, 0.16);
+        border: 1px solid rgba(74, 122, 157, 0.38);
         padding: 5px 14px;
         border-radius: 9999px;
         margin-bottom: 24px;
@@ -525,7 +525,7 @@ st.markdown(f"""
         max-width: 800px;
     }}
     .nasa-hero-title-accent {{
-        background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #ea580c 100%);
+        background: linear-gradient(135deg, #B9D5EC 0%, #7DA2C2 50%, #4A7A9D 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         display: inline-block;
@@ -555,7 +555,8 @@ st.markdown(f"""
         padding: 12px 26px;
         border-radius: 8px;
         text-decoration: none;
-        box-shadow: 0 4px 18px rgba(217, 119, 6, 0.4);
+        border: 1px solid rgba(125, 162, 194, 0.35);
+        box-shadow: 0 4px 18px rgba(58, 104, 136, 0.35);
         transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
@@ -563,7 +564,8 @@ st.markdown(f"""
     }}
     .nasa-btn-primary:hover {{
         background: var(--btn-primary-hover);
-        box-shadow: 0 6px 24px rgba(217, 119, 6, 0.6);
+        border-color: rgba(125, 162, 194, 0.55);
+        box-shadow: 0 6px 24px rgba(58, 104, 136, 0.50);
         transform: translateY(-1px);
     }}
     .nasa-btn-secondary {{
@@ -609,8 +611,8 @@ st.markdown(f"""
         height: 44px;
         border-radius: 50%;
         background: rgba(15, 23, 42, 0.75);
-        border: 1px solid rgba(255, 255, 255, 0.28);
-        color: #f59e0b;
+        border: 1px solid rgba(125, 162, 194, 0.35);
+        color: #8EB3D1;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -618,11 +620,11 @@ st.markdown(f"""
         transition: all 0.2s ease;
         cursor: pointer;
         text-decoration: none;
-        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.15);
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
     }}
     .nasa-hero-ctrl-btn:hover {{
         background: rgba(30, 41, 59, 0.95);
-        border-color: #f59e0b;
+        border-color: #8EB3D1;
         transform: scale(1.06);
         color: #ffffff;
     }}
@@ -764,9 +766,9 @@ st.markdown(f"""
         backdrop-filter: blur(4px);
     }}
     .tag-cyan {{
-        background: rgba(217, 119, 6, 0.90);
+        background: rgba(58, 104, 136, 0.90);
         color: #ffffff;
-        box-shadow: 0 0 8px rgba(217, 119, 6, 0.4);
+        box-shadow: 0 0 8px rgba(74, 122, 157, 0.4);
     }}
     .tag-rose {{
         background: rgba(244, 63, 94, 0.90);
@@ -871,9 +873,9 @@ st.markdown(f"""
         margin-bottom: 6px;
     }}
     .val-green {{ color: #10b981; }}
-    .val-blue {{ color: #f59e0b; }}
+    .val-blue {{ color: #7DA2C2; }}
     .val-purple {{ color: #8b5cf6; }}
-    .val-orange {{ color: #ea580c; }}
+    .val-orange {{ color: #f59e0b; }}
     .ref-stat-sub {{
         font-family: 'Inter', sans-serif;
         font-size: 0.78rem;
@@ -881,7 +883,7 @@ st.markdown(f"""
         line-height: 1.4;
     }}
 
-    /* Full Bleed Tech Ticker Strip (Mission Control Deep Navy + Telemetry Amber) */
+    /* Full Bleed Tech Ticker Strip (Muted Space Deep Navy + Steel Blue) */
     .tech-ticker-wrap {{
         width: 100vw;
         position: relative;
@@ -889,9 +891,9 @@ st.markdown(f"""
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        background: #080d1a;
-        border-top: 1px solid rgba(245, 158, 11, 0.22);
-        border-bottom: 1px solid rgba(245, 158, 11, 0.22);
+        background: #060b14;
+        border-top: 1px solid rgba(74, 122, 157, 0.25);
+        border-bottom: 1px solid rgba(74, 122, 157, 0.25);
         overflow: hidden;
         white-space: nowrap;
         padding: 12px 0;
@@ -917,12 +919,12 @@ st.markdown(f"""
         font-weight: 600;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: #f59e0b;
+        color: #8EB3D1;
         padding: 0 16px;
         white-space: nowrap;
     }}
     .ticker-sep {{
-        color: rgba(245, 158, 11, 0.35);
+        color: rgba(74, 122, 157, 0.45);
         font-size: 0.70rem;
     }}
 
@@ -1061,7 +1063,7 @@ st.markdown(f"""
     }}
     [data-testid="stFileUploader"] section:hover {{
         border-color: var(--accent-primary) !important;
-        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.08) !important;
+        box-shadow: 0 2px 10px rgba(74, 122, 157, 0.08) !important;
     }}
     [data-testid="stFileUploader"] button {{
         background: var(--btn-secondary-bg) !important;
@@ -1092,7 +1094,7 @@ st.markdown(f"""
     }}
     [data-testid="stTextInput"] input:focus {{
         border-color: var(--accent-primary) !important;
-        box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15) !important;
+        box-shadow: 0 0 0 3px rgba(74, 122, 157, 0.18) !important;
     }}
 
     /* Reference Style Preset Chips */
@@ -1115,7 +1117,7 @@ st.markdown(f"""
         background: var(--accent-primary) !important;
         color: #ffffff !important;
         border-color: var(--accent-primary) !important;
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.25) !important;
+        box-shadow: 0 2px 8px rgba(74, 122, 157, 0.25) !important;
     }}
 
     /* Reference Style Primary Action Button */
@@ -1130,12 +1132,12 @@ st.markdown(f"""
         letter-spacing: 0.02em !important;
         text-transform: none !important;
         padding: 14px 28px !important;
-        box-shadow: 0 2px 8px rgba(217, 119, 6, 0.35) !important;
+        box-shadow: 0 2px 8px rgba(58, 104, 136, 0.35) !important;
         transition: all 0.2s ease !important;
     }}
     div[data-testid="stButton"] > button[kind="primary"]:hover {{
         background: var(--btn-primary-hover) !important;
-        box-shadow: 0 4px 14px rgba(217, 119, 6, 0.45) !important;
+        box-shadow: 0 4px 14px rgba(58, 104, 136, 0.45) !important;
     }}
 
     /* LED Indicators */
@@ -1361,7 +1363,7 @@ st.markdown(f"""
     }}
     .ref-history-card:hover {{
         border-color: var(--accent-primary);
-        box-shadow: 0 2px 8px rgba(245, 158, 11, 0.08);
+        box-shadow: 0 2px 8px rgba(74, 122, 157, 0.08);
     }}
     .ref-history-query {{
         font-family: 'Inter', sans-serif;
@@ -1659,7 +1661,7 @@ hero_html = f"""<div class="nasa-hero-wrap">
 <div class="nasa-hero-overlay"></div>
 <div class="nasa-hero-inner">
 <div class="nasa-hero-eyebrow">
-<span style="font-size: 0.85rem; color: #f59e0b;">✦</span> MISSION DIRECTIVE • LOW EARTH ORBIT OBSERVATION
+<span style="font-size: 0.85rem; color: #8EB3D1;">✦</span> MISSION DIRECTIVE • LOW EARTH ORBIT OBSERVATION
 </div>
 <h1 class="nasa-hero-title">
 SatQuery AI<br/>
