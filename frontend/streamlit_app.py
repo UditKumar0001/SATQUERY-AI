@@ -687,50 +687,148 @@ st.markdown(f"""
         color: var(--text-primary);
     }}
 
-    /* Expanders */
+    /* Clean Sidebar Styling */
+    .ref-sidebar-kicker {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.70rem;
+        font-weight: 700;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-top: 14px;
+        margin-bottom: 8px;
+    }}
+    .ref-status-pill {{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }}
+    .status-pill-online {{
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        color: #10b981;
+    }}
+    .status-pill-offline {{
+        background: rgba(239, 68, 68, 0.12);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }}
+    .ref-dot {{
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }}
+    .ref-dot-green {{
+        background: #10b981;
+        box-shadow: 0 0 6px #10b981;
+    }}
+    .ref-dot-red {{
+        background: #ef4444;
+        box-shadow: 0 0 6px #ef4444;
+    }}
+
+    /* Clean Expanders */
     div[data-testid="stExpander"] {{
-        background: var(--bg-panel) !important;
+        background: var(--hero-card-bg) !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 2px !important;
-        margin-bottom: 10px !important;
+        border-radius: 8px !important;
+        margin-bottom: 12px !important;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+        transition: border-color 0.15s ease !important;
+    }}
+    div[data-testid="stExpander"]:hover {{
+        border-color: var(--accent-primary) !important;
     }}
     div[data-testid="stExpander"] > details > summary {{
         color: var(--text-primary) !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 0.82rem !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.88rem !important;
         font-weight: 600 !important;
+        padding: 10px 14px !important;
     }}
 
     /* Action Links & Download Buttons */
     div[data-testid="stDownloadButton"] > button {{
-        background: var(--bg-panel-sub) !important;
+        background: var(--btn-secondary-bg) !important;
         color: var(--text-primary) !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 2px !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 0.78rem !important;
+        border-radius: 8px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.82rem !important;
         font-weight: 600 !important;
-        letter-spacing: 0.05em !important;
-        text-transform: uppercase !important;
+        letter-spacing: 0.02em !important;
+        padding: 8px 16px !important;
+        transition: all 0.15s ease !important;
     }}
     div[data-testid="stDownloadButton"] > button:hover {{
-        border-color: var(--border-focus) !important;
+        border-color: var(--accent-primary) !important;
         color: var(--accent-primary) !important;
     }}
 
     a[data-testid="stLinkButton"] {{
-        background: var(--bg-panel-sub) !important;
+        background: var(--btn-secondary-bg) !important;
         color: var(--text-primary) !important;
         border: 1px solid var(--border-color) !important;
-        border-radius: 2px !important;
-        font-family: 'JetBrains Mono', monospace !important;
-        font-size: 0.74rem !important;
+        border-radius: 8px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.80rem !important;
         font-weight: 600 !important;
-        text-transform: uppercase !important;
+        padding: 6px 12px !important;
+        transition: all 0.15s ease !important;
     }}
     a[data-testid="stLinkButton"]:hover {{
-        border-color: var(--border-focus) !important;
+        border-color: var(--accent-primary) !important;
         color: var(--accent-primary) !important;
+    }}
+
+    /* History Entry Card */
+    .ref-history-card {{
+        background: var(--hero-card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 16px 20px;
+        margin-bottom: 12px;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+    }}
+    .ref-history-card:hover {{
+        border-color: var(--accent-primary);
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08);
+    }}
+    .ref-history-query {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin: 6px 0;
+    }}
+    .ref-history-meta {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }}
+    .ref-task-badge {{
+        display: inline-block;
+        background: var(--status-tag-bg);
+        color: var(--status-tag-text);
+        border: 1px solid var(--status-tag-border);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.70rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
     }}
 
     /* Footer Instrument */
@@ -803,66 +901,74 @@ st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 # --- Sidebar: System Diagnostics & Health ---
 with st.sidebar:
     st.markdown("""
-    <div style="margin-bottom: 16px;">
-        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;">
-            TELEMETRY MONITOR
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 2px 0;">
+        <div class="ref-nav-logo" style="width: 28px; height: 28px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="m4.93 4.93 4.24 4.24"></path>
+                <path d="m14.83 9.17 4.24-4.24"></path>
+                <path d="m14.83 14.83 4.24 4.24"></path>
+                <path d="m9.17 14.83-4.24 4.24"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
         </div>
-        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; color: var(--accent-primary); letter-spacing: 0.12em;">
-            SUBSYSTEM STATUS BUS
+        <div>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">SatQuery AI</div>
+            <div style="font-family: 'Inter', sans-serif; font-size: 0.72rem; color: var(--text-muted);">Control & Diagnostics</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    with st.expander("[CONFIG: ENDPOINT DISPATCH]", expanded=False):
+    with st.expander("⚙️ Connection Settings", expanded=False):
         API_URL = st.text_input(
-            "BACKEND URL",
+            "Backend API URL",
             value=default_api_url,
             help="Target FastAPI orchestrator endpoint"
         ).rstrip("/")
 
-    st.markdown("<div style='margin-top: 14px; margin-bottom: 6px; font-family: \"JetBrains Mono\", monospace; font-weight: 700; font-size: 0.72rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.10em;'>SYSTEM READY STATE</div>", unsafe_allow_html=True)
+    st.markdown("<div class='ref-sidebar-kicker'>SYSTEM HEALTH</div>", unsafe_allow_html=True)
     
     try:
         health_resp = requests.get(f"{API_URL}/health", timeout=3)
         if health_resp.status_code == 200:
             health = health_resp.json()
             st.markdown("""
-            <div style="display: flex; align-items: center; background: var(--bg-panel-sub); border: 1px solid var(--border-color); border-left: 3px solid #10b981; padding: 7px 10px; margin-bottom: 12px;">
-                <span class="telemetry-led led-green"></span>
-                <span style="font-family: 'JetBrains Mono', monospace; color: #10b981; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;">BUS ONLINE // 200 OK</span>
+            <div class="ref-status-pill status-pill-online">
+                <span class="ref-dot ref-dot-green"></span>
+                <span>Backend Online (200 OK)</span>
             </div>
             """, unsafe_allow_html=True)
             
-            st.markdown(f"<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.76rem;'>DB LINK: <code>{health.get('database')}</code></span>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-family: \"Inter\", sans-serif; font-size: 0.82rem; margin-bottom: 6px;'>Database: <strong>{health.get('database', 'Connected')}</strong></div>", unsafe_allow_html=True)
             hw = health.get("hardware", {})
-            st.markdown(f"<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.76rem;'>ACCELERATOR: <code>{hw.get('device_name', 'Unknown')}</code> (<code>{hw.get('configured_device', 'cpu')}</code>)</span>", unsafe_allow_html=True)
+            st.markdown(f"<div style='font-family: \"Inter\", sans-serif; font-size: 0.82rem; margin-bottom: 6px;'>Compute: <strong>{hw.get('device_name', 'Unknown')}</strong> ({hw.get('configured_device', 'cpu')})</div>", unsafe_allow_html=True)
             router_ready = health.get("router_llm_ready", False)
             if router_ready:
-                st.markdown("<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.76rem;'>ROUTER LLM: <strong style='color: #10b981;'>[ACTIVE]</strong></span>", unsafe_allow_html=True)
+                st.markdown("<div style='font-family: \"Inter\", sans-serif; font-size: 0.82rem; margin-bottom: 12px;'>Router LLM: <span class='ref-task-badge'>Ready</span></div>", unsafe_allow_html=True)
             else:
-                st.markdown("<span style='font-family: \"JetBrains Mono\", monospace; font-size: 0.76rem;'>ROUTER LLM: <strong style='color: #f59e0b;'>[KEY PENDING]</strong></span>", unsafe_allow_html=True)
+                st.markdown("<div style='font-family: \"Inter\", sans-serif; font-size: 0.82rem; margin-bottom: 12px;'>Router LLM: <span style='background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 8px; border-radius: 9999px; font-size: 0.70rem; font-weight: 600;'>Key Pending</span></div>", unsafe_allow_html=True)
 
-            with st.expander("[ACTIVE TOOL REGISTRY]"):
+            with st.expander("Active Tool Registry", expanded=False):
                 for tool in health.get("registered_tools", []):
                     st.code(f"{tool['task']} -> {tool['model_wrapper']}", language="bash")
         else:
             st.markdown(f"""
-            <div style="display: flex; align-items: center; background: var(--bg-panel-sub); border: 1px solid var(--border-color); border-left: 3px solid #f43f5e; padding: 7px 10px; margin-bottom: 12px;">
-                <span class="telemetry-led led-red"></span>
-                <span style="font-family: 'JetBrains Mono', monospace; color: #ef4444; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;">HTTP {health_resp.status_code} DEGRADED</span>
+            <div class="ref-status-pill status-pill-offline">
+                <span class="ref-dot ref-dot-red"></span>
+                <span>HTTP {health_resp.status_code} Degraded</span>
             </div>
             """, unsafe_allow_html=True)
     except Exception:
         st.markdown(f"""
-        <div style="display: flex; align-items: center; background: var(--bg-panel-sub); border: 1px solid var(--border-color); border-left: 3px solid #ef4444; padding: 7px 10px; margin-bottom: 12px;">
-            <span class="telemetry-led led-red"></span>
-            <span style="font-family: 'JetBrains Mono', monospace; color: #ef4444; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.06em;">LINK OFFLINE // NO CARRIER</span>
+        <div class="ref-status-pill status-pill-offline">
+            <span class="ref-dot ref-dot-red"></span>
+            <span>Backend Offline</span>
         </div>
         """, unsafe_allow_html=True)
-        st.caption(f"Host connection inactive at `{API_URL}`. Initialize with:\n`uvicorn backend.main:app --port 8000`")
+        st.caption(f"Waiting for backend at `{API_URL}`. Start it with:\n`uvicorn backend.main:app --port 8000`")
 
-    st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
-    st.markdown("<div style='font-family: \"JetBrains Mono\", monospace; font-size: 0.70rem; color: var(--text-muted);'>TEAM DEBUGGERS DEN // ISRO DEMO</div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+    st.caption("© 2026 Team Debuggers Den • SatQuery v1.0")
 
 
 # --- Hero Section (Reference Style) ---
@@ -1115,10 +1221,12 @@ if analyze_clicked:
 
 
 # --- Section 3: History & Audit Log ---
+st.markdown("<div style='height: 32px;'></div>", unsafe_allow_html=True)
 st.markdown("""
-<div id="section-audit" class="section-header-tag">
-    <span>03 // MISSION AUDIT TRAIL & HISTORICAL TELEMETRY</span>
-    <span style="font-size: 0.72rem; color: var(--text-muted);">DATABASE: SQLITE / AUDITABLE</span>
+<div id="section-audit">
+    <div class="ref-section-kicker">STEP 03 • TELEMETRY AUDIT</div>
+    <div class="ref-section-title">Recent Queries & Audit Log</div>
+    <div class="ref-section-desc">Historical pipeline execution records, verified task traces, and generated PDF audit reports.</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -1128,7 +1236,7 @@ try:
         hist_data = hist_resp.json()
         entries = hist_data.get("history", [])
         if not entries:
-            st.caption("[NOTICE] Database state: No historical records detected.")
+            st.caption("No historical records detected in the audit database.")
         else:
             for item in entries:
                 task = item.get("selected_task", "unknown")
@@ -1137,29 +1245,36 @@ try:
                 qid = item.get("id")
                 created = item.get("created_at", "")[:19].replace("T", " ")
 
-                header_label = f"LOG #{qid:04d} // [{task.upper()}] // CONF: {conf:.0%} // {item.get('query_text')}"
-                with st.expander(header_label):
-                    col_h1, col_h2 = st.columns([3, 1])
-                    with col_h1:
-                        st.markdown(f"""
-                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.80rem; margin-bottom: 6px;">
-                            <span>TASK: <strong>{task}</strong></span> |
-                            <span>MODEL: <strong>{model}</strong></span> |
-                            <span>STATUS: {item.get('validation_msg')}</span>
-                        </div>
-                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: var(--text-muted); margin-bottom: 8px;">
-                            TIMESTAMP: {created} UTC
-                        </div>
-                        """, unsafe_allow_html=True)
-                        if item.get("trace"):
+                st.markdown(f"""
+                <div class="ref-history-card">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                        <span class="ref-task-badge">{task.replace('_', ' ')}</span>
+                        <span style="font-family: 'Inter', sans-serif; font-size: 0.76rem; color: var(--text-muted);">Record #{qid:04d}</span>
+                    </div>
+                    <div class="ref-history-query">{item.get('query_text')}</div>
+                    <div class="ref-history-meta">
+                        <span>Confidence: <strong>{conf:.0%}</strong></span>
+                        <span>•</span>
+                        <span>Model: <strong>{model}</strong></span>
+                        <span>•</span>
+                        <span>{created} UTC</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                col_h1, col_h2 = st.columns([4, 1])
+                with col_h1:
+                    if item.get("trace"):
+                        with st.expander(f"View Execution Trace (#{qid:04d})", expanded=False):
                             st.json(item["trace"])
-                    with col_h2:
-                        if qid:
-                            st.link_button("[PDF REPORT]", f"{API_URL}/report/{qid}", use_container_width=True)
+                with col_h2:
+                    if qid:
+                        st.link_button("📄 PDF Report", f"{API_URL}/report/{qid}", use_container_width=True)
+                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     else:
-        st.caption(f"[NOTICE] Audit bus communication fault (HTTP {hist_resp.status_code})")
+        st.caption(f"Audit log communication fault (HTTP {hist_resp.status_code})")
 except Exception as ex:
-    st.caption(f"[NOTICE] Telemetry bus unavailable: {ex}")
+    st.caption(f"Telemetry database unavailable: {ex}")
 
 
 # --- Ground Control Footer ---
