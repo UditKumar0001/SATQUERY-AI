@@ -157,8 +157,10 @@ st.markdown(f"""
     }}
 
     /* Global Typography & Canvas */
-    html, body, [class*="css"] {{
+    html, body, .stApp {{
         font-family: 'Inter', -apple-system, sans-serif;
+        overflow-x: hidden !important;
+        max-width: 100vw !important;
     }}
     
     .stApp {{
@@ -166,13 +168,27 @@ st.markdown(f"""
         color: var(--text-primary);
     }}
 
-    /* Container Max Width & Precise Grid */
+    /* Container Max Width & Responsive Padding */
     .main .block-container {{
         max-width: 1260px;
         padding-top: 1rem;
         padding-bottom: 3.5rem;
         padding-left: 2rem;
         padding-right: 2rem;
+    }}
+    @media (max-width: 768px) {{
+        .main .block-container {{
+            padding-left: 1.25rem !important;
+            padding-right: 1.25rem !important;
+            padding-top: 0.75rem !important;
+        }}
+    }}
+    @media (max-width: 480px) {{
+        .main .block-container {{
+            padding-left: 0.85rem !important;
+            padding-right: 0.85rem !important;
+            padding-top: 0.5rem !important;
+        }}
     }}
 
     /* Reference Style Top Navbar (Verdika Pattern) */
@@ -201,6 +217,7 @@ st.markdown(f"""
         align-items: center;
         justify-content: center;
         color: #ffffff;
+        flex-shrink: 0;
     }}
     .ref-nav-title {{
         font-family: 'Inter', -apple-system, sans-serif;
@@ -208,6 +225,7 @@ st.markdown(f"""
         font-weight: 700;
         color: var(--text-primary);
         letter-spacing: -0.01em;
+        white-space: nowrap;
     }}
     .ref-nav-pill {{
         background: var(--status-tag-bg);
@@ -221,6 +239,7 @@ st.markdown(f"""
         padding: 2px 8px;
         border-radius: 9999px;
         margin-left: 6px;
+        white-space: nowrap;
     }}
     .ref-nav-link {{
         font-family: 'Inter', sans-serif;
@@ -231,10 +250,49 @@ st.markdown(f"""
         padding: 6px 10px;
         border-radius: 6px;
         transition: all 0.15s ease;
+        white-space: nowrap;
     }}
     .ref-nav-link:hover {{
         color: var(--accent-primary);
         background: var(--bg-panel-sub);
+    }}
+
+    /* Navbar Responsive Adaptations */
+    @media (max-width: 768px) {{
+        .ref-nav-pill {{
+            display: none !important;
+        }}
+        .ref-nav-title {{
+            font-size: 1.0rem !important;
+        }}
+        .ref-nav-link {{
+            font-size: 0.80rem !important;
+            padding: 4px 6px !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has(.ref-nav-title) {{
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            gap: 6px !important;
+        }}
+    }}
+    @media (max-width: 480px) {{
+        .ref-nav-title {{
+            font-size: 0.92rem !important;
+        }}
+        .ref-nav-link {{
+            font-size: 0.72rem !important;
+            padding: 2px 4px !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has(.ref-nav-link) {{
+            gap: 2px !important;
+        }}
+    }}
+
+    /* Native Sidebar Collapse Toggle Styling */
+    [data-testid="collapsedControl"] {{
+        color: var(--text-primary) !important;
     }}
 
     /* Reference Style Hero Card (Verdika Pattern) */
@@ -265,9 +323,9 @@ st.markdown(f"""
     }}
     .ref-hero-title {{
         font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: 2.85rem;
+        font-size: clamp(1.75rem, 5vw, 2.85rem);
         font-weight: 700;
-        line-height: 1.15;
+        line-height: 1.18;
         letter-spacing: -0.02em;
         color: var(--text-primary);
         margin: 0 auto 16px;
@@ -275,7 +333,7 @@ st.markdown(f"""
     .ref-hero-desc {{
         font-family: 'Inter', sans-serif;
         color: var(--text-secondary);
-        font-size: 1.05rem;
+        font-size: clamp(0.88rem, 2.2vw, 1.05rem);
         line-height: 1.6;
         max-width: 680px;
         margin: 0 auto 28px;
@@ -285,6 +343,7 @@ st.markdown(f"""
         align-items: center;
         justify-content: center;
         gap: 14px;
+        flex-wrap: wrap;
     }}
     .ref-btn-primary {{
         background: var(--accent-primary);
@@ -318,7 +377,24 @@ st.markdown(f"""
         background: var(--bg-panel-sub);
     }}
 
-    /* Reference Style Stats Grid (4 Cards) */
+    @media (max-width: 500px) {{
+        .ref-hero-card {{
+            padding: 34px 16px 28px !important;
+        }}
+        .ref-hero-actions {{
+            flex-direction: column !important;
+            gap: 10px !important;
+            width: 100% !important;
+        }}
+        .ref-btn-primary, .ref-btn-secondary {{
+            width: 100% !important;
+            text-align: center !important;
+            padding: 12px 16px !important;
+            box-sizing: border-box !important;
+        }}
+    }}
+
+    /* Reference Style Stats Grid (4 Cards - Responsive) */
     .ref-stats-grid {{
         display: grid;
         grid-template-columns: repeat(4, 1fr);
@@ -328,11 +404,13 @@ st.markdown(f"""
     @media (max-width: 960px) {{
         .ref-stats-grid {{
             grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
         }}
     }}
     @media (max-width: 520px) {{
         .ref-stats-grid {{
             grid-template-columns: 1fr;
+            gap: 10px;
         }}
     }}
     .ref-stat-card {{
@@ -353,7 +431,7 @@ st.markdown(f"""
     }}
     .ref-stat-val {{
         font-family: 'Space Grotesk', sans-serif;
-        font-size: 2.1rem;
+        font-size: clamp(1.65rem, 4vw, 2.1rem);
         font-weight: 700;
         line-height: 1.1;
         margin-bottom: 6px;
@@ -788,7 +866,47 @@ st.markdown(f"""
         color: var(--accent-primary) !important;
     }}
 
-    /* History Entry Card */
+    /* Upload Cards Responsive Stacking */
+    @media (max-width: 768px) {{
+        [data-testid="stHorizontalBlock"]:has([data-testid="stFileUploader"]) {{
+            flex-direction: column !important;
+            gap: 16px !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has([data-testid="stFileUploader"]) > [data-testid="column"] {{
+            width: 100% !important;
+            min-width: 100% !important;
+            flex: 1 1 100% !important;
+        }}
+    }}
+
+    /* Preset Chips Responsive Stacking */
+    @media (max-width: 640px) {{
+        [data-testid="stHorizontalBlock"]:has(button[key^="preset_"]),
+        [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]) {{
+            flex-direction: column !important;
+            gap: 8px !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has(button[key^="preset_"]) > [data-testid="column"],
+        [data-testid="stHorizontalBlock"]:has(button[kind="secondary"]) > [data-testid="column"] {{
+            width: 100% !important;
+            min-width: 100% !important;
+            flex: 1 1 100% !important;
+        }}
+    }}
+
+    /* Ticker Strip Responsive Adjustments */
+    @media (max-width: 768px) {{
+        .ticker-item {{
+            font-size: 0.72rem !important;
+            padding: 0 14px !important;
+        }}
+        .tech-ticker-wrap {{
+            padding: 10px 0 !important;
+            margin-bottom: 22px !important;
+        }}
+    }}
+
+    /* History Entry Card (Responsive & Overflow-Safe) */
     .ref-history-card {{
         background: var(--hero-card-bg);
         border: 1px solid var(--border-color);
@@ -797,6 +915,9 @@ st.markdown(f"""
         margin-bottom: 12px;
         transition: all 0.2s ease;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
     }}
     .ref-history-card:hover {{
         border-color: var(--accent-primary);
@@ -808,6 +929,9 @@ st.markdown(f"""
         font-weight: 600;
         color: var(--text-primary);
         margin: 6px 0;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        word-break: break-word !important;
     }}
     .ref-history-meta {{
         font-family: 'Inter', sans-serif;
@@ -816,6 +940,25 @@ st.markdown(f"""
         display: flex;
         align-items: center;
         gap: 12px;
+        flex-wrap: wrap;
+    }}
+    @media (max-width: 640px) {{
+        .ref-history-card {{
+            padding: 14px 14px !important;
+        }}
+        .ref-history-meta {{
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 4px !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has([data-testid="stLinkButton"]) {{
+            flex-direction: column !important;
+            gap: 8px !important;
+        }}
+        [data-testid="stHorizontalBlock"]:has([data-testid="stLinkButton"]) > [data-testid="column"] {{
+            width: 100% !important;
+            min-width: 100% !important;
+        }}
     }}
     .ref-task-badge {{
         display: inline-block;
@@ -829,9 +972,10 @@ st.markdown(f"""
         border-radius: 9999px;
         letter-spacing: 0.04em;
         text-transform: uppercase;
+        white-space: nowrap;
     }}
 
-    /* Reference Footer Styles */
+    /* Reference Footer Styles (Fully Responsive) */
     .ref-footer-wrap {{
         width: 100vw;
         position: relative;
@@ -849,6 +993,11 @@ st.markdown(f"""
         margin: 0 auto;
         padding: 0 2rem;
     }}
+    @media (max-width: 768px) {{
+        .ref-footer-inner {{
+            padding: 0 1.25rem !important;
+        }}
+    }}
     .ref-footer-strip {{
         background: var(--hero-card-bg);
         border: 1px solid var(--border-color);
@@ -862,9 +1011,12 @@ st.markdown(f"""
     }}
     @media (max-width: 768px) {{
         .ref-footer-strip {{
-            flex-direction: column;
-            gap: 16px;
-            align-items: flex-start;
+            flex-direction: column !important;
+            gap: 16px !important;
+            align-items: flex-start !important;
+        }}
+        .ref-footer-input {{
+            width: 100% !important;
         }}
     }}
     .ref-footer-input {{
@@ -886,12 +1038,14 @@ st.markdown(f"""
     }}
     @media (max-width: 920px) {{
         .ref-footer-grid {{
-            grid-template-columns: repeat(2, 1fr);
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 24px !important;
         }}
     }}
-    @media (max-width: 520px) {{
+    @media (max-width: 550px) {{
         .ref-footer-grid {{
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
         }}
     }}
     .ref-footer-col-title {{
@@ -927,6 +1081,13 @@ st.markdown(f"""
         font-family: 'Inter', sans-serif;
         font-size: 0.80rem;
         color: var(--text-muted);
+    }}
+    @media (max-width: 550px) {{
+        .ref-footer-bottom {{
+            flex-direction: column !important;
+            gap: 10px !important;
+            text-align: center !important;
+        }}
     }}
 </style>
 """, unsafe_allow_html=True)
