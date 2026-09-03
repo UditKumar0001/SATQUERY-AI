@@ -39,6 +39,7 @@ Antigravity should work lean. Specifically:
 | `DATABASE_URL` | Database path (Step 5) | Done (`sqlite:///./satquery.db`) |
 | `MODEL_DEVICE` | Model loading (`cuda`/`cpu`) | Done (`cuda`) |
 | `HF_TOKEN` | Hugging Face datasets & model weights (Step 6, Steps 8-12, Step 39) | Done (Configured in `.env`) |
+| `BACKEND_API_URL` | Backend API URL for frontend (Step 31) | Done (`http://localhost:8000`) |
 | _(add new rows here as new steps require new keys/URLs)_ | | |
 
 ---
