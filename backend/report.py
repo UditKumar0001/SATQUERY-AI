@@ -1,7 +1,7 @@
 # backend/report.py
 import json
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -69,7 +69,7 @@ def generate_pdf_report(query_id: int, query_data: dict, out_path: str) -> str:
 
     # 2. Key Metadata Summary Table
     trace = query_data.get("trace") or {}
-    created_at = query_data.get("created_at") or datetime.utcnow().isoformat()
+    created_at = query_data.get("created_at") or datetime.now(timezone.utc).isoformat()
 
     summary_table_data = [
         [Paragraph("<b>Selected Task</b>", body_style), Paragraph(str(query_data.get("selected_task")), body_style),
