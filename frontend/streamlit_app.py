@@ -36,18 +36,28 @@ if "query_input_val" not in st.session_state:
 is_dark = (st.session_state.theme == "dark")
 
 @st.cache_data
-def get_nasa_hero_bg() -> str:
-    hero_path = Path(__file__).parent / "assets" / "nasa_earth_hero.jpg"
-    if hero_path.exists():
+def get_clean_hero_assets() -> tuple[str, str]:
+    assets_dir = Path(__file__).parent / "assets"
+    img_path = assets_dir / "clean_earth_hero.jpg"
+    vid_path = assets_dir / "earth_orbit_bg.webm"
+    
+    img_b64 = ""
+    vid_b64 = ""
+    if img_path.exists():
         try:
-            with open(hero_path, "rb") as f:
-                b64_data = base64.b64encode(f.read()).decode("utf-8")
-                return f"data:image/jpeg;base64,{b64_data}"
+            with open(img_path, "rb") as f:
+                img_b64 = f"data:image/jpeg;base64,{base64.b64encode(f.read()).decode('utf-8')}"
         except Exception:
             pass
-    return ""
+    if vid_path.exists():
+        try:
+            with open(vid_path, "rb") as f:
+                vid_b64 = f"data:video/webm;base64,{base64.b64encode(f.read()).decode('utf-8')}"
+        except Exception:
+            pass
+    return img_b64, vid_b64
 
-nasa_bg_url = get_nasa_hero_bg()
+clean_earth_bg_url, hero_vid_url = get_clean_hero_assets()
 
 @st.cache_data
 def get_card_images_b64() -> dict:
@@ -414,7 +424,7 @@ st.markdown(f"""
         color: var(--text-primary) !important;
     }}
 
-    /* NASA Science Eyes Editorial Hero (Full Bleed, 82vh) */
+    /* NASA Science Eyes Editorial Hero (Full Bleed, Motion Video/Image) */
     .nasa-hero-wrap {{
         width: 100vw;
         position: relative;
@@ -422,15 +432,13 @@ st.markdown(f"""
         right: 50%;
         margin-left: -50vw;
         margin-right: -50vw;
-        min-height: 82vh;
+        min-height: 84vh;
         background-color: #030712;
-        background-image: 
-            linear-gradient(to right, rgba(3, 7, 18, 0.94) 0%, rgba(3, 7, 18, 0.86) 38%, rgba(3, 7, 18, 0.35) 75%, rgba(3, 7, 18, 0.70) 100%),
-            linear-gradient(to top, var(--bg-app) 0%, rgba(3, 7, 18, 0.3) 15%, transparent 35%),
-            url('{nasa_bg_url}');
+        background-image: url('{clean_earth_bg_url}');
         background-size: cover;
-        background-position: center right;
+        background-position: center;
         background-repeat: no-repeat;
+        overflow: hidden;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
@@ -441,6 +449,69 @@ st.markdown(f"""
         box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8);
         box-sizing: border-box;
     }}
+    .nasa-hero-video {{
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        min-width: 100%;
+        min-height: 100%;
+        width: auto;
+        height: auto;
+        transform: translate(-50%, -50%) scale(1.05);
+        object-fit: cover;
+        z-index: 1;
+        opacity: 0.88;
+        pointer-events: none;
+        animation: heroVideoPan 32s ease-in-out infinite alternate;
+    }}
+    @keyframes heroVideoPan {{
+        0% {{
+            transform: translate(-50%, -50%) scale(1.05);
+        }}
+        100% {{
+            transform: translate(-48%, -52%) scale(1.12);
+        }}
+    }}
+    .nasa-hero-sweep {{
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 45%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.08) 50%, transparent 100%);
+        transform: skewX(-20deg);
+        z-index: 2;
+        pointer-events: none;
+        animation: radarSweep 12s ease-in-out infinite;
+    }}
+    @keyframes radarSweep {{
+        0% {{
+            left: -80%;
+            opacity: 0;
+        }}
+        25% {{
+            opacity: 1;
+        }}
+        75% {{
+            opacity: 1;
+        }}
+        100% {{
+            left: 140%;
+            opacity: 0;
+        }}
+    }}
+    .nasa-hero-overlay {{
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: 
+            linear-gradient(to right, rgba(3, 7, 18, 0.94) 0%, rgba(3, 7, 18, 0.85) 40%, rgba(3, 7, 18, 0.40) 75%, rgba(3, 7, 18, 0.70) 100%),
+            linear-gradient(to top, var(--bg-app) 0%, rgba(3, 7, 18, 0.3) 15%, transparent 35%);
+        z-index: 3;
+        pointer-events: none;
+    }}
     .nasa-hero-inner {{
         max-width: 1260px;
         width: 100%;
@@ -448,7 +519,7 @@ st.markdown(f"""
         padding: 0 2rem;
         box-sizing: border-box;
         position: relative;
-        z-index: 2;
+        z-index: 4;
     }}
     .nasa-hero-eyebrow {{
         display: inline-flex;
@@ -1599,8 +1670,17 @@ with st.sidebar:
     st.caption("© 2026 Team Debuggers Den • SatQuery v1.0")
 
 
-# --- Hero Section (NASA Science Eyes Editorial Style) ---
+# --- Hero Section (NASA Science Eyes Editorial Style with Video Motion) ---
+video_layer = ""
+if hero_vid_url:
+    video_layer = f"""<video class="nasa-hero-video" autoplay loop muted playsinline poster="{clean_earth_bg_url}">
+<source src="{hero_vid_url}" type="video/webm">
+</video>"""
+
 hero_html = f"""<div class="nasa-hero-wrap">
+{video_layer}
+<div class="nasa-hero-sweep"></div>
+<div class="nasa-hero-overlay"></div>
 <div class="nasa-hero-inner">
 <div class="nasa-hero-eyebrow">
 <span style="font-size: 0.85rem; color: #38bdf8;">✦</span> MISSION DIRECTIVE • LOW EARTH ORBIT OBSERVATION
