@@ -49,6 +49,35 @@ def get_nasa_hero_bg() -> str:
 
 nasa_bg_url = get_nasa_hero_bg()
 
+@st.cache_data
+def get_card_images_b64() -> dict:
+    assets_dir = Path(__file__).parent / "assets"
+    card_map = {
+        "optical": "card_task_a_optical.jpg",
+        "change": "card_task_b_change.jpg",
+        "sar": "card_task_c_sar.jpg",
+        "lora": "card_task_d_lora.jpg",
+    }
+    res = {}
+    for key, filename in card_map.items():
+        fp = assets_dir / filename
+        if fp.exists():
+            try:
+                with open(fp, "rb") as f:
+                    b64 = base64.b64encode(f.read()).decode("utf-8")
+                    res[key] = f"data:image/jpeg;base64,{b64}"
+            except Exception:
+                res[key] = ""
+        else:
+            res[key] = ""
+    return res
+
+card_imgs = get_card_images_b64()
+img_opt_url = card_imgs.get("optical", "")
+img_chg_url = card_imgs.get("change", "")
+img_sar_url = card_imgs.get("sar", "")
+img_lor_url = card_imgs.get("lora", "")
+
 # --- Mission Control Theme Variables (ISRO / Ground Station Spec) ---
 theme_vars = {
     "dark": {
@@ -638,24 +667,40 @@ st.markdown(f"""
         border-color: rgba(255, 255, 255, 0.35);
     }}
     .card-optical {{
-        background: 
+        background-color: #0c1527;
+        background-image: 
             linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.45) 55%, rgba(3, 7, 18, 0.15) 100%),
-            radial-gradient(ellipse at 80% 20%, rgba(14, 165, 233, 0.75) 0%, rgba(5, 150, 105, 0.6) 50%, #064e3b 100%);
+            url('{img_opt_url}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }}
     .card-change {{
-        background: 
+        background-color: #170b16;
+        background-image: 
             linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.45) 55%, rgba(3, 7, 18, 0.15) 100%),
-            linear-gradient(135deg, rgba(225, 29, 72, 0.75) 0%, rgba(159, 18, 57, 0.6) 45%, rgba(14, 116, 144, 0.75) 100%);
+            url('{img_chg_url}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }}
     .card-fusion {{
-        background: 
+        background-color: #18151c;
+        background-image: 
             linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.45) 55%, rgba(3, 7, 18, 0.15) 100%),
-            radial-gradient(circle at 20% 30%, rgba(245, 158, 11, 0.75) 0%, rgba(120, 53, 15, 0.6) 50%, #1e1b4b 100%);
+            url('{img_sar_url}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }}
     .card-lora {{
-        background: 
+        background-color: #140b24;
+        background-image: 
             linear-gradient(to top, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.45) 55%, rgba(3, 7, 18, 0.15) 100%),
-            linear-gradient(135deg, rgba(147, 51, 234, 0.75) 0%, rgba(107, 33, 168, 0.6) 50%, rgba(30, 27, 75, 0.85) 100%);
+            url('{img_lor_url}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
     }}
     .planet-card-badge-row {{
         display: flex;
