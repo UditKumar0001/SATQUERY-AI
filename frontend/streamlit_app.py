@@ -1,6 +1,8 @@
 # frontend/streamlit_app.py
+import base64
 import io
 import os
+from pathlib import Path
 import requests
 import streamlit as st
 from dotenv import load_dotenv
@@ -32,6 +34,20 @@ if "query_input_val" not in st.session_state:
     st.session_state.query_input_val = ""
 
 is_dark = (st.session_state.theme == "dark")
+
+@st.cache_data
+def get_nasa_hero_bg() -> str:
+    hero_path = Path(__file__).parent / "assets" / "nasa_earth_hero.jpg"
+    if hero_path.exists():
+        try:
+            with open(hero_path, "rb") as f:
+                b64_data = base64.b64encode(f.read()).decode("utf-8")
+                return f"data:image/jpeg;base64,{b64_data}"
+        except Exception:
+            pass
+    return ""
+
+nasa_bg_url = get_nasa_hero_bg()
 
 # --- Mission Control Theme Variables (ISRO / Ground Station Spec) ---
 theme_vars = {
@@ -295,102 +311,209 @@ st.markdown(f"""
         color: var(--text-primary) !important;
     }}
 
-    /* Reference Style Hero Card (Verdika Pattern) */
-    .ref-hero-card {{
-        background: var(--hero-card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 56px 24px 48px;
-        text-align: center;
-        margin-bottom: 32px;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    /* NASA Science Eyes Editorial Hero (Full Bleed, 82vh) */
+    .nasa-hero-wrap {{
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        min-height: 82vh;
+        background-color: #030712;
+        background-image: 
+            linear-gradient(to right, rgba(3, 7, 18, 0.94) 0%, rgba(3, 7, 18, 0.86) 38%, rgba(3, 7, 18, 0.35) 75%, rgba(3, 7, 18, 0.70) 100%),
+            linear-gradient(to top, var(--bg-app) 0%, rgba(3, 7, 18, 0.3) 15%, transparent 35%),
+            url('{nasa_bg_url}');
+        background-size: cover;
+        background-position: center right;
+        background-repeat: no-repeat;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 52px 0 36px;
+        margin-top: -12px;
+        margin-bottom: 40px;
+        border-bottom: 1px solid var(--border-color);
+        box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8);
+        box-sizing: border-box;
     }}
-    .ref-hero-badge {{
+    .nasa-hero-inner {{
+        max-width: 1260px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 0 2rem;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 2;
+    }}
+    .nasa-hero-eyebrow {{
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        background: var(--status-tag-bg);
-        color: var(--status-tag-text);
-        border: 1px solid var(--status-tag-border);
-        font-family: 'Inter', sans-serif;
-        font-size: 0.72rem;
-        font-weight: 600;
-        letter-spacing: 0.08em;
-        text-transform: uppercase;
-        padding: 4px 14px;
-        border-radius: 9999px;
-        margin-bottom: 20px;
-    }}
-    .ref-hero-title {{
+        gap: 8px;
         font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: clamp(1.75rem, 5vw, 2.85rem);
+        font-size: 0.75rem;
         font-weight: 700;
-        line-height: 1.18;
-        letter-spacing: -0.02em;
-        color: var(--text-primary);
-        margin: 0 auto 16px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #38bdf8;
+        background: rgba(14, 165, 233, 0.14);
+        border: 1px solid rgba(56, 189, 248, 0.35);
+        padding: 5px 14px;
+        border-radius: 9999px;
+        margin-bottom: 24px;
+        backdrop-filter: blur(8px);
     }}
-    .ref-hero-desc {{
+    .nasa-hero-title {{
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        font-size: clamp(2.5rem, 6.2vw, 4.4rem);
+        font-weight: 800;
+        line-height: 1.08;
+        letter-spacing: -0.03em;
+        color: #ffffff;
+        text-align: left;
+        margin: 0 0 20px;
+        text-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
+        max-width: 800px;
+    }}
+    .nasa-hero-title-accent {{
+        background: linear-gradient(135deg, #38bdf8 0%, #0284c7 50%, #818cf8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        display: inline-block;
+    }}
+    .nasa-hero-desc {{
         font-family: 'Inter', sans-serif;
-        color: var(--text-secondary);
-        font-size: clamp(0.88rem, 2.2vw, 1.05rem);
-        line-height: 1.6;
-        max-width: 680px;
-        margin: 0 auto 28px;
+        font-size: clamp(1.0rem, 1.8vw, 1.2rem);
+        line-height: 1.65;
+        color: #cbd5e1;
+        text-align: left;
+        max-width: 620px;
+        margin: 0 0 32px;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
     }}
-    .ref-hero-actions {{
+    .nasa-hero-actions {{
         display: flex;
         align-items: center;
-        justify-content: center;
-        gap: 14px;
+        gap: 16px;
         flex-wrap: wrap;
     }}
-    .ref-btn-primary {{
+    .nasa-btn-primary {{
         background: var(--accent-primary);
         color: #ffffff !important;
         font-family: 'Inter', sans-serif;
-        font-size: 0.92rem;
+        font-size: 0.94rem;
         font-weight: 600;
-        padding: 10px 22px;
+        padding: 12px 26px;
         border-radius: 8px;
         text-decoration: none;
-        border: 1px solid transparent;
-        transition: opacity 0.15s ease;
-        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+        box-shadow: 0 4px 18px rgba(2, 132, 199, 0.4);
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }}
-    .ref-btn-primary:hover {{
-        opacity: 0.92;
+    .nasa-btn-primary:hover {{
+        background: var(--accent-hover);
+        box-shadow: 0 6px 24px rgba(2, 132, 199, 0.6);
+        transform: translateY(-1px);
     }}
-    .ref-btn-secondary {{
-        background: var(--btn-secondary-bg);
-        color: var(--text-primary) !important;
-        border: 1px solid var(--border-color);
+    .nasa-btn-secondary {{
+        background: rgba(15, 23, 42, 0.65);
+        color: #f8fafc !important;
         font-family: 'Inter', sans-serif;
-        font-size: 0.92rem;
+        font-size: 0.94rem;
         font-weight: 600;
-        padding: 10px 22px;
+        padding: 12px 26px;
         border-radius: 8px;
         text-decoration: none;
-        transition: background 0.15s ease;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        backdrop-filter: blur(12px);
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
     }}
-    .ref-btn-secondary:hover {{
-        background: var(--bg-panel-sub);
+    .nasa-btn-secondary:hover {{
+        background: rgba(30, 41, 59, 0.85);
+        border-color: rgba(255, 255, 255, 0.4);
+        color: #ffffff !important;
+        transform: translateY(-1px);
     }}
-
+    .nasa-hero-bottom {{
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        padding-top: 48px;
+    }}
+    .nasa-hero-meta {{
+        font-family: 'Space Grotesk', 'JetBrains Mono', monospace;
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(226, 232, 240, 0.72);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }}
+    .nasa-hero-ctrl-btn {{
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        color: #38bdf8;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        transition: all 0.2s ease;
+        cursor: pointer;
+        text-decoration: none;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }}
+    .nasa-hero-ctrl-btn:hover {{
+        background: rgba(30, 41, 59, 0.95);
+        border-color: #38bdf8;
+        transform: scale(1.06);
+        color: #ffffff;
+    }}
+    @media (max-width: 768px) {{
+        .nasa-hero-wrap {{
+            min-height: 72vh;
+            padding: 36px 0 28px;
+        }}
+        .nasa-hero-inner {{
+            padding: 0 1.25rem !important;
+        }}
+        .nasa-hero-title {{
+            font-size: clamp(2.1rem, 7vw, 3.0rem);
+        }}
+        .nasa-hero-bottom {{
+            padding-top: 32px;
+        }}
+    }}
     @media (max-width: 500px) {{
-        .ref-hero-card {{
-            padding: 34px 16px 28px !important;
+        .nasa-hero-wrap {{
+            min-height: 68vh;
+            padding: 28px 0 20px;
         }}
-        .ref-hero-actions {{
-            flex-direction: column !important;
-            gap: 10px !important;
-            width: 100% !important;
+        .nasa-hero-inner {{
+            padding: 0 0.85rem !important;
         }}
-        .ref-btn-primary, .ref-btn-secondary {{
-            width: 100% !important;
-            text-align: center !important;
-            padding: 12px 16px !important;
-            box-sizing: border-box !important;
+        .nasa-hero-actions {{
+            flex-direction: column;
+            width: 100%;
+        }}
+        .nasa-btn-primary, .nasa-btn-secondary {{
+            width: 100%;
+            justify-content: center;
+            box-sizing: border-box;
+        }}
+        .nasa-hero-bottom {{
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 14px;
         }}
     }}
 
@@ -1204,25 +1327,46 @@ with st.sidebar:
     st.caption("© 2026 Team Debuggers Den • SatQuery v1.0")
 
 
-# --- Hero Section (Reference Style) ---
-st.markdown(f"""
-<div class="ref-hero-card">
-    <div class="ref-hero-badge">
-        <span style="font-size: 0.85rem; color: var(--accent-primary);">✦</span> MISSION ORCHESTRATION PLATFORM
-    </div>
-    <div class="ref-hero-title">
-        SatQuery AI<br/>
-        <span style="color: var(--accent-primary);">for Earth Observation</span>
-    </div>
-    <p class="ref-hero-desc">
-        Deterministic multi-modal reasoning across high-resolution satellite and aerial imagery. Orchestrates visual question answering, bi-temporal change detection, and cross-sensor fusion powered by <strong>GeoChat</strong>, <strong>GeoLLaVA</strong>, and <strong>EarthGPT</strong>.
-    </p>
-    <div class="ref-hero-actions">
-        <a href="#section-ingestion" class="ref-btn-primary">Explore Studio ↓</a>
-        <a href="{default_api_url}/docs" target="_blank" class="ref-btn-secondary">API Documentation ↗</a>
-    </div>
+# --- Hero Section (NASA Science Eyes Editorial Style) ---
+hero_html = f"""<div class="nasa-hero-wrap">
+<div class="nasa-hero-inner">
+<div class="nasa-hero-eyebrow">
+<span style="font-size: 0.85rem; color: #38bdf8;">✦</span> MISSION DIRECTIVE • LOW EARTH ORBIT OBSERVATION
 </div>
-""", unsafe_allow_html=True)
+<h1 class="nasa-hero-title">
+SatQuery AI<br/>
+<span class="nasa-hero-title-accent">Earth Observation Intelligence</span>
+</h1>
+<p class="nasa-hero-desc">
+Deterministic multi-modal reasoning across high-resolution satellite constellations and aerial sensors. Orchestrates visual question answering, bi-temporal change detection, and cross-sensor fusion powered by <strong>GeoChat</strong>, <strong>GeoLLaVA</strong>, and <strong>EarthGPT</strong>.
+</p>
+<div class="nasa-hero-actions">
+<a href="#section-ingestion" class="nasa-btn-primary">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 8 12 12 14 14"></polyline></svg>
+Explore Sensor Studio ↓
+</a>
+<a href="{default_api_url}/docs" target="_blank" class="nasa-btn-secondary">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+API Documentation ↗
+</a>
+</div>
+<div class="nasa-hero-bottom">
+<div class="nasa-hero-meta">
+<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981;"></span>
+<span>YOU ARE EXPLORING EARTH OBSERVATION CONSTELLATION DATA</span>
+<span style="opacity: 0.5;">•</span>
+<span>ORBIT: 705 KM SSO</span>
+<span style="opacity: 0.5;">•</span>
+<span>ISRO EO-AI BENCHMARK</span>
+</div>
+<a href="#section-ingestion" class="nasa-hero-ctrl-btn" title="Live Sensor Feeds: Active // Click to Ingest">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+</a>
+</div>
+</div>
+</div>"""
+
+st.markdown(hero_html, unsafe_allow_html=True)
 
 
 # --- Reference Stats Bar (4 Metric Cards) ---
