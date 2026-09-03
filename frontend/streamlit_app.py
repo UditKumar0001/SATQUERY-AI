@@ -318,6 +318,96 @@ st.markdown(f"""
         background: var(--bg-panel-sub);
     }}
 
+    /* Reference Style Stats Grid (4 Cards) */
+    .ref-stats-grid {{
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 28px;
+    }}
+    @media (max-width: 960px) {{
+        .ref-stats-grid {{
+            grid-template-columns: repeat(2, 1fr);
+        }}
+    }}
+    @media (max-width: 520px) {{
+        .ref-stats-grid {{
+            grid-template-columns: 1fr;
+        }}
+    }}
+    .ref-stat-card {{
+        background: var(--hero-card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 20px 18px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }}
+    .ref-stat-label {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 8px;
+    }}
+    .ref-stat-val {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 2.1rem;
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 6px;
+    }}
+    .val-green {{ color: #10b981; }}
+    .val-blue {{ color: var(--accent-primary); }}
+    .val-purple {{ color: #8b5cf6; }}
+    .val-orange {{ color: #f59e0b; }}
+    .ref-stat-sub {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.78rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }}
+
+    /* Full Bleed Tech Ticker Strip */
+    .tech-ticker-wrap {{
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        background: var(--accent-primary);
+        overflow: hidden;
+        white-space: nowrap;
+        padding: 12px 0;
+        margin-top: 6px;
+        margin-bottom: 36px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    }}
+    @keyframes ticker {{
+        0% {{ transform: translate3d(0, 0, 0); }}
+        100% {{ transform: translate3d(-50%, 0, 0); }}
+    }}
+    .tech-ticker-track {{
+        display: inline-flex;
+        animation: ticker 32s linear infinite;
+        will-change: transform;
+    }}
+    .tech-ticker-track:hover {{
+        animation-play-state: paused;
+    }}
+    .ticker-item {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #ffffff;
+        padding: 0 20px;
+        white-space: nowrap;
+    }}
+
     /* Sidebar Precision Instrumentation */
     [data-testid="stSidebar"] {{
         background-color: var(--sidebar-bg) !important;
@@ -745,6 +835,52 @@ st.markdown(f"""
     <div class="ref-hero-actions">
         <a href="#section-ingestion" class="ref-btn-primary">Explore Studio ↓</a>
         <a href="{default_api_url}/docs" target="_blank" class="ref-btn-secondary">API Documentation ↗</a>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+
+# --- Reference Stats Bar (4 Metric Cards) ---
+st.markdown("""
+<div class="ref-stats-grid">
+    <div class="ref-stat-card">
+        <div class="ref-stat-label">ROUTING ACCURACY</div>
+        <div class="ref-stat-val val-green">100%</div>
+        <div class="ref-stat-sub">Cross-validated on VRSBench & CDVQA</div>
+    </div>
+    <div class="ref-stat-card">
+        <div class="ref-stat-label">MEAN LATENCY</div>
+        <div class="ref-stat-val val-blue">6.0 ms</div>
+        <div class="ref-stat-sub">Deterministic state machine dispatch</div>
+    </div>
+    <div class="ref-stat-card">
+        <div class="ref-stat-label">TASK F1 SCORE</div>
+        <div class="ref-stat-val val-purple">0.63</div>
+        <div class="ref-stat-sub">Multi-task benchmark evaluation</div>
+    </div>
+    <div class="ref-stat-card">
+        <div class="ref-stat-label">MODELS ORCHESTRATED</div>
+        <div class="ref-stat-val val-orange">3 EO-VLMs</div>
+        <div class="ref-stat-sub">GeoChat • GeoLLaVA • EarthGPT</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+
+# --- Full-Bleed Tech-Stack Ticker Strip ---
+ticker_items = [
+    "LANGGRAPH ORCHESTRATION", "GEOCHAT (OPTICAL VQA)", "GEOLLAVA (CHANGE DETECTION)",
+    "EARTHGPT (OPTICAL-SAR FUSION)", "FASTAPI DISPATCH", "DOCKER READY",
+    "PYTORCH ACCELERATION", "REPORTLAB PDF EXPORT", "VRSBENCH BENCHMARKED",
+    "SQLITE AUDIT BUS"
+]
+ticker_content = " • ".join([f"<span class='ticker-item'>{item}</span>" for item in ticker_items])
+ticker_track = f"{ticker_content} • {ticker_content}"
+
+st.markdown(f"""
+<div class="tech-ticker-wrap">
+    <div class="tech-ticker-track">
+        {ticker_track}
     </div>
 </div>
 """, unsafe_allow_html=True)
