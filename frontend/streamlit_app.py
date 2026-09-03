@@ -234,9 +234,20 @@ st.markdown(f"""
         height: 0 !important;
         min-height: 0 !important;
         padding: 0 !important;
+        margin: 0 !important;
+    }}
+    .element-container:has(style) {{
+        display: none !important;
+    }}
+    div[data-testid="stMarkdownContainer"]:empty {{
+        display: none !important;
     }}
 
     /* Container Max Width & Responsive Padding */
+    .main, .stMainBlockContainer, .block-container, div[data-testid="stAppViewContainer"] > section.main {{
+        padding-top: 0 !important;
+        margin-top: 0 !important;
+    }}
     .main .block-container {{
         max-width: 1260px;
         padding-top: 0 !important;
@@ -260,33 +271,36 @@ st.markdown(f"""
         }}
     }}
 
-    /* Planet.com Reference Top Navbar (Pinned to Absolute Top, Zero Gap) */
+    /* Planet.com Reference Top Navbar (Fixed to Viewport Top, Zero Gap, Full Width) */
     .planet-navbar {{
-        width: 100vw;
-        position: sticky;
-        top: 0;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        background: linear-gradient(to bottom, rgba(2, 4, 9, 0.80) 0%, rgba(2, 4, 9, 0.35) 75%, transparent 100%) !important;
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        padding: 18px 0 16px;
-        margin-top: 0 !important;
-        margin-bottom: 0 !important;
-        z-index: 999;
-        box-sizing: border-box;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        height: 64px !important;
+        background: linear-gradient(to bottom, rgba(2, 4, 9, 0.85) 0%, rgba(2, 4, 9, 0.35) 75%, transparent 100%) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        z-index: 99999 !important;
+        box-sizing: border-box !important;
         border: none !important;
+        display: flex !important;
+        align-items: center !important;
     }}
     .planet-navbar-inner {{
-        max-width: 1260px;
-        margin: 0 auto;
-        padding: 0 2rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        box-sizing: border-box;
+        width: 100% !important;
+        max-width: 1320px !important;
+        margin: 0 auto !important;
+        padding: 0 2rem !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        box-sizing: border-box !important;
+        height: 100% !important;
     }}
     .planet-nav-brand {{
         display: flex;
@@ -332,8 +346,8 @@ st.markdown(f"""
     .planet-nav-menu {{
         display: flex !important;
         align-items: center !important;
-        gap: 52px !important;
-        margin-left: 58px !important;
+        gap: 40px !important;
+        margin-left: 44px !important;
     }}
     .planet-nav-item {{
         display: inline-flex !important;
@@ -342,7 +356,7 @@ st.markdown(f"""
         font-family: 'Inter', -apple-system, sans-serif !important;
         font-size: 0.88rem !important;
         font-weight: 400 !important;
-        letter-spacing: 0.02em !important;
+        letter-spacing: 0.015em !important;
         color: rgba(255, 255, 255, 0.88) !important;
         text-decoration: none !important;
         transition: color 0.15s ease, opacity 0.15s ease !important;
@@ -363,7 +377,7 @@ st.markdown(f"""
     .planet-nav-right {{
         display: flex;
         align-items: center;
-        gap: 22px;
+        gap: 20px;
     }}
     .planet-nav-text-link {{
         font-family: 'Inter', -apple-system, sans-serif;
@@ -430,8 +444,8 @@ st.markdown(f"""
     }}
     @media (max-width: 1080px) {{
         .planet-nav-menu {{
-            gap: 28px !important;
-            margin-left: 28px !important;
+            gap: 24px !important;
+            margin-left: 24px !important;
         }}
         .planet-nav-item {{
             font-size: 0.84rem !important;
@@ -474,8 +488,8 @@ st.markdown(f"""
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        padding: 48px 0 36px;
-        margin-top: -6px;
+        padding: 86px 0 36px !important;
+        margin-top: 0 !important;
         margin-bottom: 40px;
         border-bottom: 1px solid var(--border-color);
         box-shadow: inset 0 0 120px rgba(0, 0, 0, 0.90);
@@ -1571,7 +1585,7 @@ navbar_html = f"""<header class="planet-navbar">
 </div>
 <span class="planet-nav-title">satquery<span class="planet-nav-dot">.</span></span>
 </a>
-<nav class="planet-nav-menu" style="display: flex; align-items: center; gap: 54px; margin-left: 56px;">
+<nav class="planet-nav-menu" style="display: flex; align-items: center; gap: 40px; margin-left: 44px;">
 <a href="#section-ingestion" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Overview <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
 <a href="#section-query" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Models <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
 <a href="#section-ingestion" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Pipeline <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
@@ -1579,7 +1593,7 @@ navbar_html = f"""<header class="planet-navbar">
 <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Team <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
 </nav>
 </div>
-<div class="planet-nav-right" style="display: flex; align-items: center; gap: 22px;">
+<div class="planet-nav-right" style="display: flex; align-items: center; gap: 20px;">
 <a href="#section-audit" class="planet-nav-text-link" style="color: rgba(255, 255, 255, 0.85); text-decoration: none; font-size: 0.86rem; font-weight: 400;">History</a>
 <a href="#section-ingestion" class="planet-nav-btn-pill" style="display: inline-flex; align-items: center; justify-content: center; font-family: 'Inter', -apple-system, sans-serif; font-size: 0.84rem; font-weight: 400; color: #ffffff !important; text-decoration: none; padding: 7px 20px; border-radius: 9999px; border: 1px solid rgba(255, 255, 255, 0.50); background: transparent !important; background-color: transparent !important; box-shadow: none !important; white-space: nowrap;">Try Live Demo</a>
 <a href="#section-query" class="planet-nav-circle-btn" title="Search Queries & Directives" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.35); background: transparent; color: rgba(255, 255, 255, 0.85); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: none;">
