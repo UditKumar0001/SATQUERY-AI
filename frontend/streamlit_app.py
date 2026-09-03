@@ -51,12 +51,14 @@ theme_vars = {
         "btn_primary_bg": "#00e5ff",
         "btn_primary_text": "#05080e",
         "btn_primary_hover": "#38e1f0",
+        "btn_secondary_bg": "#121924",
+        "hero_card_bg": "#0c1118",
         "chip_bg": "#121924",
         "chip_text": "#cbd5e1",
         "chip_border": "#243247",
         "chip_hover_bg": "#1c2638",
         "chip_hover_text": "#00e5ff",
-        "nav_bg": "#080c13",
+        "nav_bg": "#0c1118",
         "nav_border": "#1e293b",
         "sidebar_bg": "#080c13",
         "sidebar_border": "#1e293b",
@@ -71,38 +73,40 @@ theme_vars = {
         "status_tag_text": "#00e5ff",
     },
     "light": {
-        "bg_app": "#d9e0e8",
-        "bg_panel": "#eaeff5",
-        "bg_panel_sub": "#e0e7ef",
+        "bg_app": "#f8fafc",
+        "bg_panel": "#ffffff",
+        "bg_panel_sub": "#f1f5f9",
         "bg_input": "#ffffff",
-        "border_color": "#94a3b8",
-        "border_subtle": "#cbd5e1",
+        "border_color": "#e2e8f0",
+        "border_subtle": "#e2e8f0",
         "border_focus": "#0284c7",
-        "text_primary": "#090d16",
-        "text_secondary": "#334155",
+        "text_primary": "#0f172a",
+        "text_secondary": "#475569",
         "text_muted": "#64748b",
         "accent_primary": "#0284c7",
         "accent_hover": "#0369a1",
         "btn_primary_bg": "#0284c7",
         "btn_primary_text": "#ffffff",
         "btn_primary_hover": "#0369a1",
-        "chip_bg": "#e2e8f0",
+        "btn_secondary_bg": "#ffffff",
+        "hero_card_bg": "#ffffff",
+        "chip_bg": "#f1f5f9",
         "chip_text": "#0f172a",
-        "chip_border": "#94a3b8",
-        "chip_hover_bg": "#cbd5e1",
+        "chip_border": "#cbd5e1",
+        "chip_hover_bg": "#e2e8f0",
         "chip_hover_text": "#0284c7",
-        "nav_bg": "#eaeff5",
-        "nav_border": "#94a3b8",
-        "sidebar_bg": "#e2e8f0",
-        "sidebar_border": "#94a3b8",
-        "footer_bg": "#eaeff5",
-        "footer_border": "#94a3b8",
-        "metric_bg": "#edf2f7",
+        "nav_bg": "#ffffff",
+        "nav_border": "#e2e8f0",
+        "sidebar_bg": "#f8fafc",
+        "sidebar_border": "#e2e8f0",
+        "footer_bg": "#ffffff",
+        "footer_border": "#e2e8f0",
+        "metric_bg": "#ffffff",
         "metric_value": "#0284c7",
-        "result_bg": "#edf2f7",
-        "result_border": "#94a3b8",
-        "status_tag_bg": "rgba(2, 132, 199, 0.1)",
-        "status_tag_border": "rgba(2, 132, 199, 0.35)",
+        "result_bg": "#f8fafc",
+        "result_border": "#e2e8f0",
+        "status_tag_bg": "#e0f2fe",
+        "status_tag_border": "#bae6fd",
         "status_tag_text": "#0284c7",
     }
 }
@@ -130,6 +134,8 @@ st.markdown(f"""
         --btn-primary-bg: {t['btn_primary_bg']};
         --btn-primary-text: {t['btn_primary_text']};
         --btn-primary-hover: {t['btn_primary_hover']};
+        --btn-secondary-bg: {t.get('btn_secondary_bg', t['bg_panel_sub'])};
+        --hero-card-bg: {t.get('hero_card_bg', t['bg_panel'])};
         --chip-bg: {t['chip_bg']};
         --chip-text: {t['chip_text']};
         --chip-border: {t['chip_border']};
@@ -169,52 +175,146 @@ st.markdown(f"""
         padding-right: 2rem;
     }}
 
-    /* Mission Control Header Bar */
-    .mc-header-bar {{
+    /* Reference Style Top Navbar (Verdika Pattern) */
+    .ref-navbar {{
         display: flex;
         align-items: center;
         justify-content: space-between;
         background: var(--nav-bg);
         border: 1px solid var(--nav-border);
-        border-radius: 2px;
+        border-radius: 8px;
         padding: 10px 18px;
-        margin-bottom: 20px;
+        margin-bottom: 24px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }}
-
-    .mc-brand-title {{
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: 1.05rem;
+    .ref-nav-brand {{
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }}
+    .ref-nav-logo {{
+        width: 30px;
+        height: 30px;
+        background: var(--accent-primary);
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ffffff;
+    }}
+    .ref-nav-title {{
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 1.12rem;
         font-weight: 700;
-        letter-spacing: 0.04em;
-        text-transform: uppercase;
         color: var(--text-primary);
+        letter-spacing: -0.01em;
     }}
-    .mc-brand-sub {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.70rem;
+    .ref-nav-pill {{
+        background: var(--status-tag-bg);
+        color: var(--status-tag-text);
+        border: 1px solid var(--status-tag-border);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.68rem;
         font-weight: 600;
-        letter-spacing: 0.12em;
-        color: var(--accent-primary);
-        margin-left: 8px;
-        border-left: 1px solid var(--border-color);
-        padding-left: 8px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        margin-left: 6px;
     }}
-
-    .mc-nav-link {{
-        font-family: 'JetBrains Mono', monospace;
+    .ref-nav-link {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 500;
         color: var(--text-secondary);
         text-decoration: none;
-        font-size: 0.78rem;
-        font-weight: 600;
-        letter-spacing: 0.05em;
-        padding: 4px 10px;
-        border: 1px solid transparent;
-        border-radius: 2px;
+        padding: 6px 10px;
+        border-radius: 6px;
         transition: all 0.15s ease;
     }}
-    .mc-nav-link:hover {{
+    .ref-nav-link:hover {{
         color: var(--accent-primary);
-        border-color: var(--border-color);
+        background: var(--bg-panel-sub);
+    }}
+
+    /* Reference Style Hero Card (Verdika Pattern) */
+    .ref-hero-card {{
+        background: var(--hero-card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 56px 24px 48px;
+        text-align: center;
+        margin-bottom: 32px;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+    }}
+    .ref-hero-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--status-tag-bg);
+        color: var(--status-tag-text);
+        border: 1px solid var(--status-tag-border);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.72rem;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 4px 14px;
+        border-radius: 9999px;
+        margin-bottom: 20px;
+    }}
+    .ref-hero-title {{
+        font-family: 'Space Grotesk', 'Inter', sans-serif;
+        font-size: 2.85rem;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+        color: var(--text-primary);
+        margin: 0 auto 16px;
+    }}
+    .ref-hero-desc {{
+        font-family: 'Inter', sans-serif;
+        color: var(--text-secondary);
+        font-size: 1.05rem;
+        line-height: 1.6;
+        max-width: 680px;
+        margin: 0 auto 28px;
+    }}
+    .ref-hero-actions {{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+    }}
+    .ref-btn-primary {{
+        background: var(--accent-primary);
+        color: #ffffff !important;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
+        padding: 10px 22px;
+        border-radius: 8px;
+        text-decoration: none;
+        border: 1px solid transparent;
+        transition: opacity 0.15s ease;
+        box-shadow: 0 2px 8px rgba(2, 132, 199, 0.25);
+    }}
+    .ref-btn-primary:hover {{
+        opacity: 0.92;
+    }}
+    .ref-btn-secondary {{
+        background: var(--btn-secondary-bg);
+        color: var(--text-primary) !important;
+        border: 1px solid var(--border-color);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.92rem;
+        font-weight: 600;
+        padding: 10px 22px;
+        border-radius: 8px;
+        text-decoration: none;
+        transition: background 0.15s ease;
+    }}
+    .ref-btn-secondary:hover {{
         background: var(--bg-panel-sub);
     }}
 
@@ -526,32 +626,42 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# --- Mission Control Top Navigation Bar ---
+# --- Top Navigation Bar (Reference Style) ---
 nav_left, nav_right = st.columns([3, 2])
 
 with nav_left:
     st.markdown("""
-    <div style="display: flex; align-items: center; padding: 6px 0;">
-        <span class="mc-brand-title">SatQuery AI</span>
-        <span class="mc-brand-sub">ISRO EO ORCHESTRATION CONSOLE // v1.0</span>
+    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 0;">
+        <div class="ref-nav-logo">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="m4.93 4.93 4.24 4.24"></path>
+                <path d="m14.83 9.17 4.24-4.24"></path>
+                <path d="m14.83 14.83 4.24 4.24"></path>
+                <path d="m9.17 14.83-4.24 4.24"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+        </div>
+        <span class="ref-nav-title">SatQuery AI</span>
+        <span class="ref-nav-pill">EARTH OBSERVATION</span>
     </div>
     """, unsafe_allow_html=True)
 
 with nav_right:
-    nav_c1, nav_c2, nav_c3, nav_c4 = st.columns([1, 1, 1, 1.1])
+    nav_c1, nav_c2, nav_c3, nav_c4 = st.columns([1, 1, 1, 0.8])
     with nav_c1:
-        st.markdown('<div style="padding-top: 8px; text-align: center;"><a href="#section-ingestion" class="mc-nav-link">[STUDIO]</a></div>', unsafe_allow_html=True)
+        st.markdown('<div style="padding-top: 6px; text-align: center;"><a href="#section-ingestion" class="ref-nav-link">Dashboard</a></div>', unsafe_allow_html=True)
     with nav_c2:
-        st.markdown('<div style="padding-top: 8px; text-align: center;"><a href="#section-audit" class="mc-nav-link">[AUDIT]</a></div>', unsafe_allow_html=True)
+        st.markdown('<div style="padding-top: 6px; text-align: center;"><a href="#section-audit" class="ref-nav-link">History</a></div>', unsafe_allow_html=True)
     with nav_c3:
-        st.markdown(f'<div style="padding-top: 8px; text-align: center;"><a href="{default_api_url}/docs" target="_blank" class="mc-nav-link">[SPECS ↗]</a></div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="padding-top: 6px; text-align: center;"><a href="{default_api_url}/docs" target="_blank" class="ref-nav-link">Docs ↗</a></div>', unsafe_allow_html=True)
     with nav_c4:
-        theme_label = "[MODE: DAY]" if is_dark else "[MODE: NIGHT]"
-        if st.button(theme_label, key="theme_toggle_btn", help="Toggle between Night Operations and Daylight Ground-Control palette"):
+        theme_icon = "☀️" if is_dark else "🌙"
+        if st.button(theme_icon, key="theme_toggle_btn", help="Switch between Light and Dark mode"):
             st.session_state.theme = "light" if is_dark else "dark"
             st.rerun()
 
-st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
 
 # --- Sidebar: System Diagnostics & Health ---
@@ -619,14 +729,23 @@ with st.sidebar:
     st.markdown("<div style='font-family: \"JetBrains Mono\", monospace; font-size: 0.70rem; color: var(--text-muted);'>TEAM DEBUGGERS DEN // ISRO DEMO</div>", unsafe_allow_html=True)
 
 
-# --- Telemetry Hero Banner ---
-st.markdown("""
-<div class="telemetry-banner">
-    <div class="telemetry-tag">MISSION DISPATCH // EARTH OBSERVATION MULTI-MODAL PIPELINE</div>
-    <div class="telemetry-title">SatQuery AI Ground Station</div>
-    <p class="telemetry-desc">
-        Deterministic multi-sensor routing and visual reasoning console for spaceborne observation payloads. Integrates LangGraph state machine with <strong>GeoChat</strong> (optical VQA / localization), <strong>GeoLLaVA</strong> (bi-temporal change analysis), and <strong>EarthGPT</strong> (optical-SAR cross-sensor fusion).
+# --- Hero Section (Reference Style) ---
+st.markdown(f"""
+<div class="ref-hero-card">
+    <div class="ref-hero-badge">
+        <span style="font-size: 0.85rem; color: var(--accent-primary);">✦</span> MISSION ORCHESTRATION PLATFORM
+    </div>
+    <div class="ref-hero-title">
+        SatQuery AI<br/>
+        <span style="color: var(--accent-primary);">for Earth Observation</span>
+    </div>
+    <p class="ref-hero-desc">
+        Deterministic multi-modal reasoning across high-resolution satellite and aerial imagery. Orchestrates visual question answering, bi-temporal change detection, and cross-sensor fusion powered by <strong>GeoChat</strong>, <strong>GeoLLaVA</strong>, and <strong>EarthGPT</strong>.
     </p>
+    <div class="ref-hero-actions">
+        <a href="#section-ingestion" class="ref-btn-primary">Explore Studio ↓</a>
+        <a href="{default_api_url}/docs" target="_blank" class="ref-btn-secondary">API Documentation ↗</a>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
