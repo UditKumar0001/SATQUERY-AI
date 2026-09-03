@@ -1059,10 +1059,26 @@ st.markdown(f"""
     }}
 
     /* Section Titles and Card Headers */
+    /* Section Titles and Card Headers */
     /* NASA Eyes & Aceternity UI Mission-Control HUD Workflow Section */
+    .ingestion-hero-banner {{
+        position: relative;
+        background-color: #0c121e;
+        background-image: 
+            linear-gradient(90deg, rgba(7, 10, 15, 0.96) 0%, rgba(7, 10, 15, 0.82) 45%, rgba(7, 10, 15, 0.60) 100%),
+            url('{img_opt_url}');
+        background-size: cover;
+        background-position: center;
+        border: 1px solid rgba(45, 212, 191, 0.30);
+        border-radius: 14px;
+        padding: 24px 28px 20px;
+        margin-bottom: 24px;
+        overflow: hidden;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.50);
+    }}
     .hud-step-header {{
         position: relative;
-        margin-bottom: 24px;
+        margin-bottom: 20px;
         padding-bottom: 12px;
     }}
     .hud-scanline {{
@@ -1118,11 +1134,12 @@ st.markdown(f"""
     }}
     .ref-section-title {{
         font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: 1.55rem;
+        font-size: 1.60rem;
         font-weight: 700;
         color: var(--text-primary);
         margin-bottom: 6px;
         letter-spacing: -0.015em;
+        text-shadow: 0 0 20px rgba(96, 165, 250, 0.25);
     }}
     .ref-section-desc {{
         font-family: 'Inter', sans-serif;
@@ -1131,6 +1148,76 @@ st.markdown(f"""
         margin-bottom: 6px;
         line-height: 1.5;
     }}
+    .hud-telemetry-meta {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.70rem;
+        color: rgba(45, 212, 191, 0.85);
+        letter-spacing: 0.10em;
+        margin-top: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }}
+    .hud-telemetry-tag {{
+        background: rgba(45, 212, 191, 0.12);
+        border: 1px solid rgba(45, 212, 191, 0.35);
+        padding: 2px 7px;
+        border-radius: 4px;
+        color: #2dd4bf;
+    }}
+    .hud-telemetry-ticks {{
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        margin-top: 6px;
+    }}
+    .hud-tick {{
+        width: 6px;
+        height: 3px;
+        border-radius: 1px;
+        background: rgba(255, 255, 255, 0.15);
+    }}
+    .hud-tick.active {{
+        background: #2dd4bf;
+        box-shadow: 0 0 6px #2dd4bf;
+    }}
+
+    /* NASA Viewfinder Reticle Corners */
+    .hud-card-container {{
+        position: relative;
+        padding: 18px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(10, 15, 24, 0.70);
+        backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.40);
+        margin-bottom: 8px;
+    }}
+    .hud-corner-tl, .hud-corner-tr, .hud-corner-bl, .hud-corner-br {{
+        position: absolute;
+        width: 10px;
+        height: 10px;
+        pointer-events: none;
+        z-index: 5;
+    }}
+    .hud-corner-tl {{
+        top: 6px; left: 6px;
+        border-top: 2px solid #2dd4bf; border-left: 2px solid #2dd4bf;
+    }}
+    .hud-corner-tr {{
+        top: 6px; right: 6px;
+        border-top: 2px solid #2dd4bf; border-right: 2px solid #2dd4bf;
+    }}
+    .hud-corner-bl {{
+        bottom: 6px; left: 6px;
+        border-bottom: 2px solid #2dd4bf; border-left: 2px solid #2dd4bf;
+    }}
+    .hud-corner-br {{
+        bottom: 6px; right: 6px;
+        border-bottom: 2px solid #2dd4bf; border-right: 2px solid #2dd4bf;
+    }}
+
     .ref-card-header {{
         font-family: 'Inter', sans-serif;
         font-size: 0.95rem;
@@ -1149,9 +1236,9 @@ st.markdown(f"""
         line-height: 1.45;
     }}
 
-    /* Aceternity-Style Moving-Border Spotlight File Uploader Cards */
+    /* Aceternity-Style Moving-Border Spotlight File Uploader Cards with Satellite Previews */
     [data-testid="stFileUploader"] section {{
-        background: rgba(10, 16, 26, 0.65) !important;
+        background-color: rgba(10, 16, 26, 0.75) !important;
         backdrop-filter: blur(14px) !important;
         -webkit-backdrop-filter: blur(14px) !important;
         border: 1px solid rgba(45, 212, 191, 0.25) !important;
@@ -1164,9 +1251,23 @@ st.markdown(f"""
     }}
     [data-testid="stFileUploader"] section:hover {{
         border-color: rgba(96, 165, 250, 0.70) !important;
-        background: rgba(13, 22, 38, 0.75) !important;
+        background-color: rgba(13, 22, 38, 0.85) !important;
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.60), 0 0 25px rgba(45, 212, 191, 0.20), inset 0 0 20px rgba(96, 165, 250, 0.10) !important;
         transform: translateY(-2px);
+    }}
+    .uploader-tile-a [data-testid="stFileUploader"] section {{
+        background-image: 
+            linear-gradient(to bottom, rgba(10, 16, 26, 0.86), rgba(10, 16, 26, 0.94)),
+            url('{img_opt_url}') !important;
+        background-size: cover !important;
+        background-position: center !important;
+    }}
+    .uploader-tile-b [data-testid="stFileUploader"] section {{
+        background-image: 
+            linear-gradient(to bottom, rgba(10, 16, 26, 0.86), rgba(10, 16, 26, 0.94)),
+            url('{img_sar_url}') !important;
+        background-size: cover !important;
+        background-position: center !important;
     }}
     [data-testid="stFileUploader"] button {{
         background: rgba(15, 23, 42, 0.85) !important;
@@ -1189,16 +1290,16 @@ st.markdown(f"""
 
     /* Aceternity-Style Hover-Border-Gradient Preset Buttons */
     div[data-testid="stButton"] > button[kind="secondary"] {{
-        background: rgba(13, 19, 33, 0.65) !important;
+        background: rgba(13, 19, 33, 0.70) !important;
         color: rgba(255, 255, 255, 0.85) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 10px !important;
         font-family: 'Inter', -apple-system, sans-serif !important;
-        font-size: 0.86rem !important;
+        font-size: 0.84rem !important;
         font-weight: 600 !important;
-        letter-spacing: 0.01em !important;
-        text-transform: none !important;
-        padding: 11px 16px !important;
+        letter-spacing: 0.02em !important;
+        text-transform: uppercase !important;
+        padding: 12px 16px !important;
         width: 100% !important;
         backdrop-filter: blur(8px) !important;
         -webkit-backdrop-filter: blur(8px) !important;
@@ -1215,7 +1316,7 @@ st.markdown(f"""
 
     /* Aceternity-Style Glow Text Input Field */
     [data-testid="stTextInput"] input {{
-        background: rgba(8, 14, 24, 0.80) !important;
+        background: rgba(8, 14, 24, 0.85) !important;
         border: 1px solid rgba(255, 255, 255, 0.14) !important;
         border-radius: 10px !important;
         color: #ffffff !important;
@@ -1233,10 +1334,12 @@ st.markdown(f"""
         background: rgba(10, 18, 30, 0.95) !important;
     }}
 
-    /* Aceternity-Style Animated Shimmering Primary Action Button */
+    /* Aceternity-Style Animated Shimmering Primary Action Button with Hazard Pattern */
     div[data-testid="stButton"] > button[kind="primary"] {{
-        background: linear-gradient(135deg, #1D4ED8 0%, #0284C7 35%, #0D9488 70%, #1D4ED8 100%) !important;
-        background-size: 300% 300% !important;
+        background-image: 
+            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 10px, transparent 10px, transparent 20px),
+            linear-gradient(135deg, #1D4ED8 0%, #0284C7 35%, #0D9488 70%, #1D4ED8 100%) !important;
+        background-size: 200% 200%, 300% 300% !important;
         animation: primaryBtnShimmer 5s ease infinite !important;
         color: #ffffff !important;
         border: 1px solid rgba(255, 255, 255, 0.25) !important;
@@ -1249,6 +1352,15 @@ st.markdown(f"""
         padding: 15px 30px !important;
         box-shadow: 0 4px 24px rgba(2, 132, 199, 0.40), 0 0 30px rgba(13, 148, 136, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
         transition: all 0.25s ease !important;
+    }}
+    @keyframes primaryBtnShimmer {{
+        0% {{ background-position: 0% 50%; }}
+        50% {{ background-position: 100% 50%; }}
+        100% {{ background-position: 0% 50%; }}
+    }}
+    div[data-testid="stButton"] > button[kind="primary"]:hover {{
+        transform: translateY(-2px) scale(1.008) !important;
+        box-shadow: 0 8px 32px rgba(2, 132, 199, 0.60), 0 0 45px rgba(13, 148, 136, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
     }}
     @keyframes primaryBtnShimmer {{
         0% {{ background-position: 0% 50%; }}
@@ -2040,12 +2152,35 @@ st.markdown(f"""
 
 
 # --- Section 1: Ingestion ---
-st.markdown("""
-<div id="section-ingestion" class="hud-step-header">
-    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">01</span> <span class="hud-bracket">]</span> • SENSOR INGESTION</div>
-    <div class="ref-section-title">Imagery Ingestion</div>
-    <div class="ref-section-desc">Upload primary observation imagery and an optional secondary or temporal tile for multi-modal analysis.</div>
-    <div class="hud-scanline"></div>
+st.markdown(f"""
+<div id="section-ingestion" class="ingestion-hero-banner">
+    <div class="hud-corner-tl"></div>
+    <div class="hud-corner-tr"></div>
+    <div class="hud-corner-bl"></div>
+    <div class="hud-corner-br"></div>
+    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">STEP 01</span> <span class="hud-bracket">]</span> • SENSOR INGESTION PIPELINE</div>
+    <div class="ref-section-title">Imagery Ingestion & Tile Registration</div>
+    <div class="ref-section-desc">Upload primary observation raster tile and an optional secondary / temporal pair for automated multi-modal reasoning.</div>
+    <div class="hud-telemetry-meta">
+        <span class="hud-telemetry-tag">✦ SENSOR BUS ACTIVE</span>
+        <span>COORD: 28.6139° N, 77.2090° E</span>
+        <span>•</span>
+        <span>BAND: MULTISPECTRAL-OPTICAL / SAR</span>
+        <span>•</span>
+        <span>GSD: 0.5M/PX</span>
+    </div>
+    <div class="hud-telemetry-ticks">
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick"></span>
+        <span class="hud-tick"></span>
+    </div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -2053,8 +2188,16 @@ col_up1, col_up2 = st.columns(2, gap="large")
 
 with col_up1:
     st.markdown("""
-    <div class="ref-card-header"><span style="color: #60A5FA;">✦</span> Tile A — Primary Observation</div>
-    <div class="ref-card-desc">High-resolution optical raster tile, multispectral band, or base SAR backscatter (GeoTIFF, PNG, JPG).</div>
+    <div class="hud-card-container uploader-tile-a">
+        <div class="hud-corner-tl"></div>
+        <div class="hud-corner-tr"></div>
+        <div class="hud-corner-bl"></div>
+        <div class="hud-corner-br"></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <div class="ref-card-header"><span style="color: #60A5FA;">✦</span> Tile A — Primary Observation</div>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #60A5FA; background: rgba(96, 165, 250, 0.12); border: 1px solid rgba(96, 165, 250, 0.3); padding: 2px 6px; border-radius: 3px;">CH 01 // VIS-RGB</span>
+        </div>
+        <div class="ref-card-desc">High-resolution optical raster tile, multispectral band, or base SAR backscatter (GeoTIFF, PNG, JPG).</div>
     """, unsafe_allow_html=True)
     img1_file = st.file_uploader(
         "Upload primary satellite/aerial tile",
@@ -2068,11 +2211,20 @@ with col_up1:
             st.image(pil_img1, caption=f"Tile A: {img1_file.name} ({pil_img1.width}×{pil_img1.height}px)", use_container_width=True)
         except Exception:
             st.info(f"Loaded {img1_file.name} (GeoTIFF/Multi-band Sensor Tile)")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 with col_up2:
     st.markdown("""
-    <div class="ref-card-header"><span style="color: #2dd4bf;">✦</span> Tile B — Secondary / Temporal Pair (Optional)</div>
-    <div class="ref-card-desc">Post-event comparative tile for change detection or co-registered SAR for cross-sensor fusion.</div>
+    <div class="hud-card-container uploader-tile-b">
+        <div class="hud-corner-tl"></div>
+        <div class="hud-corner-tr"></div>
+        <div class="hud-corner-bl"></div>
+        <div class="hud-corner-br"></div>
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+            <div class="ref-card-header"><span style="color: #2dd4bf;">✦</span> Tile B — Secondary / Temporal Pair</div>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; color: #2dd4bf; background: rgba(45, 212, 191, 0.12); border: 1px solid rgba(45, 212, 191, 0.3); padding: 2px 6px; border-radius: 3px;">CH 02 // SAR-OPT</span>
+        </div>
+        <div class="ref-card-desc">Post-event comparative tile for change detection or co-registered SAR for cross-sensor fusion.</div>
     """, unsafe_allow_html=True)
     img2_file = st.file_uploader(
         "Upload comparison image for bi-temporal tasks",
@@ -2086,29 +2238,40 @@ with col_up2:
             st.image(pil_img2, caption=f"Tile B: {img2_file.name} ({pil_img2.width}×{pil_img2.height}px)", use_container_width=True)
         except Exception:
             st.info(f"Loaded {img2_file.name} (GeoTIFF/Multi-band Sensor Tile)")
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 # --- Section 2: Query Specification ---
 st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
 st.markdown("""
 <div class="hud-step-header">
-    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">02</span> <span class="hud-bracket">]</span> • DIRECTIVE & INSTRUCTION</div>
-    <div class="ref-section-title">Mission Instruction & Query</div>
+    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">STEP 02</span> <span class="hud-bracket">]</span> • DIRECTIVE & INSTRUCTION</div>
+    <div class="ref-section-title">Mission Instruction & Query Directive</div>
     <div class="ref-section-desc">Choose a pre-configured analysis template or enter custom natural language instructions.</div>
+    <div class="hud-telemetry-ticks">
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick active"></span>
+        <span class="hud-tick"></span>
+        <span class="hud-tick"></span>
+    </div>
     <div class="hud-scanline"></div>
 </div>
 """, unsafe_allow_html=True)
 
-# Preset Technical Buttons
+# Preset Technical Buttons with Aerospace Symbols
 col_p1, col_p2, col_p3 = st.columns(3, gap="small")
 with col_p1:
-    if st.button("✈️  Aircraft Detection", key="preset_air", help="Target detection and runway inventory"):
+    if st.button("⌖  AIRCRAFT RECOGNITION", key="preset_air", help="Target detection and runway inventory via optical VQA"):
         st.session_state.query_input_val = "Detect and count the aircraft parked at the airport terminals."
 with col_p2:
-    if st.button("🌲  Land Classification", key="preset_land", help="Macro land-cover and surface categorization"):
+    if st.button("▦  LAND COVER CLASSIFICATION", key="preset_land", help="Macro land-cover and surface categorization"):
         st.session_state.query_input_val = "Identify the dominant land cover and vegetation types across this scene."
 with col_p3:
-    if st.button("🔄  Change Analysis", key="preset_change", help="Topological delta detection across epochs"):
+    if st.button("◰  BI-TEMPORAL CHANGE DELTA", key="preset_change", help="Topological delta detection across epochs"):
         st.session_state.query_input_val = "Compare both images and identify newly constructed buildings or infrastructure."
 
 # Query Input Field
