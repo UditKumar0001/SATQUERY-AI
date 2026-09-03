@@ -831,30 +831,102 @@ st.markdown(f"""
         text-transform: uppercase;
     }}
 
-    /* Footer Instrument */
-    .mc-footer {{
+    /* Reference Footer Styles */
+    .ref-footer-wrap {{
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        background: var(--footer-bg);
+        border-top: 1px solid var(--footer-border);
+        padding: 48px 0 32px;
+        margin-top: 56px;
+    }}
+    .ref-footer-inner {{
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 0 2rem;
+    }}
+    .ref-footer-strip {{
+        background: var(--hero-card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        padding: 22px 24px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: var(--footer-bg);
-        border: 1px solid var(--footer-border);
-        border-radius: 2px;
-        padding: 16px 20px;
-        margin-top: 40px;
+        margin-bottom: 36px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
     }}
-    .mc-footer-title {{
-        font-family: 'Space Grotesk', sans-serif;
-        font-weight: 700;
-        font-size: 0.88rem;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
+    @media (max-width: 768px) {{
+        .ref-footer-strip {{
+            flex-direction: column;
+            gap: 16px;
+            align-items: flex-start;
+        }}
+    }}
+    .ref-footer-input {{
+        background: var(--bg-input);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        padding: 8px 14px;
+        width: 240px;
+        outline: none;
     }}
-    .mc-footer-meta {{
-        font-family: 'JetBrains Mono', monospace;
+    .ref-footer-grid {{
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 1.2fr;
+        gap: 36px;
+        margin-bottom: 28px;
+    }}
+    @media (max-width: 920px) {{
+        .ref-footer-grid {{
+            grid-template-columns: repeat(2, 1fr);
+        }}
+    }}
+    @media (max-width: 520px) {{
+        .ref-footer-grid {{
+            grid-template-columns: 1fr;
+        }}
+    }}
+    .ref-footer-col-title {{
+        font-family: 'Inter', sans-serif;
         font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
         color: var(--text-muted);
-        margin-top: 2px;
+        margin-bottom: 14px;
+    }}
+    .ref-footer-link {{
+        display: block;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.84rem;
+        color: var(--text-secondary);
+        text-decoration: none;
+        margin-bottom: 9px;
+        transition: color 0.15s ease;
+    }}
+    .ref-footer-link:hover {{
+        color: var(--accent-primary);
+    }}
+    .ref-footer-divider {{
+        height: 1px;
+        background: var(--border-color);
+        margin: 28px 0 20px;
+    }}
+    .ref-footer-bottom {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.80rem;
+        color: var(--text-muted);
     }}
 </style>
 """, unsafe_allow_html=True)
@@ -1277,17 +1349,85 @@ except Exception as ex:
     st.caption(f"Telemetry database unavailable: {ex}")
 
 
-# --- Ground Control Footer ---
+# --- Reference Product Footer ---
 st.markdown(f"""
-<div class="mc-footer">
-    <div>
-        <div class="mc-footer-title">SATQUERY AI // EARTH OBSERVATION GROUND STATION</div>
-        <div class="mc-footer-meta">ISRO EO-AI DEMONSTRATOR // TEAM DEBUGGERS DEN • © 2026</div>
-    </div>
-    <div style="display: flex; align-items: center; gap: 14px;">
-        <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="mc-nav-link">[GITHUB]</a>
-        <a href="{default_api_url}/docs" target="_blank" class="mc-nav-link">[API SPECS]</a>
-        <a href="{default_api_url}/health" target="_blank" class="mc-nav-link">[HEALTH BUS]</a>
+<div class="ref-footer-wrap">
+    <div class="ref-footer-inner">
+        <div class="ref-footer-strip">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <div class="ref-nav-logo" style="width: 36px; height: 36px; border-radius: 8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                </div>
+                <div>
+                    <div style="font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">Have questions about SatQuery AI?</div>
+                    <div style="font-family: 'Inter', sans-serif; font-size: 0.82rem; color: var(--text-secondary);">Connect with the engineering team or explore architecture guides.</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="text" placeholder="Enter your email..." class="ref-footer-input" readonly value="team@debuggersden.space"/>
+                <a href="mailto:team@debuggersden.space" class="ref-btn-primary" style="padding: 8px 18px; font-size: 0.84rem; text-decoration: none;">Connect</a>
+            </div>
+        </div>
+
+        <div class="ref-footer-grid">
+            <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px;">
+                    <div class="ref-nav-logo" style="width: 26px; height: 26px; border-radius: 5px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="9"></circle>
+                            <path d="m4.93 4.93 4.24 4.24"></path>
+                            <path d="m14.83 9.17 4.24-4.24"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </div>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 1.05rem; font-weight: 700; color: var(--text-primary);">SatQuery AI</span>
+                    <span class="ref-nav-pill" style="font-size: 0.62rem; padding: 2px 6px;">ORCHESTRATOR</span>
+                </div>
+                <p style="font-family: 'Inter', sans-serif; font-size: 0.82rem; color: var(--text-secondary); line-height: 1.55; max-width: 280px; margin: 0 0 16px 0;">
+                    Autonomous multimodal Earth Observation reasoning and deterministic audit trail platform built for defense and spaceborne monitoring.
+                </p>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-btn-secondary" style="padding: 5px 12px; font-size: 0.76rem;">GitHub ↗</a>
+                    <a href="{default_api_url}/docs" target="_blank" class="ref-btn-secondary" style="padding: 5px 12px; font-size: 0.76rem;">Swagger ↗</a>
+                </div>
+            </div>
+
+            <div>
+                <div class="ref-footer-col-title">PROJECT</div>
+                <a href="#section-ingestion" class="ref-footer-link">How It Works</a>
+                <a href="#section-ingestion" class="ref-footer-link">Ingestion Pipeline</a>
+                <a href="#section-audit" class="ref-footer-link">State Machine Audit</a>
+                <a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">Benchmarks & F1</a>
+            </div>
+
+            <div>
+                <div class="ref-footer-col-title">TEAM</div>
+                <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">Team Debuggers Den</a>
+                <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">About Project</a>
+                <a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-footer-link">Source Repository</a>
+                <a href="mailto:team@debuggersden.space" class="ref-footer-link">Direct Inquiries</a>
+            </div>
+
+            <div>
+                <div class="ref-footer-col-title">RESOURCES</div>
+                <a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">Documentation</a>
+                <a href="{default_api_url}/docs" target="_blank" class="ref-footer-link">API Reference</a>
+                <a href="{default_api_url}/health" target="_blank" class="ref-footer-link">System Health Bus</a>
+                <a href="https://github.com/UditKumar0001/SATQUERY-AI/issues" target="_blank" class="ref-footer-link">Submit Feedback</a>
+            </div>
+        </div>
+
+        <div class="ref-footer-divider"></div>
+
+        <div class="ref-footer-bottom">
+            <div>© 2026 Team Debuggers Den. All rights reserved.</div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="ref-hero-badge" style="margin-bottom: 0; padding: 3px 10px; font-size: 0.68rem;">✦ BUILT FOR ISRO</span>
+            </div>
+        </div>
     </div>
 </div>
 """, unsafe_allow_html=True)
