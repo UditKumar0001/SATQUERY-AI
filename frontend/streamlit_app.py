@@ -1474,27 +1474,42 @@ st.markdown(f"""
     }}
     .footer-bg-orbital {{
         position: absolute;
-        right: -50px;
-        bottom: -60px;
-        width: 520px;
-        height: 520px;
+        right: -70px;
+        bottom: -50px;
+        width: 620px;
+        height: 620px;
         pointer-events: none;
-        opacity: 0.07;
-        z-index: 1;
-        color: #60A5FA;
+        opacity: 0.16;
+        z-index: 0;
+        color: #2dd4bf;
+    }}
+    @media (max-width: 900px) {{
+        .footer-bg-orbital {{
+            width: 440px;
+            height: 440px;
+            right: -40px;
+            bottom: -30px;
+            opacity: 0.12;
+        }}
     }}
     .ref-footer-inner {{
         max-width: 1260px;
         margin: 0 auto;
         padding: 0 2rem;
         position: relative;
-        z-index: 2;
         box-sizing: border-box;
     }}
     @media (max-width: 768px) {{
         .ref-footer-inner {{
             padding: 0 1.25rem !important;
         }}
+    }}
+    .ref-footer-strip,
+    .ref-footer-grid,
+    .ref-footer-divider,
+    .ref-footer-bottom {{
+        position: relative;
+        z-index: 2;
     }}
     .ref-footer-strip {{
         background: rgba(12, 17, 24, 0.85);
@@ -2140,24 +2155,38 @@ except Exception as ex:
 
 # --- Reference Product Footer (Planet.com Reference Style) ---
 footer_html = f"""<div class="ref-footer-wrap">
-<!-- Subtle Wireframe Orbital Globe Graphic in Background -->
-<svg class="footer-bg-orbital" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
-<circle cx="260" cy="260" r="210" stroke="currentColor" stroke-width="1" stroke-opacity="0.35" stroke-dasharray="2 6"/>
-<circle cx="260" cy="260" r="185" stroke="currentColor" stroke-width="1.2" stroke-opacity="0.6"/>
-<ellipse cx="260" cy="260" rx="185" ry="75" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
-<ellipse cx="260" cy="260" rx="185" ry="135" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
-<ellipse cx="260" cy="260" rx="75" ry="185" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
-<ellipse cx="260" cy="260" rx="135" ry="185" stroke="currentColor" stroke-width="1" stroke-opacity="0.5"/>
-<line x1="260" y1="75" x2="260" y2="445" stroke="currentColor" stroke-width="1" stroke-opacity="0.6"/>
-<line x1="75" y1="260" x2="445" y2="260" stroke="currentColor" stroke-width="1" stroke-opacity="0.6"/>
-<path d="M 40,360 C 100,100 420,60 480,260" stroke="currentColor" stroke-width="1.8" stroke-dasharray="6 5" stroke-opacity="0.85"/>
-<path d="M 120,470 C 200,320 340,160 410,30" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 6" stroke-opacity="0.6"/>
-<circle cx="345" cy="118" r="4.5" fill="#60A5FA"/>
-<circle cx="345" cy="118" r="9" stroke="#60A5FA" stroke-width="1" stroke-opacity="0.5"/>
-<line x1="333" y1="118" x2="357" y2="118" stroke="#60A5FA" stroke-width="1.4"/>
-<circle cx="210" cy="335" r="3" fill="#60A5FA" fill-opacity="0.7"/>
-</svg>
 <div class="ref-footer-inner">
+<!-- 3D Wireframe Spherical Globe with Sweeping Dotted Orbital Arc -->
+<svg class="footer-bg-orbital" viewBox="0 0 600 600" fill="none" xmlns="http://www.w3.org/2000/svg">
+<!-- Outer Telemetry Coordinate Ring -->
+<circle cx="330" cy="310" r="245" stroke="#2dd4bf" stroke-width="0.8" stroke-dasharray="3 8"/>
+<!-- Outer Globe Silhouette Sphere -->
+<circle cx="330" cy="310" r="210" stroke="#2dd4bf" stroke-width="1.2"/>
+<!-- Parallels of Latitude (Horizontal Curved Spherical Slices) -->
+<ellipse cx="330" cy="310" rx="210" ry="68" stroke="#2dd4bf" stroke-width="1.1"/>
+<ellipse cx="330" cy="255" rx="202" ry="58" stroke="#2dd4bf" stroke-width="0.95"/>
+<ellipse cx="330" cy="205" rx="180" ry="48" stroke="#2dd4bf" stroke-width="0.9"/>
+<ellipse cx="330" cy="160" rx="145" ry="36" stroke="#2dd4bf" stroke-width="0.85"/>
+<ellipse cx="330" cy="125" rx="95" ry="22" stroke="#2dd4bf" stroke-width="0.8"/>
+<ellipse cx="330" cy="365" rx="202" ry="58" stroke="#2dd4bf" stroke-width="0.95"/>
+<ellipse cx="330" cy="415" rx="180" ry="48" stroke="#2dd4bf" stroke-width="0.9"/>
+<ellipse cx="330" cy="460" rx="145" ry="36" stroke="#2dd4bf" stroke-width="0.85"/>
+<ellipse cx="330" cy="495" rx="95" ry="22" stroke="#2dd4bf" stroke-width="0.8"/>
+<!-- Meridians of Longitude (Vertical Spherical Slices) -->
+<line x1="330" y1="100" x2="330" y2="520" stroke="#2dd4bf" stroke-width="1.1"/>
+<ellipse cx="330" cy="310" rx="60" ry="210" stroke="#2dd4bf" stroke-width="0.95"/>
+<ellipse cx="330" cy="310" rx="120" ry="210" stroke="#2dd4bf" stroke-width="0.95"/>
+<ellipse cx="330" cy="310" rx="170" ry="210" stroke="#2dd4bf" stroke-width="0.9"/>
+<!-- Dynamic Sweeping Dotted Orbital Arc across & beyond the Globe -->
+<path d="M 40,460 C 110,130 520,70 595,290" stroke="#2dd4bf" stroke-width="2" stroke-dasharray="7 6"/>
+<path d="M 120,570 C 230,360 440,180 540,25" stroke="#2dd4bf" stroke-width="1.4" stroke-dasharray="5 6"/>
+<!-- Orbital Satellite Nodes with Solar Panel Array -->
+<circle cx="485" cy="148" r="5" fill="#2dd4bf"/>
+<circle cx="485" cy="148" r="10" stroke="#2dd4bf" stroke-width="1.2" stroke-dasharray="2 3"/>
+<line x1="471" y1="148" x2="499" y2="148" stroke="#2dd4bf" stroke-width="1.8"/>
+<circle cx="215" cy="370" r="4" fill="#2dd4bf"/>
+<circle cx="215" cy="370" r="8" stroke="#2dd4bf" stroke-width="0.9"/>
+</svg>
 <div class="ref-footer-strip">
 <div style="display: flex; align-items: center; gap: 14px;">
 <div class="ref-nav-logo" style="width: 36px; height: 36px; border-radius: 8px;">
