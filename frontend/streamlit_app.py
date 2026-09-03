@@ -424,7 +424,7 @@ st.markdown(f"""
         color: var(--text-primary) !important;
     }}
 
-    /* NASA Science Eyes Editorial Hero (Full Bleed, Motion Video/Image) */
+    /* NASA Science Eyes Editorial Hero (Full Bleed, High-Res Orbital Scene) */
     .nasa-hero-wrap {{
         width: 100vw;
         position: relative;
@@ -434,10 +434,6 @@ st.markdown(f"""
         margin-right: -50vw;
         min-height: 84vh;
         background-color: #030712;
-        background-image: url('{clean_earth_bg_url}');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -446,30 +442,100 @@ st.markdown(f"""
         margin-top: -12px;
         margin-bottom: 40px;
         border-bottom: 1px solid var(--border-color);
-        box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.8);
+        box-shadow: inset 0 0 100px rgba(0, 0, 0, 0.85);
         box-sizing: border-box;
     }}
-    .nasa-hero-video {{
+    .nasa-hero-bg-layer {{
         position: absolute;
-        top: 50%;
-        left: 50%;
-        min-width: 100%;
-        min-height: 100%;
-        width: auto;
-        height: auto;
-        transform: translate(-50%, -50%) scale(1.05);
-        object-fit: cover;
+        top: -5%;
+        left: -5%;
+        width: 110%;
+        height: 110%;
+        background-image: url('{clean_earth_bg_url}');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         z-index: 1;
-        opacity: 0.88;
+        animation: earthSlowDrift 100s ease-in-out infinite alternate;
+        filter: contrast(1.05) brightness(0.96);
         pointer-events: none;
-        animation: heroVideoPan 32s ease-in-out infinite alternate;
     }}
-    @keyframes heroVideoPan {{
+    @keyframes earthSlowDrift {{
         0% {{
-            transform: translate(-50%, -50%) scale(1.05);
+            transform: scale(1.0) translate(0, 0);
+        }}
+        50% {{
+            transform: scale(1.06) translate(-1%, -1.5%);
         }}
         100% {{
-            transform: translate(-48%, -52%) scale(1.12);
+            transform: scale(1.03) translate(1%, -0.5%);
+        }}
+    }}
+    /* Generic Unbranded Satellite Element (Drifting in LEO) */
+    .nasa-satellite-container {{
+        position: absolute;
+        top: 14%;
+        right: 7%;
+        width: 260px;
+        height: 160px;
+        z-index: 2;
+        pointer-events: none;
+        animation: satelliteOrbitPass 80s ease-in-out infinite alternate;
+    }}
+    @keyframes satelliteOrbitPass {{
+        0% {{
+            transform: translate(25px, -20px) rotate(-4deg);
+        }}
+        50% {{
+            transform: translate(-30px, 15px) rotate(2deg);
+        }}
+        100% {{
+            transform: translate(15px, 35px) rotate(-1deg);
+        }}
+    }}
+    .nasa-satellite-svg {{
+        width: 100%;
+        height: auto;
+        filter: drop-shadow(0 14px 28px rgba(0, 0, 0, 0.75));
+        animation: satelliteMicroAttitude 16s ease-in-out infinite alternate;
+    }}
+    @keyframes satelliteMicroAttitude {{
+        0% {{
+            transform: rotate(0deg);
+        }}
+        100% {{
+            transform: rotate(3.5deg);
+        }}
+    }}
+    .sat-radar-beam {{
+        animation: radarBeamScan 5s ease-in-out infinite alternate;
+        transform-origin: 132px 135px;
+    }}
+    @keyframes radarBeamScan {{
+        0% {{
+            opacity: 0.20;
+            transform: scaleX(0.92);
+        }}
+        50% {{
+            opacity: 0.55;
+            transform: scaleX(1.08);
+        }}
+        100% {{
+            opacity: 0.25;
+            transform: scaleX(0.96);
+        }}
+    }}
+    .sat-telemetry-led {{
+        animation: ledTelemetryBlink 2.5s ease-in-out infinite;
+    }}
+    @keyframes ledTelemetryBlink {{
+        0%, 100% {{
+            opacity: 0.4;
+            filter: drop-shadow(0 0 1px #10b981);
+        }}
+        50% {{
+            opacity: 1;
+            filter: drop-shadow(0 0 6px #10b981);
         }}
     }}
     .nasa-hero-sweep {{
@@ -478,21 +544,21 @@ st.markdown(f"""
         left: -100%;
         width: 45%;
         height: 100%;
-        background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.08) 50%, transparent 100%);
+        background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.07) 50%, transparent 100%);
         transform: skewX(-20deg);
-        z-index: 2;
+        z-index: 3;
         pointer-events: none;
-        animation: radarSweep 12s ease-in-out infinite;
+        animation: radarSweep 24s ease-in-out infinite;
     }}
     @keyframes radarSweep {{
         0% {{
             left: -80%;
             opacity: 0;
         }}
-        25% {{
+        20% {{
             opacity: 1;
         }}
-        75% {{
+        80% {{
             opacity: 1;
         }}
         100% {{
@@ -507,9 +573,9 @@ st.markdown(f"""
         width: 100%;
         height: 100%;
         background: 
-            linear-gradient(to right, rgba(3, 7, 18, 0.94) 0%, rgba(3, 7, 18, 0.85) 40%, rgba(3, 7, 18, 0.40) 75%, rgba(3, 7, 18, 0.70) 100%),
+            linear-gradient(to right, rgba(3, 7, 18, 0.94) 0%, rgba(3, 7, 18, 0.85) 40%, rgba(3, 7, 18, 0.35) 75%, rgba(3, 7, 18, 0.70) 100%),
             linear-gradient(to top, var(--bg-app) 0%, rgba(3, 7, 18, 0.3) 15%, transparent 35%);
-        z-index: 3;
+        z-index: 4;
         pointer-events: none;
     }}
     .nasa-hero-inner {{
@@ -519,7 +585,20 @@ st.markdown(f"""
         padding: 0 2rem;
         box-sizing: border-box;
         position: relative;
-        z-index: 4;
+        z-index: 5;
+    }}
+    @media (max-width: 960px) {{
+        .nasa-satellite-container {{
+            width: 190px !important;
+            right: 4% !important;
+            top: 8% !important;
+            opacity: 0.8 !important;
+        }}
+    }}
+    @media (max-width: 640px) {{
+        .nasa-satellite-container {{
+            display: none !important;
+        }}
     }}
     .nasa-hero-eyebrow {{
         display: inline-flex;
@@ -1670,15 +1749,56 @@ with st.sidebar:
     st.caption("© 2026 Team Debuggers Den • SatQuery v1.0")
 
 
-# --- Hero Section (NASA Science Eyes Editorial Style with Video Motion) ---
-video_layer = ""
-if hero_vid_url:
-    video_layer = f"""<video class="nasa-hero-video" autoplay loop muted playsinline poster="{clean_earth_bg_url}">
-<source src="{hero_vid_url}" type="video/webm">
-</video>"""
-
+# --- Hero Section (NASA Science Eyes Editorial Style with Orbital Satellite) ---
 hero_html = f"""<div class="nasa-hero-wrap">
-{video_layer}
+<div class="nasa-hero-bg-layer"></div>
+<div class="nasa-satellite-container">
+<svg class="nasa-satellite-svg" viewBox="0 0 280 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<linearGradient id="satGoldMli" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0%" stop-color="#b45309"/>
+<stop offset="45%" stop-color="#d97706"/>
+<stop offset="100%" stop-color="#78350f"/>
+</linearGradient>
+<linearGradient id="satSolarGrad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="#0f172a"/>
+<stop offset="50%" stop-color="#1e293b"/>
+<stop offset="100%" stop-color="#090d16"/>
+</linearGradient>
+<linearGradient id="radarConeGrad" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0%" stop-color="rgba(56, 189, 248, 0.45)"/>
+<stop offset="60%" stop-color="rgba(56, 189, 248, 0.15)"/>
+<stop offset="100%" stop-color="rgba(56, 189, 248, 0.0)"/>
+</linearGradient>
+</defs>
+<polygon points="122,122 142,122 195,200 68,200" fill="url(#radarConeGrad)" class="sat-radar-beam"/>
+<g class="sat-solar-left">
+<rect x="8" y="44" width="82" height="48" rx="3" fill="url(#satSolarGrad)" stroke="#38bdf8" stroke-width="1.4"/>
+<line x1="28" y1="44" x2="28" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+<line x1="48" y1="44" x2="48" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+<line x1="68" y1="44" x2="68" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+<line x1="8" y1="68" x2="90" y2="68" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+<rect x="90" y="65" width="16" height="6" fill="#64748b" rx="1"/>
+</g>
+<g class="sat-bus">
+<rect x="106" y="38" width="52" height="64" rx="5" fill="#1e293b" stroke="#e2e8f0" stroke-width="1.6"/>
+<rect x="110" y="42" width="44" height="56" rx="3" fill="url(#satGoldMli)"/>
+<circle cx="132" cy="106" r="7" fill="#0284c7" stroke="#38bdf8" stroke-width="1.8"/>
+<circle cx="132" cy="106" r="3.5" fill="#030712"/>
+<circle cx="114" cy="46" r="2.8" fill="#10b981" class="sat-telemetry-led"/>
+<path d="M 120 114 L 144 114 L 152 124 L 112 124 Z" fill="#475569" stroke="#94a3b8" stroke-width="1.2"/>
+<circle cx="132" cy="38" r="5" fill="#334155" stroke="#94a3b8" stroke-width="1.2"/>
+</g>
+<g class="sat-solar-right">
+<rect x="158" y="65" width="16" height="6" fill="#64748b" rx="1"/>
+<rect x="174" y="44" width="82" height="48" rx="3" fill="url(#satSolarGrad)" stroke="#38bdf8" stroke-width="1.4"/>
+<line x1="194" y1="44" x2="194" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+<line x1="214" y1="44" x2="214" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+<line x1="234" y1="44" x2="234" y2="92" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+<line x1="174" y1="68" x2="256" y2="68" stroke="#0284c7" stroke-width="1" opacity="0.65"/>
+</g>
+</svg>
+</div>
 <div class="nasa-hero-sweep"></div>
 <div class="nasa-hero-overlay"></div>
 <div class="nasa-hero-inner">
