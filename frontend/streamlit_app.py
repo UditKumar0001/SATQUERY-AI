@@ -207,102 +207,176 @@ st.markdown(f"""
         }}
     }}
 
-    /* Reference Style Top Navbar (Verdika Pattern) */
-    .ref-navbar {{
+    /* Planet.com Reference Top Navbar (Dark Overlay on Hero) */
+    .planet-navbar {{
+        width: 100vw;
+        position: relative;
+        left: 50%;
+        right: 50%;
+        margin-left: -50vw;
+        margin-right: -50vw;
+        background: linear-gradient(to bottom, rgba(3, 7, 18, 0.95) 0%, rgba(3, 7, 18, 0.70) 65%, transparent 100%);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        padding: 22px 0 16px;
+        margin-top: -1rem;
+        margin-bottom: 0;
+        z-index: 50;
+        box-sizing: border-box;
+    }}
+    .planet-navbar-inner {{
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 0 2rem;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        background: var(--nav-bg);
-        border: 1px solid var(--nav-border);
-        border-radius: 8px;
-        padding: 10px 18px;
-        margin-bottom: 24px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+        box-sizing: border-box;
     }}
-    .ref-nav-brand {{
+    .planet-nav-brand {{
         display: flex;
         align-items: center;
         gap: 10px;
+        text-decoration: none;
     }}
-    .ref-nav-logo {{
-        width: 30px;
-        height: 30px;
+    .planet-nav-logo {{
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
         background: var(--accent-primary);
-        border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
         color: #ffffff;
         flex-shrink: 0;
+        box-shadow: 0 0 12px rgba(2, 132, 199, 0.5);
     }}
-    .ref-nav-title {{
+    .planet-nav-title {{
         font-family: 'Inter', -apple-system, sans-serif;
-        font-size: 1.12rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        letter-spacing: -0.01em;
-        white-space: nowrap;
+        font-size: 1.18rem;
+        font-weight: 500;
+        letter-spacing: -0.02em;
+        color: #ffffff;
     }}
-    .ref-nav-pill {{
-        background: var(--status-tag-bg);
-        color: var(--status-tag-text);
-        border: 1px solid var(--status-tag-border);
+    .planet-nav-menu {{
+        display: flex;
+        align-items: center;
+        gap: 32px;
+        margin-left: 28px;
+    }}
+    .planet-nav-item {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
         font-family: 'Inter', sans-serif;
-        font-size: 0.68rem;
-        font-weight: 600;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-        padding: 2px 8px;
-        border-radius: 9999px;
-        margin-left: 6px;
+        font-size: 0.90rem;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        color: #f1f5f9;
+        text-decoration: none;
+        transition: color 0.15s ease, opacity 0.15s ease;
+        opacity: 0.9;
         white-space: nowrap;
     }}
-    .ref-nav-link {{
+    .planet-nav-item:hover {{
+        color: var(--accent-hover);
+        opacity: 1;
+    }}
+    .planet-chevron {{
+        opacity: 0.65;
+        transition: transform 0.15s ease;
+    }}
+    .planet-nav-item:hover .planet-chevron {{
+        transform: translateY(1px);
+        opacity: 1;
+    }}
+    .planet-nav-right {{
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }}
+    .planet-nav-text-link {{
         font-family: 'Inter', sans-serif;
         font-size: 0.88rem;
-        font-weight: 500;
-        color: var(--text-secondary);
+        font-weight: 400;
+        color: #e2e8f0;
         text-decoration: none;
-        padding: 6px 10px;
-        border-radius: 6px;
-        transition: all 0.15s ease;
+        transition: color 0.15s ease;
+        opacity: 0.85;
         white-space: nowrap;
     }}
-    .ref-nav-link:hover {{
-        color: var(--accent-primary);
-        background: var(--bg-panel-sub);
+    .planet-nav-text-link:hover {{
+        color: #ffffff;
+        opacity: 1;
     }}
-
-    /* Navbar Responsive Adaptations */
-    @media (max-width: 768px) {{
-        .ref-nav-pill {{
-            display: none !important;
+    .planet-nav-btn-pill {{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #ffffff !important;
+        text-decoration: none;
+        padding: 8px 20px;
+        border-radius: 9999px;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(8px);
+        transition: all 0.2s ease;
+        white-space: nowrap;
+    }}
+    .planet-nav-btn-pill:hover {{
+        background: #ffffff;
+        color: #0f172a !important;
+        border-color: #ffffff;
+        box-shadow: 0 2px 10px rgba(255, 255, 255, 0.2);
+    }}
+    .planet-nav-circle-btn {{
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.06);
+        color: #e2e8f0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        backdrop-filter: blur(8px);
+        flex-shrink: 0;
+    }}
+    .planet-nav-circle-btn:hover {{
+        background: rgba(255, 255, 255, 0.18);
+        border-color: rgba(255, 255, 255, 0.5);
+        color: #ffffff;
+        transform: scale(1.05);
+    }}
+    @media (max-width: 1024px) {{
+        .planet-nav-menu {{
+            gap: 20px;
+            margin-left: 14px;
         }}
-        .ref-nav-title {{
-            font-size: 1.0rem !important;
-        }}
-        .ref-nav-link {{
-            font-size: 0.80rem !important;
-            padding: 4px 6px !important;
-        }}
-        [data-testid="stHorizontalBlock"]:has(.ref-nav-title) {{
-            flex-direction: row !important;
-            flex-wrap: wrap !important;
-            align-items: center !important;
-            justify-content: space-between !important;
-            gap: 6px !important;
+        .planet-nav-item {{
+            font-size: 0.84rem;
         }}
     }}
-    @media (max-width: 480px) {{
-        .ref-nav-title {{
-            font-size: 0.92rem !important;
+    @media (max-width: 840px) {{
+        .planet-nav-menu {{
+            display: none;
         }}
-        .ref-nav-link {{
-            font-size: 0.72rem !important;
-            padding: 2px 4px !important;
+    }}
+    @media (max-width: 520px) {{
+        .planet-navbar-inner {{
+            padding: 0 1rem;
         }}
-        [data-testid="stHorizontalBlock"]:has(.ref-nav-link) {{
-            gap: 2px !important;
+        .planet-nav-text-link {{
+            display: none;
+        }}
+        .planet-nav-btn-pill {{
+            padding: 6px 14px;
+            font-size: 0.80rem;
         }}
     }}
 
@@ -1216,46 +1290,52 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# --- Top Navigation Bar (Reference Style) ---
-nav_left, nav_right = st.columns([3, 2])
+# --- Top Navigation Bar (Planet.com Reference Style) ---
+navbar_html = f"""<header class="planet-navbar">
+<div class="planet-navbar-inner">
+<div style="display: flex; align-items: center;">
+<a href="#" class="planet-nav-brand">
+<div class="planet-nav-logo">
+<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="12" cy="12" r="9"></circle>
+<path d="m4.93 4.93 4.24 4.24"></path>
+<path d="m14.83 9.17 4.24-4.24"></path>
+<circle cx="12" cy="12" r="3"></circle>
+</svg>
+</div>
+<span class="planet-nav-title">SatQuery</span>
+</a>
+<nav class="planet-nav-menu">
+<a href="#section-ingestion" class="planet-nav-item">Overview <svg class="planet-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+<a href="#section-query" class="planet-nav-item">Models <svg class="planet-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+<a href="#section-ingestion" class="planet-nav-item">Pipeline <svg class="planet-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+<a href="{default_api_url}/docs" target="_blank" class="planet-nav-item">Docs <svg class="planet-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="planet-nav-item">Team <svg class="planet-chevron" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
+</nav>
+</div>
+<div class="planet-nav-right">
+<a href="#section-audit" class="planet-nav-text-link">History</a>
+<a href="#section-ingestion" class="planet-nav-btn-pill">Try Live Demo</a>
+<a href="#section-query" class="planet-nav-circle-btn" title="Search Queries & Directives">
+<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+<circle cx="11" cy="11" r="8"></circle>
+<line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+</svg>
+</a>
+</div>
+</div>
+</header>"""
 
-with nav_left:
-    st.markdown("""
-    <div style="display: flex; align-items: center; gap: 10px; padding: 4px 0;">
-        <div class="ref-nav-logo">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="9"></circle>
-                <path d="m4.93 4.93 4.24 4.24"></path>
-                <path d="m14.83 9.17 4.24-4.24"></path>
-                <path d="m14.83 14.83 4.24 4.24"></path>
-                <path d="m9.17 14.83-4.24 4.24"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-            </svg>
-        </div>
-        <span class="ref-nav-title">SatQuery AI</span>
-        <span class="ref-nav-pill">EARTH OBSERVATION</span>
-    </div>
-    """, unsafe_allow_html=True)
-
-with nav_right:
-    nav_c1, nav_c2, nav_c3, nav_c4 = st.columns([1, 1, 1, 0.8])
-    with nav_c1:
-        st.markdown('<div style="padding-top: 6px; text-align: center;"><a href="#section-ingestion" class="ref-nav-link">Dashboard</a></div>', unsafe_allow_html=True)
-    with nav_c2:
-        st.markdown('<div style="padding-top: 6px; text-align: center;"><a href="#section-audit" class="ref-nav-link">History</a></div>', unsafe_allow_html=True)
-    with nav_c3:
-        st.markdown(f'<div style="padding-top: 6px; text-align: center;"><a href="{default_api_url}/docs" target="_blank" class="ref-nav-link">Docs ↗</a></div>', unsafe_allow_html=True)
-    with nav_c4:
-        theme_icon = "☀️" if is_dark else "🌙"
-        if st.button(theme_icon, key="theme_toggle_btn", help="Switch between Light and Dark mode"):
-            st.session_state.theme = "light" if is_dark else "dark"
-            st.rerun()
-
-st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+st.markdown(navbar_html, unsafe_allow_html=True)
 
 
 # --- Sidebar: System Diagnostics & Health ---
 with st.sidebar:
+    theme_label = "☀️ Switch to Light Mode" if is_dark else "🌙 Switch to Dark Mode"
+    if st.button(theme_label, key="theme_toggle_btn", use_container_width=True):
+        st.session_state.theme = "light" if is_dark else "dark"
+        st.rerun()
+
     st.markdown("""
     <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px; padding: 2px 0;">
         <div class="ref-nav-logo" style="width: 28px; height: 28px;">
