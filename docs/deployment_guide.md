@@ -26,8 +26,8 @@ Hugging Face Spaces provides free hosting using Docker SDK, natively supporting 
 3. **Configure Secrets**:
    - In your HF Space, navigate to **Settings** -> **Variables and Secrets**.
    - Add Secret:
-     - Name: `GEMINI_API_KEY`
-     - Value: `<Your Google AI Studio Gemini API Key>`
+     - Name: `OPENAI_API_KEY`
+     - Value: `<Your OpenAI Platform API Key>`
    - (Optional) Add Secret:
      - Name: `HF_TOKEN`
      - Value: `<Your Hugging Face User Access Token>`
@@ -46,8 +46,8 @@ Render offers free web service instances for containerized services.
 
 1. Connect your GitHub repository `SATQUERY-AI` to [Render](https://dashboard.render.com/).
 2. Create a new **Web Service** -> select **Build and deploy from a Git repository**.
-3. Render will auto-detect [render.yaml](file:///c:/Users/Lenovo/SATQUERY-AI/render.yaml).
-4. Enter the `GEMINI_API_KEY` in the Environment Variables prompt.
+3. Render will auto-detect `render.yaml`.
+4. Enter the `OPENAI_API_KEY` in the Environment Variables prompt.
 5. Click **Create Web Service**.
 
 ---

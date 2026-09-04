@@ -18,6 +18,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir streamlit requests pillow python-dotenv
 
 COPY frontend/ ./frontend/
+COPY .streamlit/ ./.streamlit/
 COPY .env.example .env
 
 EXPOSE 8501

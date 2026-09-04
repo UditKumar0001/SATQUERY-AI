@@ -17,10 +17,16 @@ if "rasterio" not in sys.modules:
         mock_r.open.side_effect = Exception("Rasterio unavailable")
         sys.modules["rasterio"] = mock_r
 
-for mod in ["google", "google.generativeai", "torch", "transformers", "langchain_core", "langgraph"]:
+import types
+
+class MockModule(types.ModuleType):
+    def __getattr__(self, name):
+        return MagicMock()
+
+for mod in ["openai", "google", "google.generativeai", "torch", "transformers", "langchain_core", "langgraph", "langgraph.graph"]:
     if mod not in sys.modules:
         try:
             __import__(mod)
-        except ImportError:
-            mock = MagicMock()
-            sys.modules[mod] = mock
+        except Exception:
+            m = MockModule(mod)
+            sys.modules[mod] = m

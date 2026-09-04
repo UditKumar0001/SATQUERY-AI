@@ -170,6 +170,26 @@ BENCHMARK_SPLITS: Dict[str, List[Dict[str, Any]]] = {
             "ground_truth": "change",
             "expected_task": "change_analysis"
         }
+    ],
+    "OpticalSAR": [
+        {
+            "id": "fusion_001",
+            "task": "optical_sar_fusion",
+            "mode": "fusion",
+            "query": "Jointly analyze the optical and SAR imagery to identify built structures and vegetation.",
+            "images": ["data/raw/fusion/sample_optical.png", "data/raw/fusion/sample_sar.png"],
+            "ground_truth": "optical and sar fusion confirms structural geometries and vegetative canopy",
+            "expected_task": "optical_sar_fusion"
+        },
+        {
+            "id": "fusion_002",
+            "task": "optical_sar_fusion",
+            "mode": "fusion",
+            "query": "Assess radar backscatter penetration over the cloudy optical regions.",
+            "images": ["data/raw/fusion/sample_optical.png", "data/raw/fusion/sample_sar.png"],
+            "ground_truth": "sar backscatter provides structural verification",
+            "expected_task": "optical_sar_fusion"
+        }
     ]
 }
 
@@ -178,7 +198,8 @@ def ensure_benchmark_assets():
     """Ensure benchmark images exist locally or generate sample evaluation tiles."""
     from data.download_subsets import (
         create_vrsbench_optical_image,
-        create_sample_optical_image
+        create_sample_optical_image,
+        create_sample_sar_image
     )
     # VRSBench
     vrs_path = "data/raw/vrsbench/sample_001.png"
@@ -202,6 +223,16 @@ def ensure_benchmark_assets():
         os.makedirs(os.path.dirname(cd_after), exist_ok=True)
         create_sample_optical_image(cd_after, add_changes=True)
 
+    # OpticalSAR
+    fusion_opt = "data/raw/fusion/sample_optical.png"
+    fusion_sar = "data/raw/fusion/sample_sar.png"
+    if not os.path.exists(fusion_opt):
+        os.makedirs(os.path.dirname(fusion_opt), exist_ok=True)
+        create_sample_optical_image(fusion_opt)
+    if not os.path.exists(fusion_sar):
+        os.makedirs(os.path.dirname(fusion_sar), exist_ok=True)
+        create_sample_sar_image(fusion_sar)
+
 
 def compute_metrics(predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Compute task routing accuracy, semantic overlap F1, and mean latency."""
@@ -223,7 +254,7 @@ def compute_metrics(predictions: List[Dict[str, Any]]) -> Dict[str, Any]:
         intersection = pred_words.intersection(gt_words)
         if not intersection:
             # Fallback substring check
-            f1_scores.append(1.0 if p["ground_truth"].lower() in p["predicted_answer"].lower() else 0.5)
+            f1_scores.append(1.0 if p["ground_truth"].lower() in p["predicted_answer"].lower() else 0.0)
             continue
         prec = len(intersection) / len(pred_words)
         rec = len(intersection) / len(gt_words)

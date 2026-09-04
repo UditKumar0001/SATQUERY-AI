@@ -4,8 +4,8 @@ from tests.benchmark import BENCHMARK_SPLITS, compute_metrics
 
 
 def test_benchmark_splits_structure():
-    """Verify all benchmark splits (VRSBench, RSVQA, CDVQA) are defined with necessary fields."""
-    expected = {"VRSBench", "RSVQA", "CDVQA"}
+    """Verify all benchmark splits (VRSBench, RSVQA, CDVQA, OpticalSAR) are defined with necessary fields."""
+    expected = {"VRSBench", "RSVQA", "CDVQA", "OpticalSAR"}
     assert expected.issubset(set(BENCHMARK_SPLITS.keys()))
 
     for split_name, samples in BENCHMARK_SPLITS.items():

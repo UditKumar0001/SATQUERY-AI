@@ -10,11 +10,11 @@ services:
     envVars:
       - key: MODEL_DEVICE
         value: cpu
-      - key: GEMINI_ROUTER_MODEL
-        value: gemini-3.6-flash
+      - key: OPENAI_ROUTER_MODEL
+        value: gpt-4o-mini
       - key: DATABASE_URL
         value: sqlite:///./satquery.db
-      - key: GEMINI_API_KEY
+      - key: OPENAI_API_KEY
         sync: false
       - key: HF_TOKEN
         sync: false

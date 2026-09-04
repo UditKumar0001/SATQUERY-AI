@@ -3,31 +3,26 @@ import json
 import os
 import re
 from dotenv import load_dotenv
-import google.generativeai as genai
+from openai import OpenAI
 from .graph_state import AgentState
 
 load_dotenv()
 
-# Configure Google Generative AI
-_api_key = os.getenv("GEMINI_API_KEY")
-if _api_key and not _api_key.startswith("your-key"):
-    genai.configure(api_key=_api_key)
-
-_ROUTER_MODEL_NAME = os.getenv("GEMINI_ROUTER_MODEL", "gemini-3.6-flash")
-_router = None
+_ROUTER_MODEL_NAME = os.getenv("OPENAI_ROUTER_MODEL", "gpt-4o-mini")
+_client = None
 
 
-def _get_router_model():
-    global _router
-    if _router is None:
-        try:
-            _router = genai.GenerativeModel(_ROUTER_MODEL_NAME)
-        except Exception:
+def _get_openai_client():
+    global _client
+    if _client is None:
+        api_key = os.getenv("OPENAI_API_KEY")
+        if api_key and not api_key.startswith("your-"):
             try:
-                _router = genai.GenerativeModel("gemini-1.5-flash")
-            except Exception:
-                _router = None
-    return _router
+                _client = OpenAI(api_key=api_key)
+            except Exception as e:
+                print(f"[ClassifyNode] Failed to initialize OpenAI client: {e}")
+                _client = None
+    return _client
 
 
 ROUTER_SYSTEM_PROMPT = """You are a task router for a remote-sensing analysis system with exactly three tools:
@@ -48,20 +43,29 @@ def _clean_json_string(text: str) -> str:
 
 
 def classify_node(state: AgentState) -> AgentState:
-    """Classify the incoming query and image metadata using Gemini router LLM."""
+    """Classify the incoming query and image metadata using OpenAI GPT router LLM."""
     summary = {
         "num_images": len(state.get("images_meta", [])),
         "modalities": [m.get("modality", "unknown") for m in state.get("images_meta", [])]
     }
-    prompt = f"{ROUTER_SYSTEM_PROMPT}\n\nQuery: {state.get('query', '')}\nMetadata: {json.dumps(summary)}"
+    user_content = f"Query: {state.get('query', '')}\nMetadata: {json.dumps(summary)}"
 
     routed = None
-    router_model = _get_router_model()
+    client = _get_openai_client()
 
-    if router_model:
+    if client:
         try:
-            response = router_model.generate_content(prompt)
-            clean_text = _clean_json_string(response.text)
+            response = client.chat.completions.create(
+                model=_ROUTER_MODEL_NAME,
+                messages=[
+                    {"role": "system", "content": ROUTER_SYSTEM_PROMPT},
+                    {"role": "user", "content": user_content},
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.1,
+            )
+            raw_text = response.choices[0].message.content or "{}"
+            clean_text = _clean_json_string(raw_text)
             routed = json.loads(clean_text)
         except Exception as e:
             print(f"[ClassifyNode] Router API error or parse failure: {e}")

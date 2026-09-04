@@ -26,10 +26,36 @@ class Query(Base):
     router_confidence = Column(Float, nullable=True)
     output_confidence = Column(Float, nullable=True)
     validation_msg = Column(String, nullable=True)
+    visual_output_path = Column(String, nullable=True)
+    visual_output_url = Column(String, nullable=True)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     images = relationship("UploadedImage", back_populates="query", cascade="all, delete-orphan")
     trace = relationship("ExecutionTrace", back_populates="query", uselist=False, cascade="all, delete-orphan")
+
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(String, unique=True, index=True, nullable=False)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    messages = relationship("ChatMessage", back_populates="conversation", cascade="all, delete-orphan")
+
+
+class ChatMessage(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(Integer, primary_key=True, index=True)
+    conversation_id = Column(Integer, ForeignKey("conversations.id"), nullable=False)
+    role = Column(String, nullable=False)  # 'user', 'assistant', 'system'
+    content = Column(Text, nullable=False)
+    query_id = Column(Integer, ForeignKey("queries.id"), nullable=True)
+    created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
+
+    conversation = relationship("Conversation", back_populates="messages")
+    query = relationship("Query")
 
 
 class UploadedImage(Base):
@@ -58,6 +84,13 @@ class ExecutionTrace(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+
+
+# Auto-initialize SQLite database tables on module load
+try:
+    init_db()
+except Exception:
+    pass
 
 
 def get_db():

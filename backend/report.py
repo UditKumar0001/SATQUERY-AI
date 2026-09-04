@@ -1,4 +1,5 @@
 # backend/report.py
+import html
 import json
 import os
 from datetime import datetime, timezone
@@ -6,6 +7,13 @@ from reportlab.lib.pagesizes import letter
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+
+
+def _escape_xml(val: any) -> str:
+    """Escape XML special characters (&, <, >) to ensure ReportLab Paragraph renders safely."""
+    if val is None:
+        return ""
+    return html.escape(str(val))
 
 
 def generate_pdf_report(query_id: int, query_data: dict, out_path: str) -> str:
@@ -72,12 +80,12 @@ def generate_pdf_report(query_id: int, query_data: dict, out_path: str) -> str:
     created_at = query_data.get("created_at") or datetime.now(timezone.utc).isoformat()
 
     summary_table_data = [
-        [Paragraph("<b>Selected Task</b>", body_style), Paragraph(str(query_data.get("selected_task")), body_style),
-         Paragraph("<b>Model Dispatched</b>", body_style), Paragraph(str(query_data.get("model_used")), body_style)],
+        [Paragraph("<b>Selected Task</b>", body_style), Paragraph(_escape_xml(query_data.get("selected_task")), body_style),
+         Paragraph("<b>Model Dispatched</b>", body_style), Paragraph(_escape_xml(query_data.get("model_used")), body_style)],
         [Paragraph("<b>Router Confidence</b>", body_style), Paragraph(f"{float(query_data.get('router_confidence') or 0.0):.2%}", body_style),
          Paragraph("<b>Output Confidence</b>", body_style), Paragraph(f"{float(query_data.get('output_confidence') or 0.0):.2%}", body_style)],
-        [Paragraph("<b>Validation Status</b>", body_style), Paragraph(str(query_data.get("validation_msg")), body_style),
-         Paragraph("<b>Execution Time</b>", body_style), Paragraph(str(created_at[:19]).replace("T", " "), body_style)],
+        [Paragraph("<b>Validation Status</b>", body_style), Paragraph(_escape_xml(query_data.get("validation_msg")), body_style),
+         Paragraph("<b>Execution Time</b>", body_style), Paragraph(_escape_xml(str(created_at[:19]).replace("T", " ")), body_style)],
     ]
     t = Table(summary_table_data, colWidths=[120, 150, 120, 150])
     t.setStyle(TableStyle([
@@ -91,14 +99,15 @@ def generate_pdf_report(query_id: int, query_data: dict, out_path: str) -> str:
 
     # 3. User Query Prompt
     story.append(Paragraph("User Prompt / Instruction", section_heading))
-    story.append(Paragraph(query_data.get("query_text", "N/A"), body_style))
+    story.append(Paragraph(_escape_xml(query_data.get("query_text", "N/A")), body_style))
     story.append(Spacer(1, 10))
 
     # 4. Inferred Results & Output
     story.append(Paragraph("Model Inference Output", section_heading))
     result = query_data.get("result") or {}
     result_text = result.get("text") or trace.get("output_summary") or "No textual result recorded."
-    story.append(Paragraph(result_text.replace("\n", "<br/>"), body_style))
+    escaped_result = _escape_xml(result_text).replace("\n", "<br/>")
+    story.append(Paragraph(escaped_result, body_style))
     story.append(Spacer(1, 10))
 
     # 5. Input Imagery Manifest Table
@@ -110,10 +119,10 @@ def generate_pdf_report(query_id: int, query_data: dict, out_path: str) -> str:
             fp = os.path.basename(img.get("filepath", "")) or img.get("filepath", "")
             img_table_data.append([
                 str(idx),
-                str(fp),
-                str(img.get("modality", "")),
-                str(img.get("format", "")),
-                str(img.get("timestamp_tag") or "N/A")
+                _escape_xml(fp),
+                _escape_xml(img.get("modality", "")),
+                _escape_xml(img.get("format", "")),
+                _escape_xml(img.get("timestamp_tag") or "N/A")
             ])
         img_table = Table(img_table_data, colWidths=[24, 230, 90, 80, 116])
         img_table.setStyle(TableStyle([
@@ -134,7 +143,8 @@ def generate_pdf_report(query_id: int, query_data: dict, out_path: str) -> str:
     # 6. Raw Execution Trace Snapshot
     story.append(Paragraph("Auditable Execution Trace (JSON Snapshot)", section_heading))
     trace_json_str = json.dumps(trace, indent=2)
-    story.append(Paragraph(f"<font name='Courier'>{trace_json_str.replace(' ', '&nbsp;').replace(chr(10), '<br/>')}</font>", code_style))
+    safe_trace = _escape_xml(trace_json_str).replace(" ", "&nbsp;").replace("\n", "<br/>")
+    story.append(Paragraph(f"<font name='Courier'>{safe_trace}</font>", code_style))
 
     doc.build(story)
     return out_path

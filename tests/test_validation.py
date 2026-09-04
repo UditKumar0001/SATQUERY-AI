@@ -71,3 +71,33 @@ def test_missing_task_rejected():
     }
     state = validate_node(state)
     assert state["validation_ok"] is False
+
+
+def test_classify_node_fallback_routing():
+    """Verify classify_node routes correctly via fallback when LLM is unavailable."""
+    from orchestrator.nodes import classify_node
+
+    # Single image caption
+    state = {
+        "query": "Describe the terrain and land cover",
+        "images_meta": [{"modality": "optical"}]
+    }
+    res = classify_node(state)
+    assert res["task"] == "vqa_caption_ground"
+    assert res["mode"] == "caption"
+
+    # Dual image optical + SAR fusion
+    state_fusion = {
+        "query": "Perform joint multi-sensor fusion",
+        "images_meta": [{"modality": "optical"}, {"modality": "SAR"}]
+    }
+    res_fusion = classify_node(state_fusion)
+    assert res_fusion["task"] == "optical_sar_fusion"
+
+    # Dual image bi-temporal change
+    state_change = {
+        "query": "Detect changes between before and after images",
+        "images_meta": [{"modality": "optical"}, {"modality": "optical"}]
+    }
+    res_change = classify_node(state_change)
+    assert res_change["task"] == "change_analysis"
