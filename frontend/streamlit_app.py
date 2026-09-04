@@ -1,8 +1,11 @@
 # frontend/streamlit_app.py
 import base64
+from datetime import datetime
+import html
 import io
 import os
 from pathlib import Path
+import uuid
 import requests
 import streamlit as st
 from dotenv import load_dotenv
@@ -32,6 +35,24 @@ if "theme" not in st.session_state:
 
 if "query_input_val" not in st.session_state:
     st.session_state.query_input_val = ""
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+if "attached_images" not in st.session_state:
+    st.session_state.attached_images = []
+
+if "chat_query_input" not in st.session_state:
+    st.session_state.chat_query_input = ""
+
+if "chat_input_key" not in st.session_state:
+    st.session_state.chat_input_key = 0
+
+if "show_attach_popover" not in st.session_state:
+    st.session_state.show_attach_popover = False
+
+if "chat_opened" not in st.session_state:
+    st.session_state.chat_opened = False
 
 is_dark = (st.session_state.theme == "dark")
 
@@ -87,11 +108,55 @@ def get_card_images_b64() -> dict:
             res[key] = ""
     return res
 
+def make_thumbnail_b64(name: str, raw_bytes: bytes) -> str:
+    try:
+        im = Image.open(io.BytesIO(raw_bytes))
+        im.thumbnail((80, 80))
+        if im.mode not in ("RGB", "L"):
+            im = im.convert("RGB")
+        buf = io.BytesIO()
+        im.save(buf, format="JPEG", quality=85)
+        return f"data:image/jpeg;base64,{base64.b64encode(buf.getvalue()).decode('utf-8')}"
+    except Exception:
+        return ""
+
 card_imgs = get_card_images_b64()
 img_opt_url = card_imgs.get("optical", "")
 img_chg_url = card_imgs.get("change", "")
 img_sar_url = card_imgs.get("sar", "")
 img_lor_url = card_imgs.get("lora", "")
+
+@st.cache_data
+def get_pipeline_thumb_images_b64() -> dict:
+    assets_dir = Path(__file__).parent / "assets"
+    thumb_map = {
+        "tile": "thumb_stage1_tile.jpg",
+        "geochat": "thumb_stage3_geochat.jpg",
+        "geollava": "thumb_stage3_geollava.jpg",
+        "earthgpt": "thumb_stage3_earthgpt.jpg",
+        "pdf": "thumb_stage4_pdf.png",
+    }
+    res = {}
+    for key, filename in thumb_map.items():
+        fp = assets_dir / filename
+        if fp.exists():
+            try:
+                mime = "image/png" if filename.endswith(".png") else "image/jpeg"
+                with open(fp, "rb") as f:
+                    b64 = base64.b64encode(f.read()).decode("utf-8")
+                    res[key] = f"data:{mime};base64,{b64}"
+            except Exception:
+                res[key] = ""
+        else:
+            res[key] = ""
+    return res
+
+pipe_thumbs = get_pipeline_thumb_images_b64()
+thumb_tile = pipe_thumbs.get("tile", "")
+thumb_geochat = pipe_thumbs.get("geochat", "")
+thumb_geollava = pipe_thumbs.get("geollava", "")
+thumb_earthgpt = pipe_thumbs.get("earthgpt", "")
+thumb_pdf = pipe_thumbs.get("pdf", "")
 
 # --- Mission Control Theme Variables (ISRO / Ground Station Spec) ---
 theme_vars = {
@@ -414,51 +479,21 @@ st.markdown(f"""
         display: inline-block;
         text-decoration: none !important;
     }}
-    .planet-nav-menu {{
+    .planet-nav-right {{
         display: flex !important;
         align-items: center !important;
-        gap: 40px !important;
-        margin-left: 44px !important;
-    }}
-    .planet-nav-item {{
-        display: inline-flex !important;
-        align-items: center !important;
-        gap: 6px !important;
-        font-family: 'Inter', -apple-system, sans-serif !important;
-        font-size: 0.88rem !important;
-        font-weight: 400 !important;
-        letter-spacing: 0.015em !important;
-        color: rgba(255, 255, 255, 0.88) !important;
-        text-decoration: none !important;
-        transition: color 0.15s ease, opacity 0.15s ease !important;
-        white-space: nowrap !important;
-        padding: 4px 0 !important;
-    }}
-    .planet-nav-item:hover {{
-        color: #ffffff !important;
-    }}
-    .planet-chevron {{
-        opacity: 0.65;
-        transition: transform 0.15s ease;
-    }}
-    .planet-nav-item:hover .planet-chevron {{
-        transform: translateY(1px);
-        opacity: 1;
-    }}
-    .planet-nav-right {{
-        display: flex;
-        align-items: center;
-        gap: 20px;
+        gap: 22px !important;
     }}
     .planet-nav-text-link {{
         font-family: 'Inter', -apple-system, sans-serif;
-        font-size: 0.86rem;
-        font-weight: 400;
-        color: rgba(255, 255, 255, 0.85);
-        text-decoration: none;
+        font-size: 0.88rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.80);
+        text-decoration: none !important;
         transition: color 0.15s ease;
         white-space: nowrap;
         letter-spacing: 0.01em;
+        padding: 4px 6px;
     }}
     .planet-nav-text-link:hover {{
         color: #ffffff;
@@ -471,14 +506,13 @@ st.markdown(f"""
         justify-content: center !important;
         font-family: 'Inter', -apple-system, sans-serif !important;
         font-size: 0.84rem !important;
-        font-weight: 400 !important;
+        font-weight: 500 !important;
         color: #ffffff !important;
         text-decoration: none !important;
-        padding: 7px 20px !important;
+        padding: 7px 18px !important;
         border-radius: 9999px !important;
-        border: 1px solid rgba(255, 255, 255, 0.50) !important;
-        background: transparent !important;
-        background-color: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.45) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
         transition: all 0.2s ease !important;
         white-space: nowrap !important;
         letter-spacing: 0.01em !important;
@@ -491,48 +525,34 @@ st.markdown(f"""
         background-color: rgba(255, 255, 255, 0.14) !important;
         border-color: rgba(255, 255, 255, 0.90) !important;
         color: #ffffff !important;
-        box-shadow: none !important;
+        box-shadow: 0 0 14px rgba(255, 255, 255, 0.10) !important;
     }}
     .planet-nav-circle-btn {{
         width: 32px;
         height: 32px;
         border-radius: 50%;
-        border: 1px solid rgba(255, 255, 255, 0.35);
-        background: transparent;
+        border: 1px solid rgba(255, 255, 255, 0.30);
+        background: rgba(255, 255, 255, 0.04);
         color: rgba(255, 255, 255, 0.85);
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        text-decoration: none;
+        text-decoration: none !important;
         transition: all 0.2s ease;
         flex-shrink: 0;
         box-shadow: none;
     }}
     .planet-nav-circle-btn:hover {{
-        background: rgba(255, 255, 255, 0.10);
-        border-color: rgba(255, 255, 255, 0.80);
-        color: #ffffff;
-    }}
-    @media (max-width: 1080px) {{
-        .planet-nav-menu {{
-            gap: 24px !important;
-            margin-left: 24px !important;
-        }}
-        .planet-nav-item {{
-            font-size: 0.84rem !important;
-        }}
-    }}
-    @media (max-width: 860px) {{
-        .planet-nav-menu {{
-            display: none !important;
-        }}
+        background: rgba(56, 189, 248, 0.12);
+        border-color: rgba(56, 189, 248, 0.65);
+        color: #38BDF8;
     }}
     @media (max-width: 520px) {{
         .planet-navbar-inner {{
-            padding: 0 1rem;
+            padding: 0 1rem !important;
         }}
         .planet-nav-text-link {{
-            display: none;
+            display: none !important;
         }}
         .planet-nav-btn-pill {{
             padding: 6px 14px !important;
@@ -946,61 +966,205 @@ st.markdown(f"""
         }}
     }}
 
-    /* Reference Style Stats Grid (4 Cards - Responsive) */
-    .ref-stats-grid {{
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-top: 36px;
-        margin-bottom: 32px;
-        scroll-margin-top: 88px !important;
+    /* =====================================================================
+       CLEAN 2-SECTION PIPELINE ARCHITECTURE (REFERENCE LAYOUT STYLE)
+       Section A: 4-Stage Cards Grid (Calm, Minimal, Paragraph Text)
+       Section B: Numbered Flow Row (Flat Circles, Thin Connectors)
+       ===================================================================== */
+    .pipeline-section-clean {{
+        width: 100%;
+        margin-top: 20px;
+        margin-bottom: 36px;
     }}
-    @media (max-width: 960px) {{
-        .ref-stats-grid {{
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-            margin-top: 28px;
-        }}
+
+    /* Section Headers */
+    .pipeline-section-header {{
+        margin-bottom: 24px;
     }}
-    @media (max-width: 520px) {{
-        .ref-stats-grid {{
-            grid-template-columns: 1fr;
-            gap: 12px;
-            margin-top: 24px;
-        }}
+    .pipeline-section-header.flow-header {{
+        margin-top: 52px;
+        margin-bottom: 24px;
     }}
-    .ref-stat-card {{
-        background: rgba(11, 17, 30, 0.70);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 12px;
-        padding: 22px 20px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
-    }}
-    .ref-stat-label {{
-        font-family: 'Inter', sans-serif;
+    .pipeline-section-kicker {{
+        font-family: 'JetBrains Mono', monospace;
         font-size: 0.72rem;
         font-weight: 700;
-        letter-spacing: 0.08em;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: var(--text-muted);
-        margin-bottom: 8px;
-    }}
-    .ref-stat-val {{
-        font-family: 'Space Grotesk', sans-serif;
-        font-size: clamp(1.65rem, 4vw, 2.1rem);
-        font-weight: 700;
-        line-height: 1.1;
+        color: #F59E0B;
         margin-bottom: 6px;
     }}
-    .val-green {{ color: #10b981; }}
-    .val-blue {{ color: #60A5FA; }}
-    .val-purple {{ color: #8b5cf6; }}
-    .val-orange {{ color: #f59e0b; }}
-    .ref-stat-sub {{
-        font-family: 'Inter', sans-serif;
-        font-size: 0.78rem;
-        color: var(--text-secondary);
-        line-height: 1.4;
+    .pipeline-section-heading {{
+        font-family: 'Space Grotesk', -apple-system, sans-serif;
+        font-size: 1.50rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        letter-spacing: -0.02em;
+        margin-top: 0;
+        margin-bottom: 8px;
+        line-height: 1.25;
+    }}
+    .pipeline-section-subheading {{
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.88rem;
+        color: #94A3B8;
+        line-height: 1.55;
+        max-width: 780px;
+        margin: 0;
+    }}
+
+    /* Section A: 4 Stage Cards Grid */
+    .stage-cards-grid {{
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 18px;
+        width: 100%;
+    }}
+    .stage-clean-card {{
+        background: rgba(15, 23, 42, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 10px;
+        padding: 24px 20px 22px;
+        display: flex;
+        flex-direction: column;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }}
+    .stage-clean-card:hover {{
+        border-color: rgba(245, 158, 11, 0.35);
+        background: rgba(15, 23, 42, 0.75);
+    }}
+    .stage-card-icon {{
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: rgba(245, 158, 11, 0.10);
+        border: 1px solid rgba(245, 158, 11, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 16px;
+    }}
+    .stage-card-title {{
+        font-family: 'Space Grotesk', -apple-system, sans-serif;
+        font-size: 1.08rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        letter-spacing: -0.015em;
+        margin-bottom: 3px;
+        line-height: 1.3;
+    }}
+    .stage-card-label {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.63rem;
+        font-weight: 600;
+        color: #94A3B8;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        margin-bottom: 14px;
+    }}
+    .stage-card-body {{
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.81rem;
+        color: #94A3B8;
+        line-height: 1.6;
+        margin: 0;
+    }}
+
+    /* Section B: Horizontal Numbered Flow Row */
+    .flow-row-container {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: rgba(15, 23, 42, 0.50);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 10px;
+        padding: 22px 26px;
+        width: 100%;
+        box-sizing: border-box;
+    }}
+    .flow-step-item {{
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        flex: 1;
+        min-width: 0;
+    }}
+    .flow-step-circle {{
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(245, 158, 11, 0.14);
+        border: 1.5px solid #F59E0B;
+        color: #FBBF24;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 700;
+        font-size: 0.90rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }}
+    .flow-step-content {{
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }}
+    .flow-step-title {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.90rem;
+        font-weight: 700;
+        color: #F8FAFC;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }}
+    .flow-step-subtitle {{
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.73rem;
+        color: #94A3B8;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }}
+    .flow-step-connector {{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
+        flex-shrink: 0;
+        gap: 2px;
+    }}
+    .flow-connector-line {{
+        width: 36px;
+        height: 1px;
+        background: rgba(255, 255, 255, 0.15);
+    }}
+    .flow-connector-arrow {{
+        color: #64748B;
+        flex-shrink: 0;
+    }}
+
+    /* Responsive Stacking */
+    @media (max-width: 1024px) {{
+        .stage-cards-grid {{
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }}
+        .flow-row-container {{
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 20px;
+        }}
+        .flow-step-connector {{
+            display: none;
+        }}
+    }}
+    @media (max-width: 640px) {{
+        .stage-cards-grid {{
+            grid-template-columns: 1fr;
+        }}
     }}
 
     /* Full Bleed Tech Ticker Strip (Aerospace Telemetry Palette: Dark Navy + Muted Steel-Blue Accent) */
@@ -1594,6 +1758,326 @@ st.markdown(f"""
         color: var(--text-primary);
     }}
 
+    /* Mission Chat Console & Conversation Stream (Aerospace Dark Navy Spec) */
+    .chat-console-header {{
+        margin-top: 24px;
+        margin-bottom: 20px;
+    }}
+    /* State 1: Minimal Call-to-Action Card */
+    .chat-cta-card {{
+        background: linear-gradient(135deg, rgba(12, 18, 28, 0.85) 0%, rgba(8, 12, 19, 0.95) 100%);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 12px;
+        padding: 38px 28px;
+        text-align: center;
+        margin: 14px 0 24px 0;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+    }}
+    .chat-cta-title {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.45rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        letter-spacing: -0.02em;
+        margin-bottom: 8px;
+    }}
+    .chat-cta-desc {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+        max-width: 580px;
+        margin: 0 auto 22px auto;
+        line-height: 1.55;
+    }}
+    .chat-conversation-stream {{
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+        margin-bottom: 28px;
+        min-height: 200px;
+    }}
+    /* Minimalist, Borderless Empty State with Breathing Room */
+    .chat-empty-state {{
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 36px 20px 8px 20px !important;
+        text-align: center !important;
+        margin: 0 auto !important;
+        max-width: 620px !important;
+    }}
+    .chat-empty-icon {{
+        color: #7E99B8 !important;
+        display: flex !important;
+        justify-content: center !important;
+        margin-bottom: 18px !important;
+        opacity: 0.90 !important;
+    }}
+    .chat-empty-title {{
+        font-family: 'Space Grotesk', -apple-system, sans-serif !important;
+        font-size: 1.45rem !important;
+        font-weight: 600 !important;
+        color: #F8FAFC !important;
+        letter-spacing: -0.015em !important;
+        margin-bottom: 10px !important;
+    }}
+    .chat-empty-subtitle {{
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.90rem !important;
+        font-weight: 400 !important;
+        color: #7E99B8 !important;
+        max-width: 520px !important;
+        margin: 0 auto !important;
+        line-height: 1.6 !important;
+    }}
+    .chat-row {{
+        display: flex;
+        width: 100%;
+        margin-bottom: 4px;
+    }}
+    .user-row {{
+        justify-content: flex-end;
+    }}
+    .ai-row {{
+        justify-content: flex-start;
+    }}
+    .chat-bubble {{
+        max-width: 84%;
+        border-radius: 12px;
+        padding: 16px 20px;
+        box-sizing: border-box;
+        transition: border-color 0.2s ease;
+    }}
+    @media (max-width: 768px) {{
+        .chat-bubble {{
+            max-width: 96%;
+        }}
+    }}
+    .user-bubble {{
+        background: linear-gradient(135deg, rgba(20, 30, 48, 0.95) 0%, rgba(12, 18, 28, 0.95) 100%);
+        border: 1px solid rgba(126, 153, 184, 0.35);
+        color: #F8FAFC;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }}
+    .ai-bubble {{
+        background: rgba(12, 17, 24, 0.90);
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-left: 3px solid #1D6FD8;
+        color: var(--text-primary);
+        width: 100%;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.30);
+    }}
+    .ai-bubble-rejection {{
+        border-left: 3px solid #EF4444 !important;
+        background: rgba(239, 68, 68, 0.08) !important;
+    }}
+    .rejection-badge-row {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }}
+    .ai-rejection-msg {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.92rem;
+        color: #EF4444;
+        line-height: 1.5;
+    }}
+    .chat-bubble-text {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.96rem;
+        line-height: 1.55;
+        word-break: break-word;
+    }}
+    .chat-bubble-meta {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.70rem;
+        color: var(--text-muted);
+        margin-top: 8px;
+        text-align: right;
+    }}
+    .msg-imgs-wrap {{
+        display: flex;
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+    }}
+    .msg-img-chip {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.74rem;
+        color: #CBD5E1;
+    }}
+    .msg-img-thumb {{
+        width: 26px;
+        height: 26px;
+        border-radius: 4px;
+        object-fit: cover;
+    }}
+    .ai-bubble-header {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 12px;
+        margin-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        flex-wrap: wrap;
+        gap: 8px;
+    }}
+    .chat-conf-pill {{
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        color: #7E99B8;
+        background: rgba(126, 153, 184, 0.10);
+        padding: 2px 8px;
+        border-radius: 4px;
+    }}
+    .chat-record-pill {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.74rem;
+        color: var(--text-muted);
+    }}
+    .ai-bubble-answer {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: var(--text-primary);
+        white-space: pre-wrap;
+    }}
+
+    /* Compact Pill-Shaped Preset Suggestion Tabs */
+    div[class*="st-key-preset_pill_"] > button,
+    div[data-testid="stButton"] > button[key^="preset_pill_"],
+    button[data-testid*="preset_pill_"] {{
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 9999px !important;
+        color: #94A3B8 !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.80rem !important;
+        font-weight: 500 !important;
+        padding: 5px 16px !important;
+        height: 34px !important;
+        min-height: 34px !important;
+        width: 100% !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        transition: all 0.2s ease !important;
+        box-shadow: none !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+    }}
+    div[class*="st-key-preset_pill_"] > button:hover,
+    div[data-testid="stButton"] > button[key^="preset_pill_"]:hover,
+    button[data-testid*="preset_pill_"]:hover {{
+        background: rgba(56, 189, 248, 0.08) !important;
+        border-color: rgba(56, 189, 248, 0.45) !important;
+        color: #38BDF8 !important;
+        transform: translateY(-1px) !important;
+    }}
+
+    /* Modern Centered Pill-Shaped Input Capsule (Claude / ChatGPT / z.ai style) */
+    [data-testid="stChatInput"] {{
+        max-width: 820px !important;
+        margin: 0 auto !important;
+        border-radius: 26px !important;
+        background: rgba(12, 18, 28, 0.90) !important;
+        border: 1px solid rgba(56, 189, 248, 0.28) !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45) !important;
+        transition: all 0.25s ease !important;
+        padding: 6px 12px !important;
+    }}
+    [data-testid="stChatInput"]:focus-within {{
+        border-color: rgba(56, 189, 248, 0.65) !important;
+        box-shadow: 0 0 20px rgba(56, 189, 248, 0.20), 0 6px 30px rgba(0, 0, 0, 0.55) !important;
+        background: rgba(15, 23, 38, 0.98) !important;
+    }}
+    [data-testid="stChatInput"] textarea {{
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.94rem !important;
+        color: #F8FAFC !important;
+        background: transparent !important;
+        line-height: 1.5 !important;
+        padding: 8px 6px !important;
+    }}
+    [data-testid="stChatInput"] textarea::placeholder {{
+        color: #64748B !important;
+        font-size: 0.92rem !important;
+    }}
+    /* Seamless Borderless Paperclip & Send Buttons inside stChatInput */
+    [data-testid="stChatInput"] button {{
+        border: none !important;
+        background: transparent !important;
+        box-shadow: none !important;
+        color: #94A3B8 !important;
+        transition: color 0.15s ease, transform 0.15s ease !important;
+        border-radius: 50% !important;
+    }}
+    [data-testid="stChatInput"] button:hover {{
+        color: #38BDF8 !important;
+        background: rgba(56, 189, 248, 0.10) !important;
+        transform: scale(1.08) !important;
+    }}
+    button[kind="primaryFormSubmit"],
+    button[data-testid="stBaseButton-primaryFormSubmit"] {{
+        background: var(--btn-primary-bg) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.20) !important;
+        border-radius: 8px !important;
+        height: 44px !important;
+        font-size: 1.35rem !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 2px 10px rgba(29, 111, 216, 0.35) !important;
+        line-height: 1 !important;
+    }}
+    button[kind="primaryFormSubmit"]:hover,
+    button[data-testid="stBaseButton-primaryFormSubmit"]:hover {{
+        background: var(--btn-primary-hover) !important;
+        box-shadow: 0 4px 16px rgba(29, 111, 216, 0.50) !important;
+        transform: translateY(-1px) !important;
+    }}
+    button[kind="primaryFormSubmit"]:disabled,
+    button[data-testid="stBaseButton-primaryFormSubmit"]:disabled {{
+        opacity: 0.40 !important;
+        cursor: not-allowed !important;
+        box-shadow: none !important;
+        transform: none !important;
+    }}
+    /* Preset Chips Buttons */
+    [data-testid="stHorizontalBlock"]:has(button[key^="preset_"]) button {{
+        background: rgba(15, 23, 42, 0.70) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        color: #94A3B8 !important;
+        border-radius: 9999px !important;
+        padding: 5px 16px !important;
+        font-family: 'Inter', sans-serif !important;
+        font-size: 0.80rem !important;
+        font-weight: 500 !important;
+        transition: all 0.15s ease !important;
+        white-space: nowrap !important;
+    }}
+    [data-testid="stHorizontalBlock"]:has(button[key^="preset_"]) button:hover {{
+        border-color: rgba(56, 189, 248, 0.50) !important;
+        color: #F8FAFC !important;
+        background: rgba(30, 41, 59, 0.85) !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+    }}
+
     /* Clean Sidebar Styling */
     .ref-sidebar-kicker {{
         font-family: 'Inter', sans-serif;
@@ -1920,6 +2404,17 @@ st.markdown(f"""
             gap: 20px !important;
         }}
     }}
+    /* Footer Links & Interactive Elements Reset against Streamlit defaults */
+    .ref-footer-wrap a,
+    .ref-footer-wrap a:link,
+    .ref-footer-wrap a:visited,
+    .stMarkdown .ref-footer-wrap a,
+    div.stMarkdown .ref-footer-wrap a,
+    [data-testid="stMarkdownContainer"] .ref-footer-wrap a {{
+        text-decoration: none !important;
+        outline: none !important;
+    }}
+
     .ref-footer-col-title {{
         font-family: 'Inter', -apple-system, sans-serif;
         font-size: 0.72rem;
@@ -1929,19 +2424,96 @@ st.markdown(f"""
         color: var(--text-muted);
         margin-bottom: 16px;
     }}
-    .ref-footer-link {{
-        display: block;
-        font-family: 'Inter', -apple-system, sans-serif;
-        font-size: 0.85rem;
-        color: var(--text-secondary);
-        text-decoration: none;
-        margin-bottom: 10px;
-        transition: color 0.15s ease, transform 0.15s ease;
+
+    /* Column Links */
+    a.ref-footer-link,
+    .ref-footer-link,
+    .ref-footer-wrap a.ref-footer-link,
+    .stMarkdown .ref-footer-wrap a.ref-footer-link,
+    div.stMarkdown .ref-footer-wrap a.ref-footer-link {{
+        display: block !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.85rem !important;
+        font-weight: 400 !important;
+        color: var(--text-secondary) !important;
+        text-decoration: none !important;
+        margin-bottom: 10px !important;
+        transition: color 0.15s ease, transform 0.15s ease, text-decoration 0.15s ease !important;
     }}
-    .ref-footer-link:hover {{
-        color: #60A5FA;
-        transform: translateX(2px);
+    a.ref-footer-link:hover,
+    .ref-footer-link:hover,
+    .ref-footer-wrap a.ref-footer-link:hover,
+    .stMarkdown .ref-footer-wrap a.ref-footer-link:hover,
+    div.stMarkdown .ref-footer-wrap a.ref-footer-link:hover {{
+        color: #7E99B8 !important;
+        text-decoration: underline !important;
+        text-underline-offset: 3px !important;
+        transform: translateX(2px) !important;
     }}
+
+    /* GitHub & Swagger Action Chips */
+    a.ref-btn-secondary,
+    .ref-btn-secondary,
+    .ref-footer-wrap a.ref-btn-secondary,
+    .stMarkdown .ref-footer-wrap a.ref-btn-secondary {{
+        display: inline-flex !important;
+        align-items: center !important;
+        gap: 4px !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.76rem !important;
+        font-weight: 500 !important;
+        color: var(--text-secondary) !important;
+        text-decoration: none !important;
+        background: rgba(255, 255, 255, 0.04) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 6px !important;
+        padding: 5px 12px !important;
+        transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease, transform 0.15s ease !important;
+        white-space: nowrap !important;
+    }}
+    a.ref-btn-secondary:hover,
+    .ref-btn-secondary:hover,
+    .ref-footer-wrap a.ref-btn-secondary:hover,
+    .stMarkdown .ref-footer-wrap a.ref-btn-secondary:hover {{
+        color: #7E99B8 !important;
+        border-color: rgba(126, 153, 184, 0.45) !important;
+        background: rgba(126, 153, 184, 0.08) !important;
+        text-decoration: none !important;
+        transform: translateY(-1px) !important;
+    }}
+
+    /* Connect Action Button */
+    a.ref-btn-primary,
+    .ref-btn-primary,
+    .ref-footer-wrap a.ref-btn-primary,
+    .stMarkdown .ref-footer-wrap a.ref-btn-primary {{
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.84rem !important;
+        font-weight: 500 !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        background: var(--btn-primary-bg) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        border-radius: 6px !important;
+        padding: 8px 18px !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25) !important;
+        transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+        white-space: nowrap !important;
+    }}
+    a.ref-btn-primary:hover,
+    .ref-btn-primary:hover,
+    .ref-footer-wrap a.ref-btn-primary:hover,
+    .stMarkdown .ref-footer-wrap a.ref-btn-primary:hover {{
+        background: var(--btn-primary-hover) !important;
+        color: #ffffff !important;
+        text-decoration: none !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 12px rgba(29, 111, 216, 0.35) !important;
+    }}
+
     .ref-footer-divider {{
         height: 1px;
         background: var(--border-subtle);
@@ -1964,37 +2536,58 @@ st.markdown(f"""
         gap: 14px;
         flex-wrap: wrap;
     }}
-    .ref-footer-legal-link {{
-        color: var(--text-muted);
-        text-decoration: none;
-        transition: color 0.15s ease;
+
+    /* Legal Links (Privacy Policy, Terms of Use, Security Notice, Sitemap) */
+    a.ref-footer-legal-link,
+    .ref-footer-legal-link,
+    .ref-footer-wrap a.ref-footer-legal-link,
+    .stMarkdown .ref-footer-wrap a.ref-footer-legal-link,
+    div.stMarkdown .ref-footer-wrap a.ref-footer-legal-link {{
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.80rem !important;
+        color: var(--text-muted) !important;
+        text-decoration: none !important;
+        transition: color 0.15s ease, text-decoration 0.15s ease !important;
     }}
-    .ref-footer-legal-link:hover {{
-        color: var(--text-primary);
+    a.ref-footer-legal-link:hover,
+    .ref-footer-legal-link:hover,
+    .ref-footer-wrap a.ref-footer-legal-link:hover,
+    .stMarkdown .ref-footer-wrap a.ref-footer-legal-link:hover,
+    div.stMarkdown .ref-footer-wrap a.ref-footer-legal-link:hover {{
+        color: #7E99B8 !important;
+        text-decoration: underline !important;
+        text-underline-offset: 3px !important;
     }}
+
     .ref-footer-socials {{
         display: flex;
         align-items: center;
         gap: 8px;
     }}
-    .ref-footer-icon-btn {{
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        border: 1px solid var(--border-color);
-        background: rgba(255, 255, 255, 0.03);
-        color: var(--text-secondary);
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        text-decoration: none;
-        transition: all 0.2s ease;
+    a.ref-footer-icon-btn,
+    .ref-footer-icon-btn,
+    .ref-footer-wrap a.ref-footer-icon-btn,
+    .stMarkdown .ref-footer-wrap a.ref-footer-icon-btn {{
+        width: 32px !important;
+        height: 32px !important;
+        border-radius: 50% !important;
+        border: 1px solid var(--border-color) !important;
+        background: rgba(255, 255, 255, 0.03) !important;
+        color: var(--text-secondary) !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-decoration: none !important;
+        transition: all 0.2s ease !important;
     }}
-    .ref-footer-icon-btn:hover {{
-        border-color: #60A5FA;
-        color: #ffffff;
-        background: rgba(96, 165, 250, 0.12);
-        transform: translateY(-2px);
+    a.ref-footer-icon-btn:hover,
+    .ref-footer-icon-btn:hover,
+    .ref-footer-wrap a.ref-footer-icon-btn:hover,
+    .stMarkdown .ref-footer-wrap a.ref-footer-icon-btn:hover {{
+        border-color: rgba(126, 153, 184, 0.40) !important;
+        color: #7E99B8 !important;
+        background: rgba(126, 153, 184, 0.08) !important;
+        transform: translateY(-2px) !important;
     }}
     @media (max-width: 680px) {{
         .ref-footer-bottom {{
@@ -2010,7 +2603,6 @@ st.markdown(f"""
 # --- Top Navigation Bar (Planet.com Reference Style) ---
 navbar_html = f"""<header class="planet-navbar">
 <div class="planet-navbar-inner">
-<div style="display: flex; align-items: center;">
 <a href="#" class="planet-nav-brand" style="text-decoration: none !important; border-bottom: none !important; outline: none !important;">
 <div class="planet-nav-logo">
 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2028,18 +2620,10 @@ navbar_html = f"""<header class="planet-navbar">
 </div>
 <span class="planet-nav-title" style="text-decoration: none !important;"><span class="nav-brand-sat" style="text-decoration: none !important;">sat</span><span class="nav-brand-query" style="text-decoration: none !important;">query</span><span class="planet-nav-dot" style="text-decoration: none !important;">.</span></span>
 </a>
-<nav class="planet-nav-menu" style="display: flex; align-items: center; gap: 40px; margin-left: 44px;">
-<a href="#section-ingestion" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Overview <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
-<a href="#section-query" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Models <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
-<a href="#section-ingestion" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Pipeline <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
-<a href="{default_api_url}/docs" target="_blank" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Docs <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
-<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Team <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
-</nav>
-</div>
-<div class="planet-nav-right" style="display: flex; align-items: center; gap: 20px;">
-<a href="#section-audit" class="planet-nav-text-link" style="color: rgba(255, 255, 255, 0.85); text-decoration: none; font-size: 0.86rem; font-weight: 400;">History</a>
-<a href="#section-ingestion" class="planet-nav-btn-pill" style="display: inline-flex; align-items: center; justify-content: center; font-family: 'Inter', -apple-system, sans-serif; font-size: 0.84rem; font-weight: 400; color: #ffffff !important; text-decoration: none; padding: 7px 20px; border-radius: 9999px; border: 1px solid rgba(255, 255, 255, 0.50); background: transparent !important; background-color: transparent !important; box-shadow: none !important; white-space: nowrap;">Try Live Demo</a>
-<a href="#section-query" class="planet-nav-circle-btn" title="Search Queries & Directives" style="width: 32px; height: 32px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.35); background: transparent; color: rgba(255, 255, 255, 0.85); display: inline-flex; align-items: center; justify-content: center; text-decoration: none; box-shadow: none;">
+<div class="planet-nav-right">
+<a href="#section-audit" class="planet-nav-text-link">History</a>
+<a href="#section-ingestion" class="planet-nav-btn-pill">Try Live Demo</a>
+<a href="#section-query" class="planet-nav-circle-btn" title="Search Queries & Directives">
 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
 <circle cx="11" cy="11" r="8"></circle>
 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
@@ -2146,16 +2730,12 @@ SatQuery AI<br/>
 <span class="nasa-hero-title-accent">Earth Observation Intelligence</span>
 </h1>
 <p class="nasa-hero-desc">
-Deterministic multi-modal reasoning across high-resolution satellite constellations and aerial sensors. Orchestrates visual question answering, bi-temporal change detection, and cross-sensor fusion powered by <strong>GeoChat</strong>, <strong>GeoLLaVA</strong>, and <strong>EarthGPT</strong>.
+Instant intelligence from orbit. Natural language reasoning, automated change detection, and cross-sensor fusion at planetary scale.
 </p>
 <div class="nasa-hero-actions">
 <a href="#section-ingestion" class="nasa-btn-primary">
 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 8 12 12 14 14"></polyline></svg>
 Explore Sensor Studio ↓
-</a>
-<a href="{default_api_url}/docs" target="_blank" class="nasa-btn-secondary">
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-API Documentation ↗
 </a>
 </div>
 <div class="nasa-hero-bottom">
@@ -2224,31 +2804,97 @@ highlights_html = f"""<div class="planet-highlights-wrap">
 st.markdown(highlights_html, unsafe_allow_html=True)
 
 
-# --- Reference Stats Bar (4 Metric Cards) ---
-st.markdown("""
-<div id="section-stats" class="ref-stats-grid">
-    <div class="ref-stat-card">
-        <div class="ref-stat-label">ROUTING ACCURACY</div>
-        <div class="ref-stat-val val-green">100%</div>
-        <div class="ref-stat-sub">Cross-validated on VRSBench & CDVQA</div>
-    </div>
-    <div class="ref-stat-card">
-        <div class="ref-stat-label">MEAN LATENCY</div>
-        <div class="ref-stat-val val-blue">6.0 ms</div>
-        <div class="ref-stat-sub">Deterministic state machine dispatch</div>
-    </div>
-    <div class="ref-stat-card">
-        <div class="ref-stat-label">TASK F1 SCORE</div>
-        <div class="ref-stat-val val-purple">0.63</div>
-        <div class="ref-stat-sub">Multi-task benchmark evaluation</div>
-    </div>
-    <div class="ref-stat-card">
-        <div class="ref-stat-label">MODELS ORCHESTRATED</div>
-        <div class="ref-stat-val val-orange">3 EO-VLMs</div>
-        <div class="ref-stat-sub">GeoChat • GeoLLaVA • EarthGPT</div>
-    </div>
+# --- Clean 2-Section Pipeline Architecture (Reference Layout Style) ---
+pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
+<div class="pipeline-section-header">
+<div class="pipeline-section-kicker">SYSTEM ARCHITECTURE</div>
+<h2 class="pipeline-section-heading">Specialized 4-Stage Autonomous Pipeline</h2>
+<p class="pipeline-section-subheading">A deterministic, multi-modal pipeline engineered for sub-meter earth observation analysis, autonomous model routing, and verifiable cryptographic telemetry.</p>
 </div>
-""", unsafe_allow_html=True)
+<div class="stage-cards-grid">
+<div class="stage-clean-card">
+<div class="stage-card-icon">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
+</div>
+<div class="stage-card-title">Sensor Ingestion</div>
+<div class="stage-card-label">MULTISPECTRAL &amp; SAR UPLINK</div>
+<p class="stage-card-body">Accepts high-resolution GeoTIFF, TIFF, and PNG imagery across optical RGB and synthetic aperture radar bands. Incoming raster tiles are buffered in memory and validated against coordinate reference systems to ensure radiometric calibration and spatial alignment prior to processing.</p>
+</div>
+<div class="stage-clean-card">
+<div class="stage-card-icon">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+</div>
+<div class="stage-card-title">Deterministic Router</div>
+<div class="stage-card-label">LANGGRAPH FINITE STATE MACHINE</div>
+<p class="stage-card-body">Analyzes user query semantics alongside imagery metadata using a zero-drift LangGraph state machine. It deterministically classifies tasks and dispatches payloads to the optimal multimodal vision engine within 6.0 milliseconds, eliminating hallucinated routing pathways.</p>
+</div>
+<div class="stage-clean-card">
+<div class="stage-card-icon">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+</div>
+<div class="stage-card-title">Model Orchestration</div>
+<div class="stage-card-label">PARALLEL MULTIMODAL INFERENCE</div>
+<p class="stage-card-body">Coordinates parallel inference across specialized vision-language models, utilizing GeoChat for visual question answering, GeoLLaVA for bi-temporal change detection, and EarthGPT for optical-SAR sensor fusion, achieving a benchmarked 0.63 task F1 score.</p>
+</div>
+<div class="stage-clean-card">
+<div class="stage-card-icon">
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+</div>
+<div class="stage-card-title">Verified Output</div>
+<div class="stage-card-label">TELEMETRY AUDIT &amp; ATTESTATION</div>
+<p class="stage-card-body">Consolidates analytical deductions into auditable outputs authenticated with cryptographic SHA-256 signatures. Complete execution traces are immutably logged to an internal SQLite telemetry ledger and formatted for instant multi-page ReportLab PDF dossier generation.</p>
+</div>
+</div>
+<div class="pipeline-section-header flow-header">
+<div class="pipeline-section-kicker">END-TO-END WORKFLOW</div>
+<h2 class="pipeline-section-heading">End-to-End Processing Flow</h2>
+<p class="pipeline-section-subheading">A sequential, verified execution path connecting initial raster telemetry uplink to finalized mission intelligence.</p>
+</div>
+<div class="flow-row-container">
+<div class="flow-step-item">
+<div class="flow-step-circle">1</div>
+<div class="flow-step-content">
+<div class="flow-step-title">Sensor Uplink</div>
+<div class="flow-step-subtitle">Payload Ingestion &amp; Calibration</div>
+</div>
+</div>
+<div class="flow-step-connector">
+<div class="flow-connector-line"></div>
+<svg class="flow-connector-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+</div>
+<div class="flow-step-item">
+<div class="flow-step-circle">2</div>
+<div class="flow-step-content">
+<div class="flow-step-title">Deterministic Routing</div>
+<div class="flow-step-subtitle">State Dispatch &amp; Intent Parsing</div>
+</div>
+</div>
+<div class="flow-step-connector">
+<div class="flow-connector-line"></div>
+<svg class="flow-connector-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+</div>
+<div class="flow-step-item">
+<div class="flow-step-circle">3</div>
+<div class="flow-step-content">
+<div class="flow-step-title">Model Orchestration</div>
+<div class="flow-step-subtitle">Parallel Multimodal Inference</div>
+</div>
+</div>
+<div class="flow-step-connector">
+<div class="flow-connector-line"></div>
+<svg class="flow-connector-arrow" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748B" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+</div>
+<div class="flow-step-item">
+<div class="flow-step-circle">4</div>
+<div class="flow-step-content">
+<div class="flow-step-title">Verified Output</div>
+<div class="flow-step-subtitle">Cryptographic Audit &amp; Dossier</div>
+</div>
+</div>
+</div>
+</div>"""
+
+st.markdown(pipeline_html, unsafe_allow_html=True)
 
 
 # --- Full-Bleed Tech-Stack Ticker Strip ---
@@ -2270,26 +2916,17 @@ st.markdown(f"""
 """, unsafe_allow_html=True)
 
 
-# --- Section 1: Ingestion ---
-has_img1 = bool(st.session_state.get("uploader_img1"))
-has_img2 = bool(st.session_state.get("uploader_img2"))
-
-if has_img1:
-    status_tag_a = '<span class="hud-status-tag tag-active"><span class="hud-status-dot dot-active"></span>File Loaded</span>'
-else:
-    status_tag_a = '<span class="hud-status-tag tag-standby"><span class="hud-status-dot dot-standby"></span>Awaiting Upload</span>'
-
-if has_img2:
-    status_tag_b = '<span class="hud-status-tag tag-active"><span class="hud-status-dot dot-active"></span>File Loaded</span>'
-else:
-    status_tag_b = '<span class="hud-status-tag tag-standby"><span class="hud-status-dot dot-standby"></span>Awaiting Upload</span>'
-
-st.markdown(f"""
-<div id="section-ingestion" class="ingestion-hero-banner">
-    <div class="ref-section-kicker"><span class="section-kicker-pill">STEP 01</span> Sensor Ingestion Pipeline</div>
-    <div class="ref-section-title">Imagery Ingestion &amp; Tile Registration</div>
-    <div class="ref-section-desc">Upload primary observation raster tile and an optional secondary / temporal pair for automated multi-modal reasoning.</div>
-    <div class="hud-telemetry-row">
+# --- Section 1 & 2: Chat-Style Mission Intelligence Console ---
+st.markdown("""
+<div id="section-ingestion" class="chat-console-header">
+    <div style="display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+        <div>
+            <div class="ref-section-kicker"><span class="section-kicker-pill">INTELLIGENCE CONSOLE</span> Mission Interactive Reasoning</div>
+            <div class="ref-section-title">Satellite Imagery Chat &amp; Multimodal Directive</div>
+            <div class="ref-section-desc">Upload primary or comparative raster tiles, ask geospatial analysis questions, and inspect verified telemetry responses.</div>
+        </div>
+    </div>
+    <div class="hud-telemetry-row" style="margin-top: 14px;">
         <div class="hud-telemetry-meta">
             <span class="hud-telemetry-tag"><span class="telemetry-live-dot"></span>SENSOR BUS ACTIVE</span>
             <span class="telemetry-item"><span class="telemetry-label">Coord:</span> <span class="telemetry-val">28.6139° N, 77.2090° E</span></span>
@@ -2302,192 +2939,263 @@ st.markdown(f"""
 </div>
 """, unsafe_allow_html=True)
 
-col_up1, col_up2 = st.columns(2, gap="large")
+# Check whether chat is active (either user explicitly opened it, or conversation history exists)
+is_chat_opened = st.session_state.get("chat_opened", False) or bool(st.session_state.get("chat_history"))
 
-with col_up1:
-    st.markdown(f"""
-    <div class="tile-header-banner tile-banner-a">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
-            <div class="ref-card-header">Tile A — Primary Observation</div>
-            <div>
-                {status_tag_a}
-            </div>
-        </div>
-        <div class="ref-card-desc">High-resolution optical raster tile, multispectral band, or base SAR backscatter (GeoTIFF, PNG, JPG).</div>
+if not is_chat_opened:
+    # ==================== STATE 1 (Default / Collapsed): Minimal Call-to-Action Card ====================
+    st.markdown("""
+    <div class="chat-cta-card">
+        <div class="chat-cta-title">Ready to analyze your imagery?</div>
+        <div class="chat-cta-desc">Launch the multimodal mission intelligence console to query satellite raster tiles, detect spatial features, and orchestrate reasoning pipelines.</div>
     </div>
     """, unsafe_allow_html=True)
-    img1_file = st.file_uploader(
-        "Upload primary satellite/aerial tile",
-        type=["tif", "tiff", "png", "jpg", "jpeg"],
-        key="uploader_img1",
-        label_visibility="collapsed"
-    )
-    if img1_file:
-        try:
-            pil_img1 = Image.open(img1_file)
-            st.image(pil_img1, caption=f"Tile A: {img1_file.name} ({pil_img1.width}×{pil_img1.height}px)", use_container_width=True)
-        except Exception:
-            st.info(f"Loaded {img1_file.name} (GeoTIFF/Multi-band Sensor Tile)")
 
-with col_up2:
-    st.markdown(f"""
-    <div class="tile-header-banner tile-banner-b">
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
-            <div class="ref-card-header">Tile B — Secondary / Temporal Pair</div>
-            <div>
-                {status_tag_b}
+    col_cta_l, col_cta_btn, col_cta_r = st.columns([0.34, 0.32, 0.34])
+    with col_cta_btn:
+        if st.button("⚡  Open Sensor Studio", key="open_chat_studio_btn", type="primary", use_container_width=True, help="Launch interactive mission intelligence chat"):
+            st.session_state.chat_opened = True
+            st.rerun()
+
+else:
+    # ==================== STATE 2 (Expanded / Active): Full Chat Interface ====================
+    col_hist_info, col_top_actions = st.columns([0.76, 0.24])
+    with col_top_actions:
+        if st.session_state.chat_history:
+            sub_c1, sub_c2 = st.columns(2, gap="small")
+            with sub_c1:
+                if st.button("↺ Clear", key="clear_chat_history_btn", use_container_width=True, help="Clear conversation history"):
+                    st.session_state.chat_history = []
+                    st.rerun()
+            with sub_c2:
+                if st.button("▾ Minimize", key="minimize_chat_btn", use_container_width=True, help="Minimize chat console"):
+                    st.session_state.chat_opened = False
+                    st.rerun()
+        else:
+            if st.button("▾ Minimize Console", key="minimize_chat_btn_empty", use_container_width=True, help="Minimize chat console"):
+                st.session_state.chat_opened = False
+                st.rerun()
+
+    # --- Conversation Stream ---
+    if not st.session_state.chat_history:
+        st.markdown("""
+        <div class="chat-empty-state">
+            <div class="chat-empty-icon">
+                <svg width="42" height="42" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="16" cy="16" r="6" stroke="#7E99B8" stroke-width="1.6" fill="rgba(56, 189, 248, 0.08)" />
+                    <ellipse cx="16" cy="16" rx="14" ry="5.5" stroke="#7E99B8" stroke-width="1.3" stroke-dasharray="3 2" transform="rotate(-28 16 16)" />
+                    <circle cx="27" cy="10" r="2" fill="#38BDF8" />
+                </svg>
+            </div>
+            <div class="chat-empty-title">Ask SatQuery AI about your imagery</div>
+            <div class="chat-empty-subtitle">
+                Attach optical or SAR raster tiles using the clip icon below, then enter your mission directive or select a quick-action analysis template.
             </div>
         </div>
-        <div class="ref-card-desc">Post-event comparative tile for change detection or co-registered SAR for cross-sensor fusion.</div>
-    </div>
-    """, unsafe_allow_html=True)
-    img2_file = st.file_uploader(
-        "Upload comparison image for bi-temporal tasks",
-        type=["tif", "tiff", "png", "jpg", "jpeg"],
-        key="uploader_img2",
-        label_visibility="collapsed"
-    )
-    if img2_file:
-        try:
-            pil_img2 = Image.open(img2_file)
-            st.image(pil_img2, caption=f"Tile B: {img2_file.name} ({pil_img2.width}×{pil_img2.height}px)", use_container_width=True)
-        except Exception:
-            st.info(f"Loaded {img2_file.name} (GeoTIFF/Multi-band Sensor Tile)")
-
-
-# --- Section 2: Query Specification ---
-st.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
-st.markdown("""
-<div class="hud-step-header">
-    <div class="ref-section-kicker"><span class="section-kicker-pill">STEP 02</span> Directive &amp; Instruction</div>
-    <div class="ref-section-title">Mission Instruction &amp; Query Directive</div>
-    <div class="ref-section-desc">Choose a pre-configured analysis template or enter custom natural language instructions.</div>
-</div>
-""", unsafe_allow_html=True)
-
-# Preset Technical Buttons with Aerospace Symbols
-col_p1, col_p2, col_p3 = st.columns(3, gap="medium")
-with col_p1:
-    if st.button("✈  Aircraft Recognition", key="preset_air", help="Target detection and runway inventory via optical VQA"):
-        st.session_state.query_input_val = "Detect and count the aircraft parked at the airport terminals."
-with col_p2:
-    if st.button("🗺  Land Cover Classification", key="preset_land", help="Macro land-cover and surface categorization"):
-        st.session_state.query_input_val = "Identify the dominant land cover and vegetation types across this scene."
-with col_p3:
-    if st.button("Δ  Bi-Temporal Change Delta", key="preset_change", help="Topological delta detection across epochs"):
-        st.session_state.query_input_val = "Compare both images and identify newly constructed buildings or infrastructure."
-
-# Query Input Field
-st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
-query_input = st.text_input(
-    "Query Specification Input",
-    value=st.session_state.query_input_val,
-    placeholder="Enter your observation question (e.g. 'Detect and count aircraft', 'Identify newly constructed infrastructure')...",
-    label_visibility="collapsed"
-)
-
-# Analyze Button
-st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
-analyze_clicked = st.button("⚡  Analyze Imagery & Orchestrate Pipeline", type="primary", use_container_width=True)
-
-# --- Analysis Execution ---
-if analyze_clicked:
-    if not img1_file:
-        st.warning("Please upload Tile A (Primary Observation) before initiating analysis.")
-    elif not query_input.strip():
-        st.warning("Please enter a query instruction or choose a preset analysis template.")
+        """, unsafe_allow_html=True)
     else:
-        with st.spinner("Dispatching to orchestrator: routing multi-modal reasoning pipeline..."):
-            try:
-                files_payload = [
-                    ("files", (img1_file.name, img1_file.getvalue(), img1_file.type or "application/octet-stream"))
-                ]
-                if img2_file:
-                    files_payload.append(
-                        ("files", (img2_file.name, img2_file.getvalue(), img2_file.type or "application/octet-stream"))
-                    )
+        for idx, turn in enumerate(st.session_state.chat_history):
+            user_turn = turn["user"]
+            ts = turn.get("timestamp", "")
 
-                data_payload = {"query": query_input}
-                response = requests.post(f"{API_URL}/query", data=data_payload, files=files_payload, timeout=120)
+            # Render User message bubble
+            user_imgs_html = ""
+            if user_turn.get("images"):
+                user_imgs_html = '<div class="user-bubble-imgs">'
+                for img_info in user_turn["images"]:
+                    thumb = f'<img src="{img_info["thumb_b64"]}" class="user-bubble-thumb" />' if img_info.get("thumb_b64") else ''
+                    user_imgs_html += f"""
+                    <div class="user-bubble-img-item">
+                        {thumb}
+                        <span class="user-bubble-img-name">{html.escape(img_info['name'])}</span>
+                        <span class="user-bubble-img-size">({img_info.get('size_kb', 0)} KB)</span>
+                    </div>
+                    """
+                user_imgs_html += '</div>'
 
-                if response.status_code != 200:
-                    st.error(f"[SYSTEM FAULT] HTTP {response.status_code}: {response.text}")
-                else:
-                    resp = response.json()
-                    is_rejected = (
-                        not resp.get("validation_ok", True)
-                        or resp.get("selected_task") == "reject"
-                        or resp.get("status") == "rejected"
-                    )
+            st.markdown(f"""
+            <div class="chat-row chat-row-user">
+                <div class="user-bubble">
+                    {user_imgs_html}
+                    <div class="user-bubble-text">{html.escape(user_turn['text'])}</div>
+                    <div class="chat-timestamp">{ts}</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-                    if is_rejected:
-                        st.markdown(f"""
-                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; border-left: 4px solid #ef4444; padding: 14px 18px; margin: 16px 0;">
-                            <div style="font-family: 'JetBrains Mono', monospace; font-weight: 700; color: #ef4444; font-size: 0.90rem; letter-spacing: 0.08em; text-transform: uppercase;">
-                                [GUARDRAIL REJECTION // REQUEST TERMINATED]
-                            </div>
-                            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; color: var(--text-primary); margin-top: 4px;">
-                                {resp.get('validation_msg', 'Request geometry or sensor modality incompatible with tool registry.')}
-                            </div>
+            # Render AI response bubble
+            resp_data = turn["response"]
+            if resp_data.get("is_rejected"):
+                val_msg = html.escape(str(resp_data.get("validation_msg", "Request geometry or sensor modality incompatible with tool registry.")))
+                st.markdown(f"""
+                <div class="chat-row chat-row-ai">
+                    <div class="ai-bubble ai-bubble-rejection">
+                        <div class="ai-rejection-header">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <span>[GUARDRAIL REJECTION // REQUEST TERMINATED]</span>
                         </div>
-                        """, unsafe_allow_html=True)
+                        <div class="ai-rejection-body">
+                            {val_msg}
+                        </div>
+                        <div class="chat-timestamp" style="margin-top: 8px;">{ts}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+                if resp_data.get("trace"):
+                    with st.expander(f"[AUDIT TELEMETRY TRACE #{idx+1}]"):
+                        st.json(resp_data["trace"])
+            else:
+                task_str = html.escape(str(resp_data.get("selected_task", "N/A")))
+                model_str = html.escape(str(resp_data.get("model_used", "N/A")))
+                conf_str = html.escape(str(resp_data.get("confidence", "N/A")))
+                qid_str = html.escape(str(resp_data.get("query_id", "N/A")))
+                ans_text = html.escape(str(resp_data.get("answer", "")))
 
-                        if "trace" in resp and resp["trace"]:
-                            with st.expander("[AUDIT TELEMETRY TRACE]"):
-                                st.json(resp["trace"])
+                st.markdown(f"""
+                <div class="chat-row chat-row-ai">
+                    <div class="ai-bubble">
+                        <div class="ai-badge-row">
+                            <div class="ai-meta-badge"><span class="badge-lbl">MODEL:</span> <span class="badge-val">{model_str}</span></div>
+                            <div class="ai-meta-badge"><span class="badge-lbl">TASK:</span> <span class="badge-val">{task_str}</span></div>
+                            <div class="ai-confidence-pill"><span class="conf-dot"></span>{conf_str} CONFIDENCE</div>
+                            <div class="ai-meta-badge" style="margin-left: auto;"><span class="badge-lbl">RECORD:</span> <span class="badge-val">#{qid_str}</span></div>
+                        </div>
+                        <div class="ai-synthesis-body">
+                            {ans_text}
+                        </div>
+                        <div class="chat-timestamp" style="margin-top: 10px;">{ts}</div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                col_dl, col_blank = st.columns([0.32, 0.68])
+                if resp_data.get("pdf_data"):
+                    with col_dl:
+                        st.download_button(
+                            label="📥  Export Audit Report (PDF)",
+                            data=resp_data["pdf_data"],
+                            file_name=f"satquery_audit_report_{resp_data.get('query_id')}.pdf",
+                            mime="application/pdf",
+                            key=f"dl_pdf_{turn['id']}",
+                            use_container_width=True
+                        )
+                if resp_data.get("trace"):
+                    with st.expander(f"[AUDIT TELEMETRY TRACE — RECORD #{qid_str}]"):
+                        st.json(resp_data["trace"])
+
+    # --- Generous Whitespace (38px gap between conversation/empty state and preset chips) ---
+    st.markdown("<div style='height: 38px;'></div>", unsafe_allow_html=True)
+
+    # --- Quick-Action Preset Suggestion Chips (Compact rounded-pill buttons with natural centered spacing) ---
+    c_pad_l, c_p1, c_p2, c_p3, c_pad_r = st.columns([0.16, 0.22, 0.24, 0.22, 0.16], gap="small")
+    with c_p1:
+        if st.button("✈  Aircraft Detection", key="preset_pill_air", use_container_width=True, help="Target detection and runway inventory via optical VQA"):
+            st.session_state["main_chat_input"] = "Detect and count the aircraft parked at the airport terminals."
+            st.rerun()
+    with c_p2:
+        if st.button("🗺  Land Classification", key="preset_pill_land", use_container_width=True, help="Macro land-cover and surface categorization"):
+            st.session_state["main_chat_input"] = "Identify the dominant land cover and vegetation types across this scene."
+            st.rerun()
+    with c_p3:
+        if st.button("Δ  Change Analysis", key="preset_pill_change", use_container_width=True, help="Topological delta detection across epochs"):
+            st.session_state["main_chat_input"] = "Compare both images and identify newly constructed buildings or infrastructure."
+            st.rerun()
+
+    # --- Generous Whitespace (34px gap between preset chips and input bar) ---
+    st.markdown("<div style='height: 34px;'></div>", unsafe_allow_html=True)
+
+    # --- Modern Pill-Shaped Input Capsule (Paperclip INSIDE left, Send INSIDE right) ---
+    # Placing st.chat_input inside a column container keeps it rendered inline right here in the chat section
+    chat_col, _ = st.columns([0.999, 0.001])
+    with chat_col:
+        prompt = st.chat_input(
+            placeholder="Ask about your imagery — e.g. 'Detect and count aircraft'...",
+            accept_file="multiple",
+            file_type=["tif", "tiff", "png", "jpg", "jpeg"],
+            key="main_chat_input"
+        )
+
+    # --- Chat Input Submission Execution ---
+    if prompt:
+        effective_query = (prompt.text or "").strip()
+        attached_files = prompt.files or []
+
+        if not attached_files:
+            st.warning("⚠️ Please attach satellite/aerial raster tiles (GeoTIFF, TIFF, PNG, JPG) using the paperclip icon inside the input bar before submitting your query.")
+        else:
+            files_payload = []
+            user_imgs = []
+            for f in attached_files[:2]:
+                raw_b = f.getvalue()
+                files_payload.append(
+                    ("files", (f.name, raw_b, f.type or "application/octet-stream"))
+                )
+                user_imgs.append({
+                    "name": f.name,
+                    "size_kb": round(len(raw_b) / 1024, 1),
+                    "thumb_b64": make_thumbnail_b64(f.name, raw_b)
+                })
+
+            query_text_to_send = effective_query if effective_query else "Analyze attached imagery."
+
+            with st.spinner("Dispatching to orchestrator: routing multi-modal reasoning pipeline..."):
+                try:
+                    data_payload = {"query": query_text_to_send}
+                    response = requests.post(f"{API_URL}/query", data=data_payload, files=files_payload, timeout=120)
+
+                    if response.status_code != 200:
+                        st.error(f"[SYSTEM FAULT] HTTP {response.status_code}: {response.text}")
                     else:
-                        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+                        resp = response.json()
+                        is_rejected = (
+                            not resp.get("validation_ok", True)
+                            or resp.get("selected_task") == "reject"
+                            or resp.get("status") == "rejected"
+                        )
 
-                        # KPI Header Cards
-                        kpi1, kpi2, kpi3, kpi4 = st.columns(4)
-                        with kpi1:
-                            st.metric("ROUTED TASK", resp.get("selected_task", "N/A"))
-                        with kpi2:
-                            st.metric("MODEL DEPLOYED", resp.get("model_used", "N/A"))
-                        with kpi3:
-                            conf = resp.get("trace", {}).get("output_confidence")
-                            conf_val = f"{conf:.0%}" if isinstance(conf, (int, float)) else "N/A"
-                            st.metric("CONFIDENCE SCORE", conf_val)
-                        with kpi4:
-                            st.metric("QUERY RECORD ID", f"#{resp.get('query_id')}")
+                        pdf_bytes = None
+                        query_id = resp.get("query_id")
+                        if query_id and not is_rejected:
+                            try:
+                                rep_resp = requests.get(f"{API_URL}/report/{query_id}", timeout=10)
+                                if rep_resp.status_code == 200:
+                                    pdf_bytes = rep_resp.content
+                            except Exception:
+                                pass
 
-                        # Answer Terminal Section
                         result_data = resp.get("result", {})
                         answer_text = result_data.get("text") if isinstance(result_data, dict) else str(result_data)
+                        conf = resp.get("trace", {}).get("output_confidence")
+                        conf_val = f"{conf:.0%}" if isinstance(conf, (int, float)) else "N/A"
 
-                        st.markdown(f"""
-                        <div class="result-terminal">
-                            <div class="result-terminal-header">
-                                [SYNTHESIZED INTELLIGENCE RESULT // INFERENCE VERIFIED]
-                            </div>
-                            <div class="result-terminal-body">
-                                {answer_text or 'No textual telemetry generated.'}
-                            </div>
-                        </div>
-                        """, unsafe_allow_html=True)
+                        new_turn = {
+                            "id": str(uuid.uuid4()),
+                            "timestamp": datetime.now().strftime("%H:%M:%S UTC"),
+                            "user": {
+                                "text": query_text_to_send,
+                                "images": user_imgs
+                            },
+                            "response": {
+                                "is_rejected": is_rejected,
+                                "validation_msg": resp.get("validation_msg") or resp.get("guardrail_message") or "Request geometry or sensor modality incompatible with tool registry.",
+                                "selected_task": resp.get("selected_task", "N/A"),
+                                "model_used": resp.get("model_used", "N/A"),
+                                "confidence": conf_val,
+                                "query_id": query_id,
+                                "answer": answer_text or "No textual telemetry generated.",
+                                "trace": resp.get("trace", {}),
+                                "pdf_data": pdf_bytes
+                            }
+                        }
+                        st.session_state.chat_history.append(new_turn)
+                        st.rerun()
 
-                        # Report Download Action
-                        query_id = resp.get("query_id")
-                        if query_id:
-                            try:
-                                report_resp = requests.get(f"{API_URL}/report/{query_id}", timeout=10)
-                                if report_resp.status_code == 200:
-                                    st.download_button(
-                                        label="[ EXPORT AUDIT REPORT (PDF) ]",
-                                        data=report_resp.content,
-                                        file_name=f"satquery_audit_report_{query_id}.pdf",
-                                        mime="application/pdf",
-                                        use_container_width=True
-                                    )
-                            except Exception as err:
-                                st.caption(f"Report export note: {err}")
-
-                        # Auditable Execution Trace Details
-                        with st.expander("[AUDITABLE EXECUTION TRACE & TELEMETRY RECORD]"):
-                            st.json(resp.get("trace", {}))
-
-            except requests.exceptions.RequestException as req_err:
-                st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
+                except requests.exceptions.RequestException as req_err:
+                    st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
 
 
 # --- Section 3: History & Audit Log ---
@@ -2639,7 +3347,7 @@ footer_html = f"""<div class="ref-footer-wrap">
 </div>
 <div style="display: flex; align-items: center; gap: 8px;">
 <input type="text" placeholder="Enter your email..." class="ref-footer-input" readonly value="team@debuggersden.space"/>
-<a href="mailto:team@debuggersden.space" class="ref-btn-primary" style="padding: 8px 18px; font-size: 0.84rem; text-decoration: none;">Connect</a>
+<a href="mailto:team@debuggersden.space" class="ref-btn-primary">Connect</a>
 </div>
 </div>
 <div class="ref-footer-grid">
@@ -2660,8 +3368,8 @@ footer_html = f"""<div class="ref-footer-wrap">
 Autonomous multimodal Earth Observation reasoning and deterministic audit trail platform built for defense and spaceborne monitoring.
 </p>
 <div style="display: flex; align-items: center; gap: 10px;">
-<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-btn-secondary" style="padding: 5px 12px; font-size: 0.76rem;">GitHub ↗</a>
-<a href="{default_api_url}/docs" target="_blank" class="ref-btn-secondary" style="padding: 5px 12px; font-size: 0.76rem;">Swagger ↗</a>
+<a href="https://github.com/UditKumar0001/SATQUERY-AI" target="_blank" class="ref-btn-secondary">GitHub ↗</a>
+<a href="{default_api_url}/docs" target="_blank" class="ref-btn-secondary">Swagger ↗</a>
 </div>
 </div>
 <div>
