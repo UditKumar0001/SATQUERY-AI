@@ -217,10 +217,14 @@ st.markdown(f"""
     }}
 
     /* Global Typography & Canvas */
-    html, body, .stApp {{
+    html, body, .stApp, section.main, [data-testid="stMain"], [data-testid="stAppViewContainer"], .main {{
         font-family: 'Inter', -apple-system, sans-serif;
         overflow-x: hidden !important;
         max-width: 100vw !important;
+    }}
+    
+    section.main, [data-testid="stMain"], .main, div[data-testid="stAppViewContainer"] > section.main {{
+        container-type: inline-size;
     }}
     
     .stApp {{
@@ -244,6 +248,13 @@ st.markdown(f"""
     }}
 
     /* Container Max Width & Responsive Padding */
+    html, body {{
+        scroll-behavior: smooth;
+        scroll-padding-top: 88px !important;
+    }}
+    [id^="section-"], .ref-stats-grid, .ingestion-hero-banner, .hud-step-header {{
+        scroll-margin-top: 88px !important;
+    }}
     .main, .stMainBlockContainer, .block-container, div[data-testid="stAppViewContainer"] > section.main {{
         padding-top: 0 !important;
         margin-top: 0 !important;
@@ -278,7 +289,7 @@ st.markdown(f"""
         }}
     }}
 
-    /* Planet.com Reference Top Navbar (Fixed to Viewport Top, Zero Gap, Full Width) */
+    /* Planet.com Reference Top Navbar (Fixed to Viewport Top, Frosted Glass with Solid Bottom Border) */
     .planet-navbar {{
         position: fixed !important;
         top: 0 !important;
@@ -287,14 +298,15 @@ st.markdown(f"""
         width: 100% !important;
         max-width: 100vw !important;
         height: 64px !important;
-        background: linear-gradient(to bottom, rgba(2, 4, 9, 0.85) 0%, rgba(2, 4, 9, 0.35) 75%, transparent 100%) !important;
-        backdrop-filter: blur(10px) !important;
-        -webkit-backdrop-filter: blur(10px) !important;
+        background: rgba(8, 13, 23, 0.94) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.09) !important;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45) !important;
         padding: 0 !important;
         margin: 0 !important;
         z-index: 99999 !important;
         box-sizing: border-box !important;
-        border: none !important;
         display: flex !important;
         align-items: center !important;
     }}
@@ -312,20 +324,49 @@ st.markdown(f"""
     .planet-nav-brand {{
         display: flex;
         align-items: center;
-        gap: 10px;
-        text-decoration: none;
+        gap: 12px;
+        text-decoration: none !important;
+        border-bottom: none !important;
+        outline: none !important;
+    }}
+    a.planet-nav-brand,
+    a.planet-nav-brand:link,
+    a.planet-nav-brand:visited,
+    a.planet-nav-brand:hover,
+    a.planet-nav-brand:active,
+    a.planet-nav-brand:focus,
+    .planet-navbar a.planet-nav-brand,
+    .stMarkdown a.planet-nav-brand,
+    div.stMarkdown a.planet-nav-brand,
+    .planet-nav-brand,
+    .planet-nav-title,
+    .planet-nav-title *,
+    .nav-brand-sat,
+    .nav-brand-query,
+    .planet-nav-dot {{
+        text-decoration: none !important;
+        text-decoration-line: none !important;
+        -webkit-text-decoration: none !important;
+        border-bottom: none !important;
+        box-shadow: none !important;
+        outline: none !important;
     }}
     .planet-nav-logo {{
-        width: 24px;
-        height: 24px;
+        width: 32px;
+        height: 32px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #ffffff;
+        background: rgba(15, 23, 42, 0.70);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.30);
         flex-shrink: 0;
-        background: transparent;
-        border: none;
-        box-shadow: none;
+        transition: border-color 0.2s ease, background 0.2s ease;
+    }}
+    .planet-nav-brand:hover .planet-nav-logo {{
+        border-color: rgba(56, 189, 248, 0.50);
+        background: rgba(30, 41, 59, 0.85);
     }}
     .ref-nav-logo {{
         background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
@@ -337,18 +378,41 @@ st.markdown(f"""
         box-shadow: 0 0 10px rgba(37, 99, 235, 0.40);
     }}
     .planet-nav-title {{
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        font-size: 1.15rem;
-        font-weight: 400;
-        letter-spacing: -0.015em;
-        color: #ffffff;
+        font-family: 'Space Grotesk', -apple-system, sans-serif;
+        font-size: 1.24rem;
+        line-height: 1;
+        letter-spacing: -0.035em;
         display: inline-flex;
         align-items: baseline;
+        text-decoration: none !important;
+        user-select: none;
+    }}
+    .nav-brand-sat {{
+        font-weight: 500;
+        color: #94A3B8;
+        transition: color 0.2s ease;
+        text-decoration: none !important;
+    }}
+    .nav-brand-query {{
+        font-weight: 700;
+        color: #FFFFFF;
+        letter-spacing: -0.04em;
+        text-decoration: none !important;
+    }}
+    .planet-nav-brand:hover .nav-brand-sat {{
+        color: #CBD5E1;
     }}
     .planet-nav-dot {{
-        color: #60A5FA;
-        font-weight: 700;
+        color: #38BDF8;
+        font-weight: 800;
+        font-size: 1.35rem;
+        line-height: 0;
         margin-left: 1px;
+        position: relative;
+        bottom: -1px;
+        text-shadow: 0 0 8px rgba(56, 189, 248, 0.60);
+        display: inline-block;
+        text-decoration: none !important;
     }}
     .planet-nav-menu {{
         display: flex !important;
@@ -486,9 +550,12 @@ st.markdown(f"""
         width: 100vw;
         position: relative;
         left: 50%;
-        right: 50%;
+        right: auto;
         margin-left: -50vw;
-        margin-right: -50vw;
+        margin-right: 0;
+        width: 100cqw;
+        max-width: 100cqw;
+        margin-left: -50cqw;
         height: 100vh;
         min-height: 100vh;
         background-color: #020409;
@@ -717,9 +784,12 @@ st.markdown(f"""
         width: 100vw;
         position: relative;
         left: 50%;
-        right: 50%;
+        right: auto;
         margin-left: -50vw;
-        margin-right: -50vw;
+        margin-right: 0;
+        width: 100cqw;
+        max-width: 100cqw;
+        margin-left: -50cqw;
         margin-top: 0 !important;
         padding-top: 24px;
         margin-bottom: 32px;
@@ -881,26 +951,30 @@ st.markdown(f"""
         display: grid;
         grid-template-columns: repeat(4, 1fr);
         gap: 16px;
-        margin-bottom: 28px;
+        margin-top: 36px;
+        margin-bottom: 32px;
+        scroll-margin-top: 88px !important;
     }}
     @media (max-width: 960px) {{
         .ref-stats-grid {{
             grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            gap: 14px;
+            margin-top: 28px;
         }}
     }}
     @media (max-width: 520px) {{
         .ref-stats-grid {{
             grid-template-columns: 1fr;
-            gap: 10px;
+            gap: 12px;
+            margin-top: 24px;
         }}
     }}
     .ref-stat-card {{
-        background: var(--hero-card-bg);
-        border: 1px solid var(--border-color);
-        border-radius: 10px;
-        padding: 20px 18px;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+        background: rgba(11, 17, 30, 0.70);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 22px 20px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.20);
     }}
     .ref-stat-label {{
         font-family: 'Inter', sans-serif;
@@ -929,23 +1003,39 @@ st.markdown(f"""
         line-height: 1.4;
     }}
 
-    /* Full Bleed Tech Ticker Strip (Deep Navy + Clear Azure Blue) */
+    /* Full Bleed Tech Ticker Strip (Aerospace Telemetry Palette: Dark Navy + Muted Steel-Blue Accent) */
     .tech-ticker-wrap {{
-        width: 100vw;
-        position: relative;
-        left: 50%;
-        right: 50%;
-        margin-left: -50vw;
-        margin-right: -50vw;
-        background: #071022;
-        border-top: 1px solid rgba(59, 130, 246, 0.28);
-        border-bottom: 1px solid rgba(59, 130, 246, 0.28);
-        overflow: hidden;
-        white-space: nowrap;
-        padding: 12px 0;
-        margin-top: 6px;
-        margin-bottom: 36px;
-        box-shadow: inset 0 0 25px rgba(0, 0, 0, 0.6);
+        width: 100vw !important;
+        position: relative !important;
+        left: 50% !important;
+        right: auto !important;
+        margin-left: -50vw !important;
+        margin-right: 0 !important;
+        width: 100cqw !important;
+        max-width: 100cqw !important;
+        margin-left: -50cqw !important;
+        box-sizing: border-box !important;
+        background: {"#080c14" if is_dark else "#f1f5f9"} !important;
+        border-top: 1px solid {"rgba(255, 255, 255, 0.08)" if is_dark else "rgba(0, 0, 0, 0.08)"} !important;
+        border-bottom: 1px solid {"rgba(255, 255, 255, 0.08)" if is_dark else "rgba(0, 0, 0, 0.08)"} !important;
+        overflow: hidden !important;
+        white-space: nowrap !important;
+        padding: 12px 0 !important;
+        margin-top: 4px !important;
+        margin-bottom: 34px !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+        z-index: 10;
+    }}
+    div[data-testid="stElementContainer"]:has(.tech-ticker-wrap),
+    .element-container:has(.tech-ticker-wrap),
+    div[data-testid="stMarkdownContainer"]:has(.tech-ticker-wrap) {{
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
     }}
     @keyframes ticker {{
         0% {{ transform: translate3d(0, 0, 0); }}
@@ -961,17 +1051,22 @@ st.markdown(f"""
     }}
     .ticker-item {{
         font-family: 'JetBrains Mono', monospace;
-        font-size: 0.82rem;
+        font-size: 0.80rem;
         font-weight: 600;
         letter-spacing: 0.14em;
         text-transform: uppercase;
-        color: #60A5FA;
-        padding: 0 16px;
+        color: {"#7E99B8" if is_dark else "#3B6998"};
+        padding: 0 18px;
         white-space: nowrap;
+        transition: color 0.15s ease;
+    }}
+    .ticker-item:hover {{
+        color: {"#F1F5F9" if is_dark else "#0F172A"};
     }}
     .ticker-sep {{
-        color: rgba(96, 165, 250, 0.45);
-        font-size: 0.70rem;
+        color: {"rgba(126, 153, 184, 0.40)" if is_dark else "rgba(59, 105, 152, 0.40)"};
+        font-size: 0.68rem;
+        vertical-align: middle;
     }}
 
     /* Sidebar Precision Instrumentation */
@@ -1062,431 +1157,330 @@ st.markdown(f"""
     }}
 
     /* Section Titles and Card Headers */
-    /* Section Titles and Card Headers */
-    /* NASA Eyes & Aceternity UI Mission-Control HUD Workflow Section */
+    /* Aerospace Product Clean UI: Ingestion & Mission Directives (Planet / ESA / NASA JPL Eyes standard) */
     .ingestion-hero-banner {{
         position: relative;
-        background-color: #0c121e;
+        background-color: #0b1220;
         background-image: 
-            linear-gradient(90deg, rgba(7, 10, 15, 0.96) 0%, rgba(7, 10, 15, 0.82) 45%, rgba(7, 10, 15, 0.60) 100%),
+            linear-gradient(135deg, rgba(7, 11, 20, 0.95) 0%, rgba(10, 16, 28, 0.90) 55%, rgba(15, 23, 42, 0.85) 100%),
             url('{img_opt_url}');
         background-size: cover;
         background-position: center;
-        border: 1px solid rgba(45, 212, 191, 0.30);
-        border-radius: 14px;
-        padding: 24px 28px 20px;
-        margin-bottom: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.10);
+        border-radius: 12px;
+        padding: 28px 32px 24px;
+        margin-bottom: 32px;
         overflow: hidden;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.50);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35);
+        scroll-margin-top: 88px !important;
     }}
     .hud-step-header {{
         position: relative;
-        margin-bottom: 20px;
-        padding-bottom: 12px;
+        margin-bottom: 24px;
+        padding-bottom: 4px;
+        scroll-margin-top: 88px !important;
     }}
     .hud-scanline {{
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background: linear-gradient(90deg, #60A5FA 0%, #2dd4bf 30%, rgba(45, 212, 191, 0.15) 70%, transparent 100%);
-    }}
-    .hud-scanline::after {{
-        content: '';
-        position: absolute;
-        top: -1px;
-        left: 0;
-        width: 48px;
-        height: 3px;
-        background: #2dd4bf;
-        box-shadow: 0 0 8px #2dd4bf;
+        display: none !important;
     }}
     .ref-section-kicker {{
-        font-family: 'JetBrains Mono', monospace;
+        font-family: 'Inter', -apple-system, sans-serif;
         font-size: 0.74rem;
-        font-weight: 700;
-        letter-spacing: 0.16em;
+        font-weight: 600;
+        letter-spacing: 0.08em;
         text-transform: uppercase;
         color: #60A5FA;
-        margin-bottom: 6px;
+        margin-bottom: 8px;
         display: flex;
         align-items: center;
         gap: 8px;
     }}
-    .hud-dot {{
-        width: 6px;
-        height: 6px;
-        border-radius: 50%;
-        background-color: #2dd4bf;
-        box-shadow: 0 0 8px #2dd4bf;
+    .section-kicker-pill {{
         display: inline-block;
-        animation: hudPulse 2.5s infinite;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        color: #60A5FA;
+        background: rgba(59, 130, 246, 0.12);
+        border: 1px solid rgba(59, 130, 246, 0.25);
+        padding: 2px 7px;
+        border-radius: 4px;
+        margin-right: 4px;
     }}
-    @keyframes hudPulse {{
-        0%, 100% {{ opacity: 1; transform: scale(1); }}
-        50% {{ opacity: 0.4; transform: scale(0.85); }}
-    }}
-    .hud-bracket {{
-        color: #2dd4bf;
-        font-weight: 800;
+    .hud-dot, .hud-bracket {{
+        display: none !important;
     }}
     .hud-step-num {{
-        color: #ffffff;
+        color: #60A5FA;
         font-weight: 700;
     }}
     .ref-section-title {{
         font-family: 'Space Grotesk', 'Inter', sans-serif;
-        font-size: 1.62rem;
+        font-size: 1.55rem;
         font-weight: 700;
         color: var(--text-primary);
-        margin-bottom: 6px;
-        letter-spacing: 0.02em;
-        text-shadow: 0 0 16px rgba(45, 212, 191, 0.35), 0 0 32px rgba(96, 165, 250, 0.20);
+        margin-bottom: 8px;
+        letter-spacing: -0.01em;
     }}
     .ref-section-desc {{
         font-family: 'Inter', sans-serif;
-        font-size: 0.88rem;
+        font-size: 0.90rem;
         color: var(--text-secondary);
-        margin-bottom: 6px;
-        line-height: 1.5;
+        margin-bottom: 18px;
+        line-height: 1.6;
+        max-width: 820px;
     }}
     .hud-telemetry-row {{
         display: flex;
         align-items: center;
-        justify-content: space-between;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 10px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(45, 212, 191, 0.15);
+        gap: 14px;
+        margin-top: 22px;
+        padding: 13px 20px;
+        background: rgba(6, 10, 19, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid rgba(96, 165, 250, 0.35);
+        border-radius: 12px;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 0, 0, 0.25);
     }}
     .hud-telemetry-meta {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.70rem;
-        color: rgba(45, 212, 191, 0.85);
-        letter-spacing: 0.10em;
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.80rem;
+        color: #94A3B8;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 14px;
         flex-wrap: wrap;
         margin: 0;
+        width: 100%;
     }}
     .hud-telemetry-tag {{
-        background: rgba(45, 212, 191, 0.12);
-        border: 1px solid rgba(45, 212, 191, 0.35);
-        padding: 2px 7px;
-        border-radius: 4px;
-        color: #2dd4bf;
-    }}
-    .hud-telemetry-ticks {{
         display: inline-flex;
         align-items: center;
-        gap: 3px;
-        margin: 0;
+        gap: 6px;
+        background: rgba(16, 185, 129, 0.12);
+        border: 1px solid rgba(16, 185, 129, 0.30);
+        padding: 3px 10px;
+        border-radius: 9999px;
+        color: #34D399;
+        font-size: 0.74rem;
+        font-weight: 600;
+        letter-spacing: 0.03em;
     }}
-    .hud-tick {{
+    .telemetry-live-dot {{
         width: 6px;
-        height: 3px;
-        border-radius: 1px;
-        background: rgba(255, 255, 255, 0.15);
+        height: 6px;
+        border-radius: 50%;
+        background-color: #10B981;
+        box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
     }}
-    .hud-tick.active {{
-        background: #2dd4bf;
-        box-shadow: 0 0 6px #2dd4bf;
+    .telemetry-item {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }}
+    .telemetry-label {{
+        color: #94A3B8;
+        font-weight: 500;
+    }}
+    .telemetry-val {{
+        color: #FFFFFF;
+        font-weight: 600;
+    }}
+    .telemetry-sep {{
+        color: rgba(255, 255, 255, 0.25);
+        user-select: none;
+    }}
+    .hud-telemetry-ticks, .hud-tick {{
+        display: none !important;
     }}
 
-    /* Systematized NASA Viewfinder Reticle Corners */
+    /* Decorative Corner Brackets Removed */
     .hud-corner-tl, .hud-corner-tr, .hud-corner-bl, .hud-corner-br {{
-        position: absolute;
-        width: 10px;
-        height: 10px;
-        pointer-events: none;
-        z-index: 5;
-    }}
-    .hud-corner-tl {{
-        top: 5px; left: 5px;
-        border-top: 1.5px solid #2dd4bf; border-left: 1.5px solid #2dd4bf;
-    }}
-    .hud-corner-tr {{
-        top: 5px; right: 5px;
-        border-top: 1.5px solid #2dd4bf; border-right: 1.5px solid #2dd4bf;
-    }}
-    .hud-corner-bl {{
-        bottom: 5px; left: 5px;
-        border-bottom: 1.5px solid #2dd4bf; border-left: 1.5px solid #2dd4bf;
-    }}
-    .hud-corner-br {{
-        bottom: 5px; right: 5px;
-        border-bottom: 1.5px solid #2dd4bf; border-right: 1.5px solid #2dd4bf;
+        display: none !important;
     }}
 
-    /* Tile Card Headers with Satellite / Aerial Imagery Backdrops */
+    /* Tile Card Headers - Clean Solid Dark Aerospace Slate (No thumbnail image artifacts) */
     .tile-header-banner {{
         position: relative;
-        border-radius: 10px;
-        padding: 14px 16px 12px;
-        margin-bottom: 12px;
+        border-radius: 12px;
+        padding: 18px 22px;
+        margin-bottom: 14px;
         overflow: hidden;
-        border: 1px solid rgba(255, 255, 255, 0.12);
-        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.40);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.30);
+        background-color: #0B111E;
+        background-image: linear-gradient(180deg, rgba(17, 24, 39, 0.65) 0%, rgba(11, 17, 30, 0.95) 100%);
     }}
     .tile-banner-a {{
-        background-color: #0b1220;
-        background-image: 
-            linear-gradient(90deg, rgba(7, 11, 19, 0.94) 0%, rgba(7, 11, 19, 0.82) 55%, rgba(7, 11, 19, 0.60) 100%),
-            url('{img_opt_url}');
-        background-size: cover;
-        background-position: center;
-        border-left: 3px solid #60A5FA;
+        border-left: 3px solid #3B82F6;
     }}
     .tile-banner-b {{
-        background-color: #0b151e;
-        background-image: 
-            linear-gradient(90deg, rgba(7, 11, 19, 0.94) 0%, rgba(7, 11, 19, 0.82) 55%, rgba(7, 11, 19, 0.60) 100%),
-            url('{img_chg_url}');
-        background-size: cover;
-        background-position: center;
-        border-left: 3px solid #2dd4bf;
+        border-left: 3px solid #0D9488;
     }}
     .ref-card-header {{
-        font-family: 'Inter', sans-serif;
-        font-size: 0.96rem;
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.98rem;
         font-weight: 600;
         color: var(--text-primary);
         display: flex;
         align-items: center;
         gap: 8px;
         margin: 0;
+        letter-spacing: -0.01em;
     }}
     .ref-card-desc {{
-        font-family: 'Inter', sans-serif;
-        font-size: 0.79rem;
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.82rem;
         color: var(--text-secondary);
         margin: 6px 0 0 0;
-        line-height: 1.45;
+        line-height: 1.5;
     }}
 
-    /* Chip & Dynamic Status Badges */
+    /* Chip & Dynamic Status Badges (Enhanced Contrast) */
     .hud-chip-tag {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        padding: 2px 6px;
-        border-radius: 3px;
-        display: inline-block;
-    }}
-    .tag-blue {{
-        color: #60A5FA;
-        background: rgba(96, 165, 250, 0.12);
-        border: 1px solid rgba(96, 165, 250, 0.30);
-    }}
-    .tag-teal {{
-        color: #2dd4bf;
-        background: rgba(45, 212, 191, 0.12);
-        border: 1px solid rgba(45, 212, 191, 0.30);
+        display: none !important;
     }}
     .hud-status-tag {{
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.65rem;
-        font-weight: 700;
-        letter-spacing: 0.08em;
-        padding: 2px 7px;
-        border-radius: 3px;
+        font-family: 'Inter', -apple-system, sans-serif;
+        font-size: 0.76rem;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        padding: 4px 11px;
+        border-radius: 9999px;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: 7px;
+        text-transform: none;
     }}
     .tag-standby {{
-        color: #94a3b8;
-        background: rgba(148, 163, 184, 0.12);
-        border: 1px solid rgba(148, 163, 184, 0.25);
+        color: #E2E8F0;
+        background: rgba(148, 163, 184, 0.14);
+        border: 1px solid rgba(226, 232, 240, 0.28);
     }}
     .tag-active {{
-        color: #2dd4bf;
-        background: rgba(45, 212, 191, 0.15);
-        border: 1px solid rgba(45, 212, 191, 0.40);
-        box-shadow: 0 0 10px rgba(45, 212, 191, 0.25);
+        color: #34D399;
+        background: rgba(16, 185, 129, 0.14);
+        border: 1px solid rgba(52, 211, 153, 0.35);
     }}
     .hud-status-dot {{
-        width: 5px;
-        height: 5px;
+        width: 6px;
+        height: 6px;
         border-radius: 50%;
         display: inline-block;
+        flex-shrink: 0;
     }}
     .dot-standby {{
-        background: #64748b;
+        background: #94A3B8;
+        box-shadow: 0 0 5px rgba(148, 163, 184, 0.5);
     }}
     .dot-active {{
-        background: #2dd4bf;
-        box-shadow: 0 0 6px #2dd4bf;
-        animation: hudPulse 1.8s infinite;
+        background: #10B981;
+        box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
     }}
 
-    /* Drag-and-Drop Zones with Scanline Grid, Marching Dashed Border & Viewfinder Reticles */
+    /* Drag-and-Drop Zones - Clean Professional Surface */
     [data-testid="stFileUploader"] section {{
-        background-color: rgba(9, 14, 23, 0.85) !important;
-        background-image: 
-            linear-gradient(rgba(9, 14, 23, 0.88), rgba(9, 14, 23, 0.94)),
-            repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 1px, transparent 1px, transparent 4px),
-            radial-gradient(circle, rgba(45, 212, 191, 0.08) 1px, transparent 1px) !important;
-        background-size: 100% 100%, 100% 4px, 20px 20px !important;
-        backdrop-filter: blur(14px) !important;
-        -webkit-backdrop-filter: blur(14px) !important;
-        border: 1.5px dashed rgba(45, 212, 191, 0.40) !important;
-        border-radius: 10px !important;
-        padding: 24px 18px !important;
+        background: rgba(11, 17, 30, 0.60) !important;
+        backdrop-filter: blur(10px) !important;
+        -webkit-backdrop-filter: blur(10px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.10) !important;
+        border-radius: 12px !important;
+        padding: 28px 22px !important;
         position: relative !important;
         overflow: hidden !important;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45), inset 0 0 16px rgba(10, 16, 26, 0.80) !important;
-        animation: hudDropzonePulse 3.5s ease-in-out infinite alternate !important;
-        transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
-    }}
-    @keyframes hudDropzonePulse {{
-        0% {{
-            border-color: rgba(45, 212, 191, 0.35);
-            box-shadow: 0 0 12px rgba(45, 212, 191, 0.08), inset 0 0 15px rgba(10, 16, 26, 0.7);
-        }}
-        50% {{
-            border-color: rgba(96, 165, 250, 0.65);
-            box-shadow: 0 0 22px rgba(96, 165, 250, 0.20), inset 0 0 20px rgba(10, 16, 26, 0.8);
-        }}
-        100% {{
-            border-color: rgba(45, 212, 191, 0.35);
-            box-shadow: 0 0 12px rgba(45, 212, 191, 0.08), inset 0 0 15px rgba(10, 16, 26, 0.7);
-        }}
-    }}
-    [data-testid="stFileUploader"] section::before {{
-        content: '';
-        position: absolute;
-        top: 5px;
-        left: 5px;
-        width: 8px;
-        height: 8px;
-        border-top: 1.5px solid #2dd4bf;
-        border-left: 1.5px solid #2dd4bf;
-        pointer-events: none;
-        z-index: 2;
-    }}
-    [data-testid="stFileUploader"] section::after {{
-        content: '';
-        position: absolute;
-        bottom: 5px;
-        right: 5px;
-        width: 8px;
-        height: 8px;
-        border-bottom: 1.5px solid #2dd4bf;
-        border-right: 1.5px solid #2dd4bf;
-        pointer-events: none;
-        z-index: 2;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25) !important;
+        transition: border-color 0.2s ease, background 0.2s ease !important;
     }}
     [data-testid="stFileUploader"] section:hover {{
-        border-color: #2dd4bf !important;
-        box-shadow: 0 0 28px rgba(45, 212, 191, 0.35), inset 0 0 25px rgba(45, 212, 191, 0.12) !important;
-        transform: translateY(-2px);
+        border-color: rgba(96, 165, 250, 0.45) !important;
+        background: rgba(15, 23, 42, 0.75) !important;
+        box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35) !important;
     }}
     [data-testid="stFileUploader"] button {{
-        background: rgba(15, 23, 42, 0.85) !important;
-        color: #ffffff !important;
-        border: 1px solid rgba(96, 165, 250, 0.35) !important;
+        background: rgba(30, 41, 59, 0.75) !important;
+        color: #F1F5F9 !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 8px !important;
-        font-family: 'Inter', sans-serif !important;
-        font-size: 0.82rem !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.84rem !important;
         font-weight: 500 !important;
-        padding: 7px 16px !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+        padding: 8px 18px !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.20) !important;
         transition: all 0.2s ease !important;
     }}
     [data-testid="stFileUploader"] button:hover {{
-        border-color: #60A5FA !important;
-        color: #60A5FA !important;
-        background: rgba(30, 58, 138, 0.35) !important;
-        box-shadow: 0 0 12px rgba(96, 165, 250, 0.35) !important;
+        border-color: rgba(96, 165, 250, 0.50) !important;
+        color: #FFFFFF !important;
+        background: rgba(51, 65, 85, 0.90) !important;
     }}
 
-    /* Aceternity-Style Hover-Border-Gradient Preset Buttons */
+    /* Clean Aerospace Preset Buttons */
     div[data-testid="stButton"] > button[kind="secondary"] {{
-        background: rgba(13, 19, 33, 0.70) !important;
-        color: rgba(255, 255, 255, 0.85) !important;
+        background: rgba(15, 23, 42, 0.60) !important;
+        color: #E2E8F0 !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 10px !important;
+        border-radius: 8px !important;
         font-family: 'Inter', -apple-system, sans-serif !important;
-        font-size: 0.84rem !important;
-        font-weight: 600 !important;
-        letter-spacing: 0.02em !important;
-        text-transform: uppercase !important;
-        padding: 12px 16px !important;
+        font-size: 0.86rem !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.01em !important;
+        text-transform: none !important;
+        padding: 11px 18px !important;
         width: 100% !important;
         backdrop-filter: blur(8px) !important;
         -webkit-backdrop-filter: blur(8px) !important;
-        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.20) !important;
     }}
     div[data-testid="stButton"] > button[kind="secondary"]:hover {{
-        background: linear-gradient(135deg, rgba(30, 58, 138, 0.6), rgba(15, 23, 42, 0.9)) !important;
-        color: #ffffff !important;
-        border-color: #2dd4bf !important;
-        transform: scale(1.02) translateY(-1px) !important;
-        box-shadow: 0 6px 20px rgba(45, 212, 191, 0.25), 0 0 15px rgba(96, 165, 250, 0.30) !important;
+        background: rgba(30, 41, 59, 0.85) !important;
+        color: #FFFFFF !important;
+        border-color: rgba(96, 165, 250, 0.45) !important;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.30) !important;
     }}
 
-    /* Aceternity-Style Glow Text Input Field */
+    /* Focused Clean Text Input Field */
     [data-testid="stTextInput"] input {{
-        background: rgba(8, 14, 24, 0.85) !important;
-        border: 1px solid rgba(255, 255, 255, 0.14) !important;
-        border-radius: 10px !important;
-        color: #ffffff !important;
-        font-family: 'Inter', sans-serif !important;
-        font-size: 0.94rem !important;
-        padding: 14px 18px !important;
+        background: rgba(11, 17, 30, 0.70) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 8px !important;
+        color: #F8FAFC !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.92rem !important;
+        padding: 13px 16px !important;
         backdrop-filter: blur(8px) !important;
         -webkit-backdrop-filter: blur(8px) !important;
-        box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45) !important;
-        transition: all 0.25s ease !important;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.30) !important;
+        transition: all 0.2s ease !important;
     }}
     [data-testid="stTextInput"] input:focus {{
-        border-color: #60A5FA !important;
-        box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.20), 0 0 22px rgba(45, 212, 191, 0.20), inset 0 2px 6px rgba(0, 0, 0, 0.35) !important;
-        background: rgba(10, 18, 30, 0.95) !important;
+        border-color: #3B82F6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18), inset 0 1px 3px rgba(0, 0, 0, 0.20) !important;
+        background: rgba(15, 23, 42, 0.90) !important;
     }}
 
-    /* Aceternity-Style Animated Shimmering Primary Action Button with Hazard Pattern */
+    /* Clean Authoritative Primary Action Button */
     div[data-testid="stButton"] > button[kind="primary"] {{
-        background-image: 
-            repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.035) 0px, rgba(255, 255, 255, 0.035) 10px, transparent 10px, transparent 20px),
-            linear-gradient(135deg, #1D4ED8 0%, #0284C7 35%, #0D9488 70%, #1D4ED8 100%) !important;
-        background-size: 200% 200%, 300% 300% !important;
-        animation: primaryBtnShimmer 5s ease infinite !important;
+        background: linear-gradient(135deg, #2563EB 0%, #0284C7 50%, #0D9488 100%) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.25) !important;
-        border-radius: 10px !important;
-        font-family: 'Inter', sans-serif !important;
-        font-size: 0.98rem !important;
+        border: 1px solid rgba(255, 255, 255, 0.20) !important;
+        border-radius: 8px !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.95rem !important;
         font-weight: 600 !important;
-        letter-spacing: 0.02em !important;
+        letter-spacing: 0.01em !important;
         text-transform: none !important;
-        padding: 15px 30px !important;
-        box-shadow: 0 4px 24px rgba(2, 132, 199, 0.40), 0 0 30px rgba(13, 148, 136, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
-        transition: all 0.25s ease !important;
-    }}
-    @keyframes primaryBtnShimmer {{
-        0% {{ background-position: 0% 50%; }}
-        50% {{ background-position: 100% 50%; }}
-        100% {{ background-position: 0% 50%; }}
+        padding: 14px 28px !important;
+        box-shadow: 0 4px 16px rgba(37, 99, 235, 0.30) !important;
+        transition: all 0.2s ease !important;
     }}
     div[data-testid="stButton"] > button[kind="primary"]:hover {{
-        transform: translateY(-2px) scale(1.008) !important;
-        box-shadow: 0 8px 32px rgba(2, 132, 199, 0.60), 0 0 45px rgba(13, 148, 136, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
-    }}
-    @keyframes primaryBtnShimmer {{
-        0% {{ background-position: 0% 50%; }}
-        50% {{ background-position: 100% 50%; }}
-        100% {{ background-position: 0% 50%; }}
-    }}
-    div[data-testid="stButton"] > button[kind="primary"]:hover {{
-        transform: translateY(-2px) scale(1.008) !important;
-        box-shadow: 0 8px 32px rgba(2, 132, 199, 0.60), 0 0 45px rgba(13, 148, 136, 0.40), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+        background: linear-gradient(135deg, #1D4ED8 0%, #0369A1 50%, #0F766E 100%) !important;
+        border-color: rgba(255, 255, 255, 0.30) !important;
+        box-shadow: 0 6px 22px rgba(37, 99, 235, 0.45) !important;
+        transform: translateY(-1px) !important;
     }}
 
     /* NASA Eye Telemetry Status Cards */
@@ -2017,14 +2011,22 @@ st.markdown(f"""
 navbar_html = f"""<header class="planet-navbar">
 <div class="planet-navbar-inner">
 <div style="display: flex; align-items: center;">
-<a href="#" class="planet-nav-brand">
+<a href="#" class="planet-nav-brand" style="text-decoration: none !important; border-bottom: none !important; outline: none !important;">
 <div class="planet-nav-logo">
-<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-<circle cx="12" cy="12" r="8.5"></circle>
-<circle cx="18" cy="9" r="1.8" fill="#60A5FA" stroke="none"></circle>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="9.5" y="7" width="5" height="10" rx="0.8" fill="#FFFFFF"/>
+<rect x="2" y="8" width="5.5" height="8" rx="0.8" fill="#38BDF8"/>
+<rect x="16.5" y="8" width="5.5" height="8" rx="0.8" fill="#38BDF8"/>
+<line x1="7.5" y1="12" x2="9.5" y2="12" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="14.5" y1="12" x2="16.5" y2="12" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+<line x1="2" y1="12" x2="7.5" y2="12" stroke="rgba(11, 17, 30, 0.45)" stroke-width="0.8"/>
+<line x1="16.5" y1="12" x2="22" y2="12" stroke="rgba(11, 17, 30, 0.45)" stroke-width="0.8"/>
+<line x1="12" y1="7" x2="12" y2="3.5" stroke="#FFFFFF" stroke-width="1.2" stroke-linecap="round"/>
+<circle cx="12" cy="3.5" r="1.2" fill="#38BDF8"/>
+<circle cx="12" cy="14" r="1.2" fill="#38BDF8"/>
 </svg>
 </div>
-<span class="planet-nav-title">satquery<span class="planet-nav-dot">.</span></span>
+<span class="planet-nav-title" style="text-decoration: none !important;"><span class="nav-brand-sat" style="text-decoration: none !important;">sat</span><span class="nav-brand-query" style="text-decoration: none !important;">query</span><span class="planet-nav-dot" style="text-decoration: none !important;">.</span></span>
 </a>
 <nav class="planet-nav-menu" style="display: flex; align-items: center; gap: 40px; margin-left: 44px;">
 <a href="#section-ingestion" class="planet-nav-item" style="color: rgba(255, 255, 255, 0.88); text-decoration: none; font-size: 0.88rem; font-weight: 400;">Overview <svg class="planet-chevron" width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="6 9 12 15 18 9"></polyline></svg></a>
@@ -2224,7 +2226,7 @@ st.markdown(highlights_html, unsafe_allow_html=True)
 
 # --- Reference Stats Bar (4 Metric Cards) ---
 st.markdown("""
-<div class="ref-stats-grid">
+<div id="section-stats" class="ref-stats-grid">
     <div class="ref-stat-card">
         <div class="ref-stat-label">ROUTING ACCURACY</div>
         <div class="ref-stat-val val-green">100%</div>
@@ -2273,44 +2275,28 @@ has_img1 = bool(st.session_state.get("uploader_img1"))
 has_img2 = bool(st.session_state.get("uploader_img2"))
 
 if has_img1:
-    status_tag_a = '<span class="hud-status-tag tag-active"><span class="hud-status-dot dot-active"></span>STATUS: FILE LOADED</span>'
+    status_tag_a = '<span class="hud-status-tag tag-active"><span class="hud-status-dot dot-active"></span>File Loaded</span>'
 else:
-    status_tag_a = '<span class="hud-status-tag tag-standby"><span class="hud-status-dot dot-standby"></span>STATUS: AWAITING UPLOAD</span>'
+    status_tag_a = '<span class="hud-status-tag tag-standby"><span class="hud-status-dot dot-standby"></span>Awaiting Upload</span>'
 
 if has_img2:
-    status_tag_b = '<span class="hud-status-tag tag-active"><span class="hud-status-dot dot-active"></span>STATUS: FILE LOADED</span>'
+    status_tag_b = '<span class="hud-status-tag tag-active"><span class="hud-status-dot dot-active"></span>File Loaded</span>'
 else:
-    status_tag_b = '<span class="hud-status-tag tag-standby"><span class="hud-status-dot dot-standby"></span>STATUS: AWAITING UPLOAD</span>'
+    status_tag_b = '<span class="hud-status-tag tag-standby"><span class="hud-status-dot dot-standby"></span>Awaiting Upload</span>'
 
 st.markdown(f"""
 <div id="section-ingestion" class="ingestion-hero-banner">
-    <div class="hud-corner-tl"></div>
-    <div class="hud-corner-tr"></div>
-    <div class="hud-corner-bl"></div>
-    <div class="hud-corner-br"></div>
-    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">STEP 01</span> <span class="hud-bracket">]</span> • SENSOR INGESTION PIPELINE</div>
-    <div class="ref-section-title">Imagery Ingestion & Tile Registration</div>
+    <div class="ref-section-kicker"><span class="section-kicker-pill">STEP 01</span> Sensor Ingestion Pipeline</div>
+    <div class="ref-section-title">Imagery Ingestion &amp; Tile Registration</div>
     <div class="ref-section-desc">Upload primary observation raster tile and an optional secondary / temporal pair for automated multi-modal reasoning.</div>
     <div class="hud-telemetry-row">
         <div class="hud-telemetry-meta">
-            <span class="hud-telemetry-tag">✦ SENSOR BUS ACTIVE</span>
-            <span>COORD: 28.6139° N, 77.2090° E</span>
-            <span>•</span>
-            <span>BAND: MULTISPECTRAL-OPTICAL / SAR</span>
-            <span>•</span>
-            <span>GSD: 0.5M/PX</span>
-        </div>
-        <div class="hud-telemetry-ticks">
-            <span class="hud-tick active"></span>
-            <span class="hud-tick active"></span>
-            <span class="hud-tick active"></span>
-            <span class="hud-tick active"></span>
-            <span class="hud-tick active"></span>
-            <span class="hud-tick active"></span>
-            <span class="hud-tick active"></span>
-            <span class="hud-tick active"></span>
-            <span class="hud-tick"></span>
-            <span class="hud-tick"></span>
+            <span class="hud-telemetry-tag"><span class="telemetry-live-dot"></span>SENSOR BUS ACTIVE</span>
+            <span class="telemetry-item"><span class="telemetry-label">Coord:</span> <span class="telemetry-val">28.6139° N, 77.2090° E</span></span>
+            <span class="telemetry-sep">•</span>
+            <span class="telemetry-item"><span class="telemetry-label">Band:</span> <span class="telemetry-val">Multispectral-Optical / SAR</span></span>
+            <span class="telemetry-sep">•</span>
+            <span class="telemetry-item"><span class="telemetry-label">GSD:</span> <span class="telemetry-val">0.5m / px</span></span>
         </div>
     </div>
 </div>
@@ -2321,14 +2307,9 @@ col_up1, col_up2 = st.columns(2, gap="large")
 with col_up1:
     st.markdown(f"""
     <div class="tile-header-banner tile-banner-a">
-        <div class="hud-corner-tl"></div>
-        <div class="hud-corner-tr"></div>
-        <div class="hud-corner-bl"></div>
-        <div class="hud-corner-br"></div>
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-            <div class="ref-card-header"><span style="color: #60A5FA;">✦</span> Tile A — Primary Observation</div>
-            <div style="display: flex; gap: 6px; align-items: center;">
-                <span class="hud-chip-tag tag-blue">CH 01 // VIS-RGB</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
+            <div class="ref-card-header">Tile A — Primary Observation</div>
+            <div>
                 {status_tag_a}
             </div>
         </div>
@@ -2351,14 +2332,9 @@ with col_up1:
 with col_up2:
     st.markdown(f"""
     <div class="tile-header-banner tile-banner-b">
-        <div class="hud-corner-tl"></div>
-        <div class="hud-corner-tr"></div>
-        <div class="hud-corner-bl"></div>
-        <div class="hud-corner-br"></div>
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
-            <div class="ref-card-header"><span style="color: #2dd4bf;">✦</span> Tile B — Secondary / Temporal Pair</div>
-            <div style="display: flex; gap: 6px; align-items: center;">
-                <span class="hud-chip-tag tag-teal">CH 02 // SAR-OPT</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px;">
+            <div class="ref-card-header">Tile B — Secondary / Temporal Pair</div>
+            <div>
                 {status_tag_b}
             </div>
         </div>
@@ -2380,39 +2356,29 @@ with col_up2:
 
 
 # --- Section 2: Query Specification ---
-st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 48px;'></div>", unsafe_allow_html=True)
 st.markdown("""
 <div class="hud-step-header">
-    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">STEP 02</span> <span class="hud-bracket">]</span> • DIRECTIVE & INSTRUCTION</div>
-    <div class="ref-section-title">Mission Instruction & Query Directive</div>
+    <div class="ref-section-kicker"><span class="section-kicker-pill">STEP 02</span> Directive &amp; Instruction</div>
+    <div class="ref-section-title">Mission Instruction &amp; Query Directive</div>
     <div class="ref-section-desc">Choose a pre-configured analysis template or enter custom natural language instructions.</div>
-    <div class="hud-telemetry-ticks">
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick active"></span>
-        <span class="hud-tick"></span>
-        <span class="hud-tick"></span>
-    </div>
-    <div class="hud-scanline"></div>
 </div>
 """, unsafe_allow_html=True)
 
 # Preset Technical Buttons with Aerospace Symbols
-col_p1, col_p2, col_p3 = st.columns(3, gap="small")
+col_p1, col_p2, col_p3 = st.columns(3, gap="medium")
 with col_p1:
-    if st.button("⌖  AIRCRAFT RECOGNITION", key="preset_air", help="Target detection and runway inventory via optical VQA"):
+    if st.button("✈  Aircraft Recognition", key="preset_air", help="Target detection and runway inventory via optical VQA"):
         st.session_state.query_input_val = "Detect and count the aircraft parked at the airport terminals."
 with col_p2:
-    if st.button("▦  LAND COVER CLASSIFICATION", key="preset_land", help="Macro land-cover and surface categorization"):
+    if st.button("🗺  Land Cover Classification", key="preset_land", help="Macro land-cover and surface categorization"):
         st.session_state.query_input_val = "Identify the dominant land cover and vegetation types across this scene."
 with col_p3:
-    if st.button("◰  BI-TEMPORAL CHANGE DELTA", key="preset_change", help="Topological delta detection across epochs"):
+    if st.button("Δ  Bi-Temporal Change Delta", key="preset_change", help="Topological delta detection across epochs"):
         st.session_state.query_input_val = "Compare both images and identify newly constructed buildings or infrastructure."
 
 # Query Input Field
+st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 query_input = st.text_input(
     "Query Specification Input",
     value=st.session_state.query_input_val,
@@ -2421,17 +2387,17 @@ query_input = st.text_input(
 )
 
 # Analyze Button
-st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
 analyze_clicked = st.button("⚡  Analyze Imagery & Orchestrate Pipeline", type="primary", use_container_width=True)
 
 # --- Analysis Execution ---
 if analyze_clicked:
     if not img1_file:
-        st.warning("[ALERT] Ingestion fault: Tile A (Primary Observation) must be specified.")
+        st.warning("Please upload Tile A (Primary Observation) before initiating analysis.")
     elif not query_input.strip():
-        st.warning("[ALERT] Directive fault: Query specification input cannot be empty.")
+        st.warning("Please enter a query instruction or choose a preset analysis template.")
     else:
-        with st.spinner("DISPATCHING TO ORCHESTRATOR: Extracting metadata, checking guardrails, executing neural inference..."):
+        with st.spinner("Dispatching to orchestrator: routing multi-modal reasoning pipeline..."):
             try:
                 files_payload = [
                     ("files", (img1_file.name, img1_file.getvalue(), img1_file.type or "application/octet-stream"))
