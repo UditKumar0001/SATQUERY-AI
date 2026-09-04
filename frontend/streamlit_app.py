@@ -241,7 +241,7 @@ t = theme_vars["dark" if is_dark else "light"]
 # --- Strict CSS Architecture (Aerospace Ground Control Specification) ---
 st.markdown(f"""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
     :root {{
         --bg-app: {t['bg_app']};
@@ -1024,7 +1024,7 @@ st.markdown(f"""
         background: rgba(15, 23, 42, 0.55);
         border: 1px solid rgba(255, 255, 255, 0.09);
         border-radius: 10px;
-        padding: 24px 20px 22px;
+        padding: 18px 18px 16px;
         display: flex;
         flex-direction: column;
         transition: border-color 0.2s ease, background 0.2s ease;
@@ -1034,39 +1034,39 @@ st.markdown(f"""
         background: rgba(15, 23, 42, 0.75);
     }}
     .stage-card-icon {{
-        width: 38px;
-        height: 38px;
+        width: 36px;
+        height: 36px;
         border-radius: 8px;
         background: rgba(245, 158, 11, 0.10);
         border: 1px solid rgba(245, 158, 11, 0.25);
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 16px;
+        margin-bottom: 12px;
     }}
     .stage-card-title {{
         font-family: 'Space Grotesk', -apple-system, sans-serif;
-        font-size: 1.08rem;
+        font-size: 1.05rem;
         font-weight: 700;
         color: #F8FAFC;
         letter-spacing: -0.015em;
         margin-bottom: 3px;
-        line-height: 1.3;
+        line-height: 1.25;
     }}
     .stage-card-label {{
         font-family: 'JetBrains Mono', monospace;
-        font-size: 0.63rem;
+        font-size: 0.62rem;
         font-weight: 600;
         color: #94A3B8;
         letter-spacing: 0.08em;
         text-transform: uppercase;
-        margin-bottom: 14px;
+        margin-bottom: 10px;
     }}
     .stage-card-body {{
         font-family: 'Inter', -apple-system, sans-serif;
         font-size: 0.81rem;
         color: #94A3B8;
-        line-height: 1.6;
+        line-height: 1.5;
         margin: 0;
     }}
 
@@ -1796,39 +1796,46 @@ st.markdown(f"""
         margin-bottom: 28px;
         min-height: 200px;
     }}
-    /* Minimalist, Borderless Empty State with Breathing Room */
+    /* z.ai-style Empty State: Large elegant serif display heading & simple muted subtitle */
+    .zai-empty-state-header {{
+        text-align: center !important;
+        margin: 18px auto 26px auto !important;
+        max-width: 760px !important;
+        padding: 0 16px !important;
+    }}
+    .zai-empty-heading {{
+        font-family: 'Playfair Display', Georgia, 'Times New Roman', serif !important;
+        font-size: 2.75rem !important;
+        font-weight: 600 !important;
+        color: #FFFFFF !important;
+        letter-spacing: -0.025em !important;
+        line-height: 1.2 !important;
+        text-align: center !important;
+        margin: 0 auto 12px auto !important;
+    }}
+    @media (max-width: 768px) {{
+        .zai-empty-heading {{
+            font-size: 2.05rem !important;
+        }}
+    }}
+    .zai-empty-subtitle {{
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.96rem !important;
+        font-weight: 400 !important;
+        color: #94A3B8 !important;
+        text-align: center !important;
+        margin: 0 auto !important;
+        letter-spacing: -0.01em !important;
+        line-height: 1.5 !important;
+    }}
     .chat-empty-state {{
         background: transparent !important;
         border: none !important;
         box-shadow: none !important;
-        padding: 36px 20px 8px 20px !important;
+        padding: 10px 20px 8px 20px !important;
         text-align: center !important;
         margin: 0 auto !important;
         max-width: 620px !important;
-    }}
-    .chat-empty-icon {{
-        color: #7E99B8 !important;
-        display: flex !important;
-        justify-content: center !important;
-        margin-bottom: 18px !important;
-        opacity: 0.90 !important;
-    }}
-    .chat-empty-title {{
-        font-family: 'Space Grotesk', -apple-system, sans-serif !important;
-        font-size: 1.45rem !important;
-        font-weight: 600 !important;
-        color: #F8FAFC !important;
-        letter-spacing: -0.015em !important;
-        margin-bottom: 10px !important;
-    }}
-    .chat-empty-subtitle {{
-        font-family: 'Inter', -apple-system, sans-serif !important;
-        font-size: 0.90rem !important;
-        font-weight: 400 !important;
-        color: #7E99B8 !important;
-        max-width: 520px !important;
-        margin: 0 auto !important;
-        line-height: 1.6 !important;
     }}
     .chat-row {{
         display: flex;
@@ -1978,56 +1985,269 @@ st.markdown(f"""
         backdrop-filter: blur(6px) !important;
         -webkit-backdrop-filter: blur(6px) !important;
     }}
-    div[class*="st-key-preset_pill_"] > button:hover,
-    div[data-testid="stButton"] > button[key^="preset_pill_"]:hover,
-    button[data-testid*="preset_pill_"]:hover {{
-        background: rgba(56, 189, 248, 0.08) !important;
-        border-color: rgba(56, 189, 248, 0.45) !important;
-        color: #38BDF8 !important;
+    /* =====================================================================
+       Z.AI Style Preset Suggestion Pills (Compact, rounded-full, natural spacing)
+       ===================================================================== */
+    div[class*="preset_pill_"] > button,
+    div[data-testid="stButton"] > button[key*="preset_pill_"] {{
+        border-radius: 9999px !important;
+        font-family: 'Inter', -apple-system, sans-serif !important;
+        font-size: 0.80rem !important;
+        font-weight: 500 !important;
+        padding: 5px 16px !important;
+        height: 32px !important;
+        min-height: 32px !important;
+        width: 100% !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        white-space: nowrap !important;
+        transition: all 0.2s ease !important;
+        backdrop-filter: blur(6px) !important;
+        -webkit-backdrop-filter: blur(6px) !important;
+    }}
+    /* Selected Preset Pill: filled / darker background */
+    div[class*="_sel"] > button,
+    div[data-testid="stButton"] > button[key*="_sel"] {{
+        background: #1E293B !important;
+        border: 1px solid rgba(255, 255, 255, 0.28) !important;
+        color: #F8FAFC !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+    }}
+    /* Outlined / Muted Preset Pills */
+    div[class*="_idle"] > button,
+    div[data-testid="stButton"] > button[key*="_idle"] {{
+        background: transparent !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        color: #94A3B8 !important;
+    }}
+    div[class*="_idle"] > button:hover,
+    div[data-testid="stButton"] > button[key*="_idle"]:hover {{
+        background: rgba(255, 255, 255, 0.06) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+        color: #F8FAFC !important;
         transform: translateY(-1px) !important;
     }}
 
-    /* Modern Centered Pill-Shaped Input Capsule (Claude / ChatGPT / z.ai style) */
+    /* =====================================================================
+       Elevated Dark Input Card (Theme-Harmonized Floating Bar)
+       ===================================================================== */
+    .chat-engine-tag-bar {{
+        max-width: 760px;
+        margin: 0 auto 10px auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 8px;
+    }}
+    .chat-engine-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: #FBBF24;
+        background: rgba(245, 158, 11, 0.12);
+        border: 1px solid rgba(245, 158, 11, 0.35);
+        border-radius: 9999px;
+        padding: 3px 10px;
+        letter-spacing: 0.04em;
+    }}
+    .chat-engine-dot {{
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #F59E0B;
+        display: inline-block;
+    }}
+    .chat-engine-models {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.76rem;
+        color: #94A3B8;
+        letter-spacing: -0.01em;
+    }}
     [data-testid="stChatInput"] {{
-        max-width: 820px !important;
+        max-width: 760px !important;
         margin: 0 auto !important;
-        border-radius: 26px !important;
-        background: rgba(12, 18, 28, 0.90) !important;
-        border: 1px solid rgba(56, 189, 248, 0.28) !important;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.45) !important;
-        transition: all 0.25s ease !important;
-        padding: 6px 12px !important;
+        border-radius: 22px !important;
+        background: #0F172A !important;
+        border: 1px solid rgba(245, 158, 11, 0.28) !important;
+        box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+        padding: 12px 16px 10px 16px !important;
+        position: relative !important;
     }}
     [data-testid="stChatInput"]:focus-within {{
-        border-color: rgba(56, 189, 248, 0.65) !important;
-        box-shadow: 0 0 20px rgba(56, 189, 248, 0.20), 0 6px 30px rgba(0, 0, 0, 0.55) !important;
-        background: rgba(15, 23, 38, 0.98) !important;
+        border-color: rgba(245, 158, 11, 0.65) !important;
+        box-shadow: 0 16px 44px rgba(0, 0, 0, 0.65), 0 0 18px rgba(245, 158, 11, 0.20) !important;
+        background: #111C33 !important;
+    }}
+    [data-testid="stChatInput"] > div {{
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        align-items: flex-end !important;
     }}
     [data-testid="stChatInput"] textarea {{
         font-family: 'Inter', -apple-system, sans-serif !important;
-        font-size: 0.94rem !important;
+        font-size: 0.98rem !important;
+        font-weight: 400 !important;
         color: #F8FAFC !important;
         background: transparent !important;
-        line-height: 1.5 !important;
-        padding: 8px 6px !important;
+        line-height: 1.55 !important;
+        padding: 6px 12px 6px 8px !important;
+        min-height: 44px !important;
     }}
     [data-testid="stChatInput"] textarea::placeholder {{
-        color: #64748B !important;
-        font-size: 0.92rem !important;
-    }}
-    /* Seamless Borderless Paperclip & Send Buttons inside stChatInput */
-    [data-testid="stChatInput"] button {{
-        border: none !important;
-        background: transparent !important;
-        box-shadow: none !important;
         color: #94A3B8 !important;
-        transition: color 0.15s ease, transform 0.15s ease !important;
-        border-radius: 50% !important;
+        font-size: 0.96rem !important;
+        font-weight: 400 !important;
     }}
-    [data-testid="stChatInput"] button:hover {{
-        color: #38BDF8 !important;
-        background: rgba(56, 189, 248, 0.10) !important;
-        transform: scale(1.08) !important;
+    /* Seamless Attach Button (Left) */
+    [data-testid="stChatInputFileUploadButton"] {{
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        background: rgba(255, 255, 255, 0.05) !important;
+        border-radius: 50% !important;
+        width: 34px !important;
+        height: 34px !important;
+        min-width: 34px !important;
+        color: #CBD5E1 !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.15s ease !important;
+        box-shadow: none !important;
+        margin-bottom: 2px !important;
+    }}
+    [data-testid="stChatInputFileUploadButton"]:hover {{
+        background: rgba(245, 158, 11, 0.18) !important;
+        border-color: rgba(245, 158, 11, 0.50) !important;
+        color: #FBBF24 !important;
+        transform: scale(1.05) !important;
+    }}
+    [data-testid="stChatInputFileUploadButton"] svg {{
+        width: 17px !important;
+        height: 17px !important;
+        stroke: #CBD5E1 !important;
+    }}
+    /* Context / Globe Icon next to attach button */
+    [data-testid="stChatInputFileUploadButton"]::after {{
+        content: "";
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        margin-left: 10px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='2' y1='12' x2='22' y2='12'%3E%3C/line%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'%3E%3C/path%3E%3C/svg%3E");
+        background-size: contain;
+        background-repeat: no-repeat;
+        cursor: default;
+        opacity: 0.85;
+    }}
+    /* Circular Dark Send Button with Up-Arrow (Right) */
+    [data-testid="stChatInputSubmitButton"] {{
+        background: #F59E0B !important;
+        border: none !important;
+        border-radius: 50% !important;
+        width: 36px !important;
+        height: 36px !important;
+        min-width: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        color: #0F172A !important;
+        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
+        transition: all 0.18s ease !important;
+        margin-bottom: 2px !important;
+    }}
+    [data-testid="stChatInputSubmitButton"]:hover {{
+        background: #FBBF24 !important;
+        transform: scale(1.06) !important;
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.50) !important;
+    }}
+    [data-testid="stChatInputSubmitButton"] svg {{
+        fill: #0F172A !important;
+        stroke: #0F172A !important;
+        width: 16px !important;
+        height: 16px !important;
+    }}
+    /* Uploaded Files Chips inside dark box */
+    [data-testid="stChatInputFile"] {{
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        border-radius: 8px !important;
+        color: #F8FAFC !important;
+    }}
+    [data-testid="stChatInputFileName"] {{
+        color: #F8FAFC !important;
+        font-weight: 500 !important;
+    }}
+
+    /* =====================================================================
+       Z.AI Style Preview Thumbnail Cards
+       ===================================================================== */
+    .chat-previews-container {{
+        max-width: 760px;
+        margin: 20px auto 0 auto;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }}
+    @media (max-width: 768px) {{
+        .chat-previews-container {{
+            grid-template-columns: 1fr;
+        }}
+    }}
+    .chat-preview-card {{
+        position: relative;
+        height: 106px;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #1E293B;
+        background: #0B111E;
+        box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+        transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+    }}
+    .chat-preview-card:hover {{
+        transform: translateY(-2px);
+        border-color: rgba(245, 158, 11, 0.50);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
+    }}
+    .chat-preview-img {{
+        width: 100%;
+        height: 100%;
+        background-size: cover;
+        background-position: center;
+        transition: transform 0.3s ease;
+    }}
+    .chat-preview-card:hover .chat-preview-img {{
+        transform: scale(1.05);
+    }}
+    .chat-preview-overlay {{
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 24px 12px 10px 12px;
+        background: linear-gradient(180deg, transparent 0%, rgba(8, 13, 23, 0.85) 55%, rgba(8, 13, 23, 0.98) 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }}
+    .chat-preview-title {{
+        font-family: 'Space Grotesk', -apple-system, sans-serif;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #F8FAFC;
+        line-height: 1.25;
+        margin-bottom: 2px;
+    }}
+    .chat-preview-sub {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        color: #94A3B8;
+        letter-spacing: -0.01em;
     }}
     button[kind="primaryFormSubmit"],
     button[data-testid="stBaseButton-primaryFormSubmit"] {{
@@ -2809,7 +3029,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 <div class="pipeline-section-header">
 <div class="pipeline-section-kicker">SYSTEM ARCHITECTURE</div>
 <h2 class="pipeline-section-heading">Specialized 4-Stage Autonomous Pipeline</h2>
-<p class="pipeline-section-subheading">A deterministic, multi-modal pipeline engineered for sub-meter earth observation analysis, autonomous model routing, and verifiable cryptographic telemetry.</p>
+<p class="pipeline-section-subheading">A deterministic multimodal pipeline engineered for sub-meter earth observation and verifiable telemetry.</p>
 </div>
 <div class="stage-cards-grid">
 <div class="stage-clean-card">
@@ -2818,7 +3038,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 </div>
 <div class="stage-card-title">Sensor Ingestion</div>
 <div class="stage-card-label">MULTISPECTRAL &amp; SAR UPLINK</div>
-<p class="stage-card-body">Accepts high-resolution GeoTIFF, TIFF, and PNG imagery across optical RGB and synthetic aperture radar bands. Incoming raster tiles are buffered in memory and validated against coordinate reference systems to ensure radiometric calibration and spatial alignment prior to processing.</p>
+<p class="stage-card-body">Accepts high-resolution optical and SAR raster tiles, validated for coordinate accuracy and radiometric calibration.</p>
 </div>
 <div class="stage-clean-card">
 <div class="stage-card-icon">
@@ -2826,7 +3046,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 </div>
 <div class="stage-card-title">Deterministic Router</div>
 <div class="stage-card-label">LANGGRAPH FINITE STATE MACHINE</div>
-<p class="stage-card-body">Analyzes user query semantics alongside imagery metadata using a zero-drift LangGraph state machine. It deterministically classifies tasks and dispatches payloads to the optimal multimodal vision engine within 6.0 milliseconds, eliminating hallucinated routing pathways.</p>
+<p class="stage-card-body">A zero-drift state machine that classifies queries and dispatches them to the optimal vision engine in 6ms.</p>
 </div>
 <div class="stage-clean-card">
 <div class="stage-card-icon">
@@ -2834,7 +3054,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 </div>
 <div class="stage-card-title">Model Orchestration</div>
 <div class="stage-card-label">PARALLEL MULTIMODAL INFERENCE</div>
-<p class="stage-card-body">Coordinates parallel inference across specialized vision-language models, utilizing GeoChat for visual question answering, GeoLLaVA for bi-temporal change detection, and EarthGPT for optical-SAR sensor fusion, achieving a benchmarked 0.63 task F1 score.</p>
+<p class="stage-card-body">Coordinates GeoChat, GeoLLaVA, and EarthGPT in parallel for VQA, change detection, and sensor fusion.</p>
 </div>
 <div class="stage-clean-card">
 <div class="stage-card-icon">
@@ -2842,7 +3062,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 </div>
 <div class="stage-card-title">Verified Output</div>
 <div class="stage-card-label">TELEMETRY AUDIT &amp; ATTESTATION</div>
-<p class="stage-card-body">Consolidates analytical deductions into auditable outputs authenticated with cryptographic SHA-256 signatures. Complete execution traces are immutably logged to an internal SQLite telemetry ledger and formatted for instant multi-page ReportLab PDF dossier generation.</p>
+<p class="stage-card-body">Every result is cryptographically signed and logged to an immutable telemetry ledger, exportable as a PDF audit report.</p>
 </div>
 </div>
 <div class="pipeline-section-header flow-header">
@@ -2976,23 +3196,79 @@ else:
                 st.session_state.chat_opened = False
                 st.rerun()
 
-    # --- Conversation Stream ---
+    # --- Z.AI-Style Empty State vs Conversation Stream ---
     if not st.session_state.chat_history:
-        st.markdown("""
-        <div class="chat-empty-state">
-            <div class="chat-empty-icon">
-                <svg width="42" height="42" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="16" cy="16" r="6" stroke="#7E99B8" stroke-width="1.6" fill="rgba(56, 189, 248, 0.08)" />
-                    <ellipse cx="16" cy="16" rx="14" ry="5.5" stroke="#7E99B8" stroke-width="1.3" stroke-dasharray="3 2" transform="rotate(-28 16 16)" />
-                    <circle cx="27" cy="10" r="2" fill="#38BDF8" />
-                </svg>
-            </div>
-            <div class="chat-empty-title">Ask SatQuery AI about your imagery</div>
-            <div class="chat-empty-subtitle">
-                Attach optical or SAR raster tiles using the clip icon below, then enter your mission directive or select a quick-action analysis template.
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        # 1. Large, elegant serif heading and single-line subtitle
+        st.markdown("""<div class="zai-empty-state-header">
+<h1 class="zai-empty-heading">What can I analyze for you?</h1>
+<p class="zai-empty-subtitle">Interact with SatQuery AI and explore satellite intelligence.</p>
+</div>""", unsafe_allow_html=True)
+
+        # 2. Multimodal VLM Tag & Elevated Dark Input Card
+        st.markdown("""<div class="chat-engine-tag-bar">
+<span class="chat-engine-badge"><span class="chat-engine-dot"></span>MULTIMODAL VLM ROUTER</span>
+<span class="chat-engine-models">GeoChat • GeoLLaVA • EarthGPT</span>
+</div>""", unsafe_allow_html=True)
+
+        chat_col, _ = st.columns([0.999, 0.001])
+        with chat_col:
+            prompt = st.chat_input(
+                placeholder="How can I help you today?",
+                accept_file="multiple",
+                file_type=["tif", "tiff", "png", "jpg", "jpeg"],
+                key="main_chat_input"
+            )
+
+        # 3. Preset Suggestion Pills (Row of compact pill buttons below input card, one selected)
+        selected_preset = st.session_state.setdefault("selected_preset", "air")
+        st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
+        c_pad_l, c_p1, c_p2, c_p3, c_pad_r = st.columns([0.22, 0.18, 0.20, 0.18, 0.22], gap="small")
+        with c_p1:
+            is_sel = (selected_preset == "air")
+            k = "preset_pill_air_sel" if is_sel else "preset_pill_air_idle"
+            if st.button("✈  Aircraft Detection", key=k, use_container_width=True, help="Target detection and runway inventory via optical VQA"):
+                st.session_state.selected_preset = "air"
+                st.rerun()
+        with c_p2:
+            is_sel = (selected_preset == "land")
+            k = "preset_pill_land_sel" if is_sel else "preset_pill_land_idle"
+            if st.button("🗺  Land Classification", key=k, use_container_width=True, help="Macro land-cover and surface categorization"):
+                st.session_state.selected_preset = "land"
+                st.rerun()
+        with c_p3:
+            is_sel = (selected_preset == "change")
+            k = "preset_pill_change_sel" if is_sel else "preset_pill_change_idle"
+            if st.button("Δ  Change Analysis", key=k, use_container_width=True, help="Topological delta detection across epochs"):
+                st.session_state.selected_preset = "change"
+                st.rerun()
+
+        # 4. Preview Thumbnail Cards (3 small satellite imagery sample thumbnails with dark overlay captions)
+        card_imgs = get_card_images_b64()
+        previews_html = f"""<div class="chat-previews-container">
+<div class="chat-preview-card">
+<div class="chat-preview-img" style="background-image: url('{card_imgs.get('optical', '')}');"></div>
+<div class="chat-preview-overlay">
+<div class="chat-preview-title">Runway Aircraft Inventory</div>
+<div class="chat-preview-sub">Optical VQA • GeoChat 7B</div>
+</div>
+</div>
+<div class="chat-preview-card">
+<div class="chat-preview-img" style="background-image: url('{card_imgs.get('change', '')}');"></div>
+<div class="chat-preview-overlay">
+<div class="chat-preview-title">Urban Expansion Delta</div>
+<div class="chat-preview-sub">Change Detection • GeoLLaVA</div>
+</div>
+</div>
+<div class="chat-preview-card">
+<div class="chat-preview-img" style="background-image: url('{card_imgs.get('sar', '')}');"></div>
+<div class="chat-preview-overlay">
+<div class="chat-preview-title">Radar-Optical Fusion</div>
+<div class="chat-preview-sub">SAR Modality • EarthGPT</div>
+</div>
+</div>
+</div>"""
+        st.markdown(previews_html, unsafe_allow_html=True)
+
     else:
         for idx, turn in enumerate(st.session_state.chat_history):
             user_turn = turn["user"]
@@ -3087,37 +3363,42 @@ else:
                     with st.expander(f"[AUDIT TELEMETRY TRACE — RECORD #{qid_str}]"):
                         st.json(resp_data["trace"])
 
-    # --- Generous Whitespace (38px gap between conversation/empty state and preset chips) ---
-    st.markdown("<div style='height: 38px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+        st.markdown("""<div class="chat-engine-tag-bar">
+<span class="chat-engine-badge"><span class="chat-engine-dot"></span>MULTIMODAL VLM ROUTER</span>
+<span class="chat-engine-models">GeoChat • GeoLLaVA • EarthGPT</span>
+</div>""", unsafe_allow_html=True)
 
-    # --- Quick-Action Preset Suggestion Chips (Compact rounded-pill buttons with natural centered spacing) ---
-    c_pad_l, c_p1, c_p2, c_p3, c_pad_r = st.columns([0.16, 0.22, 0.24, 0.22, 0.16], gap="small")
-    with c_p1:
-        if st.button("✈  Aircraft Detection", key="preset_pill_air", use_container_width=True, help="Target detection and runway inventory via optical VQA"):
-            st.session_state["main_chat_input"] = "Detect and count the aircraft parked at the airport terminals."
-            st.rerun()
-    with c_p2:
-        if st.button("🗺  Land Classification", key="preset_pill_land", use_container_width=True, help="Macro land-cover and surface categorization"):
-            st.session_state["main_chat_input"] = "Identify the dominant land cover and vegetation types across this scene."
-            st.rerun()
-    with c_p3:
-        if st.button("Δ  Change Analysis", key="preset_pill_change", use_container_width=True, help="Topological delta detection across epochs"):
-            st.session_state["main_chat_input"] = "Compare both images and identify newly constructed buildings or infrastructure."
-            st.rerun()
+        chat_col, _ = st.columns([0.999, 0.001])
+        with chat_col:
+            prompt = st.chat_input(
+                placeholder="How can I help you today?",
+                accept_file="multiple",
+                file_type=["tif", "tiff", "png", "jpg", "jpeg"],
+                key="main_chat_input"
+            )
 
-    # --- Generous Whitespace (34px gap between preset chips and input bar) ---
-    st.markdown("<div style='height: 34px;'></div>", unsafe_allow_html=True)
-
-    # --- Modern Pill-Shaped Input Capsule (Paperclip INSIDE left, Send INSIDE right) ---
-    # Placing st.chat_input inside a column container keeps it rendered inline right here in the chat section
-    chat_col, _ = st.columns([0.999, 0.001])
-    with chat_col:
-        prompt = st.chat_input(
-            placeholder="Ask about your imagery — e.g. 'Detect and count aircraft'...",
-            accept_file="multiple",
-            file_type=["tif", "tiff", "png", "jpg", "jpeg"],
-            key="main_chat_input"
-        )
+        selected_preset = st.session_state.setdefault("selected_preset", "air")
+        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        c_pad_l, c_p1, c_p2, c_p3, c_pad_r = st.columns([0.22, 0.18, 0.20, 0.18, 0.22], gap="small")
+        with c_p1:
+            is_sel = (selected_preset == "air")
+            k = "preset_pill_air_hist_sel" if is_sel else "preset_pill_air_hist_idle"
+            if st.button("✈  Aircraft Detection", key=k, use_container_width=True):
+                st.session_state.selected_preset = "air"
+                st.rerun()
+        with c_p2:
+            is_sel = (selected_preset == "land")
+            k = "preset_pill_land_hist_sel" if is_sel else "preset_pill_land_hist_idle"
+            if st.button("🗺  Land Classification", key=k, use_container_width=True):
+                st.session_state.selected_preset = "land"
+                st.rerun()
+        with c_p3:
+            is_sel = (selected_preset == "change")
+            k = "preset_pill_change_hist_sel" if is_sel else "preset_pill_change_hist_idle"
+            if st.button("Δ  Change Analysis", key=k, use_container_width=True):
+                st.session_state.selected_preset = "change"
+                st.rerun()
 
     # --- Chat Input Submission Execution ---
     if prompt:
@@ -3125,7 +3406,7 @@ else:
         attached_files = prompt.files or []
 
         if not attached_files:
-            st.warning("⚠️ Please attach satellite/aerial raster tiles (GeoTIFF, TIFF, PNG, JPG) using the paperclip icon inside the input bar before submitting your query.")
+            st.warning("⚠️ Please attach satellite/aerial raster tiles (GeoTIFF, TIFF, PNG, JPG) using the + icon inside the input card before submitting your query.")
         else:
             files_payload = []
             user_imgs = []
@@ -3140,7 +3421,12 @@ else:
                     "thumb_b64": make_thumbnail_b64(f.name, raw_b)
                 })
 
-            query_text_to_send = effective_query if effective_query else "Analyze attached imagery."
+            preset_prompts = {
+                "air": "Detect and count the aircraft parked at the airport terminals.",
+                "land": "Identify the dominant land cover and vegetation types across this scene.",
+                "change": "Compare both images and identify newly constructed buildings or infrastructure."
+            }
+            query_text_to_send = effective_query if effective_query else preset_prompts.get(st.session_state.get("selected_preset", "air"), "Analyze attached imagery.")
 
             with st.spinner("Dispatching to orchestrator: routing multi-modal reasoning pipeline..."):
                 try:
