@@ -1,12 +1,3 @@
----
-title: SatQuery AI Backend
-emoji: 🛰️
-colorFrom: blue
-colorTo: indigo
-sdk: docker
-app_port: 7860
-pinned: false
----
 
 # SatQuery AI — Earth Observation Orchestration API
 
