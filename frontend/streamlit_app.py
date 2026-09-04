@@ -991,7 +991,7 @@ st.markdown(f"""
         font-weight: 700;
         letter-spacing: 0.12em;
         text-transform: uppercase;
-        color: #F59E0B;
+        color: #60A5FA;
         margin-bottom: 6px;
     }}
     .pipeline-section-heading {{
@@ -1030,15 +1030,15 @@ st.markdown(f"""
         transition: border-color 0.2s ease, background 0.2s ease;
     }}
     .stage-clean-card:hover {{
-        border-color: rgba(245, 158, 11, 0.35);
+        border-color: rgba(59, 130, 246, 0.40);
         background: rgba(15, 23, 42, 0.75);
     }}
     .stage-card-icon {{
         width: 36px;
         height: 36px;
         border-radius: 8px;
-        background: rgba(245, 158, 11, 0.10);
-        border: 1px solid rgba(245, 158, 11, 0.25);
+        background: rgba(59, 130, 246, 0.10);
+        border: 1px solid rgba(59, 130, 246, 0.30);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -1093,9 +1093,9 @@ st.markdown(f"""
         width: 34px;
         height: 34px;
         border-radius: 50%;
-        background: rgba(245, 158, 11, 0.14);
-        border: 1.5px solid #F59E0B;
-        color: #FBBF24;
+        background: rgba(59, 130, 246, 0.12);
+        border: 1.5px solid #3B82F6;
+        color: #60A5FA;
         font-family: 'Space Grotesk', sans-serif;
         font-weight: 700;
         font-size: 0.90rem;
@@ -2059,9 +2059,9 @@ st.markdown(f"""
         font-family: 'JetBrains Mono', monospace;
         font-size: 0.72rem;
         font-weight: 600;
-        color: #FBBF24;
-        background: rgba(245, 158, 11, 0.12);
-        border: 1px solid rgba(245, 158, 11, 0.35);
+        color: #60A5FA;
+        background: rgba(59, 130, 246, 0.12);
+        border: 1px solid rgba(59, 130, 246, 0.35);
         border-radius: 9999px;
         padding: 3px 10px;
         letter-spacing: 0.04em;
@@ -2070,7 +2070,8 @@ st.markdown(f"""
         width: 6px;
         height: 6px;
         border-radius: 50%;
-        background: #F59E0B;
+        background: #3B82F6;
+        box-shadow: 0 0 6px rgba(59, 130, 246, 0.6);
         display: inline-block;
     }}
     .chat-engine-models {{
@@ -2156,9 +2157,9 @@ st.markdown(f"""
         cursor: default;
         opacity: 0.85;
     }}
-    /* Circular Dark Send Button with Up-Arrow (Right) */
+    /* Circular Blue Send Button with Up-Arrow (Right) */
     [data-testid="stChatInputSubmitButton"] {{
-        background: #F59E0B !important;
+        background: #1D6FD8 !important;
         border: none !important;
         border-radius: 50% !important;
         width: 36px !important;
@@ -2167,19 +2168,19 @@ st.markdown(f"""
         display: inline-flex !important;
         align-items: center !important;
         justify-content: center !important;
-        color: #0F172A !important;
-        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35) !important;
+        color: #FFFFFF !important;
+        box-shadow: 0 2px 10px rgba(29, 111, 216, 0.40) !important;
         transition: all 0.18s ease !important;
         margin-bottom: 2px !important;
     }}
     [data-testid="stChatInputSubmitButton"]:hover {{
-        background: #FBBF24 !important;
+        background: #3B82F6 !important;
         transform: scale(1.06) !important;
-        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.50) !important;
+        box-shadow: 0 4px 14px rgba(59, 130, 246, 0.55) !important;
     }}
     [data-testid="stChatInputSubmitButton"] svg {{
-        fill: #0F172A !important;
-        stroke: #0F172A !important;
+        fill: #FFFFFF !important;
+        stroke: #FFFFFF !important;
         width: 16px !important;
         height: 16px !important;
     }}
@@ -2196,14 +2197,14 @@ st.markdown(f"""
     }}
 
     /* =====================================================================
-       Z.AI Style Preview Thumbnail Cards
+       Z.AI Style Preview Thumbnail Cards (2 Columns)
        ===================================================================== */
     .chat-previews-container {{
         max-width: 760px;
         margin: 20px auto 0 auto;
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
     }}
     @media (max-width: 768px) {{
         .chat-previews-container {{
@@ -3064,7 +3065,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 <div class="stage-cards-grid">
 <div class="stage-clean-card">
 <div class="stage-card-icon">
-<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="2"></circle><path d="M16.24 7.76a6 6 0 0 1 0 8.49m-8.48-.01a6 6 0 0 1 0-8.49m11.31-2.82a10 10 0 0 1 0 14.14m-14.14 0a10 10 0 0 1 0-14.14"></path></svg>
 </div>
 <div class="stage-card-title">Sensor Ingestion</div>
 <div class="stage-card-label">MULTISPECTRAL &amp; SAR UPLINK</div>
@@ -3072,7 +3073,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 </div>
 <div class="stage-clean-card">
 <div class="stage-card-icon">
-<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
 </div>
 <div class="stage-card-title">Deterministic Router</div>
 <div class="stage-card-label">LANGGRAPH FINITE STATE MACHINE</div>
@@ -3080,7 +3081,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 </div>
 <div class="stage-clean-card">
 <div class="stage-card-icon">
-<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
 </div>
 <div class="stage-card-title">Model Orchestration</div>
 <div class="stage-card-label">PARALLEL MULTIMODAL INFERENCE</div>
@@ -3088,7 +3089,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 </div>
 <div class="stage-clean-card">
 <div class="stage-card-icon">
-<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
+<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>
 </div>
 <div class="stage-card-title">Verified Output</div>
 <div class="stage-card-label">TELEMETRY AUDIT &amp; ATTESTATION</div>
@@ -3105,7 +3106,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 <div class="flow-step-circle">1</div>
 <div class="flow-step-content">
 <div class="flow-step-title">Sensor Uplink</div>
-<div class="flow-step-subtitle">Payload Ingestion &amp; Calibration</div>
+<div class="flow-step-subtitle">Dual-Tile Raster Upload (Optical/SAR)</div>
 </div>
 </div>
 <div class="flow-step-connector">
@@ -3116,7 +3117,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 <div class="flow-step-circle">2</div>
 <div class="flow-step-content">
 <div class="flow-step-title">Deterministic Routing</div>
-<div class="flow-step-subtitle">State Dispatch &amp; Intent Parsing</div>
+<div class="flow-step-subtitle">LangGraph Zero-Drift State Machine</div>
 </div>
 </div>
 <div class="flow-step-connector">
@@ -3127,7 +3128,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 <div class="flow-step-circle">3</div>
 <div class="flow-step-content">
 <div class="flow-step-title">Model Orchestration</div>
-<div class="flow-step-subtitle">Parallel Multimodal Inference</div>
+<div class="flow-step-subtitle">GeoChat, GeoLLaVA &amp; EarthGPT Dispatch</div>
 </div>
 </div>
 <div class="flow-step-connector">
@@ -3138,7 +3139,7 @@ pipeline_html = """<div id="section-stats" class="pipeline-section-clean">
 <div class="flow-step-circle">4</div>
 <div class="flow-step-content">
 <div class="flow-step-title">Verified Output</div>
-<div class="flow-step-subtitle">Cryptographic Audit &amp; Dossier</div>
+<div class="flow-step-subtitle">SHA-256 Telemetry &amp; PDF Report</div>
 </div>
 </div>
 </div>
@@ -3455,38 +3456,27 @@ else:
             )
 
         # 3. Preset Suggestion Pills (Row of compact pill buttons below input card, one selected)
-        selected_preset = st.session_state.setdefault("selected_preset", "air")
+        if st.session_state.get("selected_preset") == "air":
+            st.session_state["selected_preset"] = "land"
+        selected_preset = st.session_state.setdefault("selected_preset", "land")
         st.markdown("<div style='height: 14px;'></div>", unsafe_allow_html=True)
-        c_pad_l, c_p1, c_p2, c_p3, c_pad_r = st.columns([0.22, 0.18, 0.20, 0.18, 0.22], gap="small")
+        c_pad_l, c_p1, c_p2, c_pad_r = st.columns([0.28, 0.22, 0.22, 0.28], gap="small")
         with c_p1:
-            is_sel = (selected_preset == "air")
-            k = "preset_pill_air_sel" if is_sel else "preset_pill_air_idle"
-            if st.button("✈  Aircraft Detection", key=k, use_container_width=True, help="Target detection and runway inventory via optical VQA"):
-                st.session_state.selected_preset = "air"
-                st.rerun()
-        with c_p2:
             is_sel = (selected_preset == "land")
             k = "preset_pill_land_sel" if is_sel else "preset_pill_land_idle"
             if st.button("🗺  Land Classification", key=k, use_container_width=True, help="Macro land-cover and surface categorization"):
                 st.session_state.selected_preset = "land"
                 st.rerun()
-        with c_p3:
+        with c_p2:
             is_sel = (selected_preset == "change")
             k = "preset_pill_change_sel" if is_sel else "preset_pill_change_idle"
             if st.button("Δ  Change Analysis", key=k, use_container_width=True, help="Topological delta detection across epochs"):
                 st.session_state.selected_preset = "change"
                 st.rerun()
 
-        # 4. Preview Thumbnail Cards (3 small satellite imagery sample thumbnails with dark overlay captions)
+        # 4. Preview Thumbnail Cards (2 small satellite imagery sample thumbnails with dark overlay captions)
         card_imgs = get_card_images_b64()
         previews_html = f"""<div class="chat-previews-container">
-<div class="chat-preview-card">
-<div class="chat-preview-img" style="background-image: url('{card_imgs.get('optical', '')}');"></div>
-<div class="chat-preview-overlay">
-<div class="chat-preview-title">Runway Aircraft Inventory</div>
-<div class="chat-preview-sub">Optical VQA • GeoChat 7B</div>
-</div>
-</div>
 <div class="chat-preview-card">
 <div class="chat-preview-img" style="background-image: url('{card_imgs.get('change', '')}');"></div>
 <div class="chat-preview-overlay">
@@ -3629,22 +3619,18 @@ else:
                 key="main_chat_input"
             )
 
-        selected_preset = st.session_state.setdefault("selected_preset", "air")
-        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-        c_pad_l, c_p1, c_p2, c_p3, c_pad_r = st.columns([0.22, 0.18, 0.20, 0.18, 0.22], gap="small")
+        if st.session_state.get("selected_preset") == "air":
+            st.session_state["selected_preset"] = "land"
+        selected_preset = st.session_state.setdefault("selected_preset", "land")
+        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        c_pad_l, c_p1, c_p2, c_pad_r = st.columns([0.28, 0.22, 0.22, 0.28], gap="small")
         with c_p1:
-            is_sel = (selected_preset == "air")
-            k = "preset_pill_air_hist_sel" if is_sel else "preset_pill_air_hist_idle"
-            if st.button("✈  Aircraft Detection", key=k, use_container_width=True):
-                st.session_state.selected_preset = "air"
-                st.rerun()
-        with c_p2:
             is_sel = (selected_preset == "land")
             k = "preset_pill_land_hist_sel" if is_sel else "preset_pill_land_hist_idle"
             if st.button("🗺  Land Classification", key=k, use_container_width=True):
                 st.session_state.selected_preset = "land"
                 st.rerun()
-        with c_p3:
+        with c_p2:
             is_sel = (selected_preset == "change")
             k = "preset_pill_change_hist_sel" if is_sel else "preset_pill_change_hist_idle"
             if st.button("Δ  Change Analysis", key=k, use_container_width=True):
@@ -3711,11 +3697,10 @@ else:
                         st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
         else:
             preset_prompts = {
-                "air": "Detect and count the aircraft parked at the airport terminals.",
                 "land": "Identify the dominant land cover and vegetation types across this scene.",
                 "change": "Compare both images and identify newly constructed buildings or infrastructure."
             }
-            query_text_to_send = effective_query if effective_query else preset_prompts.get(st.session_state.get("selected_preset", "air"), "Analyze attached imagery.")
+            query_text_to_send = effective_query if effective_query else preset_prompts.get(st.session_state.get("selected_preset", "land"), "Analyze attached imagery.")
             files_payload_tuples = [
                 (f.name, f.getvalue(), f.type or "application/octet-stream")
                 for f in attached_files[:2]
