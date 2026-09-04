@@ -203,3 +203,138 @@ def create_overlay(
             pil_img.save(abs_output_path)
 
     return result_img
+
+
+def bbox_to_geojson(
+    bbox: Any = None,
+    transform: Optional[Affine] = None,
+    crs: Optional[CRS] = None,
+    width: Optional[int] = None,
+    height: Optional[int] = None,
+    image_path: Optional[str] = None,
+    label: Optional[str] = None,
+    model: str = "GeoChat",
+    source: Optional[str] = None,
+    to_wgs84: bool = True,
+    **kwargs
+) -> Optional[Dict[str, Any]]:
+    """Convert a normalized bounding box [ymin, xmin, ymax, xmax] into a GeoJSON FeatureCollection.
+
+    If transform and crs are provided, converts pixel coordinates to geographic coordinates.
+    If image_path is provided, extracts transform, crs, width, height from the raster.
+    If the image lacks spatial georeferencing (CRS/transform), returns None (adheres to Rule 6).
+
+    Args:
+        bbox: Normalized coordinates [ymin, xmin, ymax, xmax] in [0.0, 1.0].
+        transform: Affine geotransform matrix.
+        crs: Coordinate Reference System.
+        width: Image width in pixels.
+        height: Image height in pixels.
+        image_path: Path to georeferenced raster file.
+        label: Target object label (e.g. "Airport Terminal", "Runway").
+        model: Model name that produced the detection (default "GeoChat").
+        source: Optional alias for model source.
+        to_wgs84: If True, reprojects coordinates to EPSG:4326 (WGS84).
+
+    Returns:
+        Optional[Dict[str, Any]]: GeoJSON FeatureCollection dictionary, or None if not georeferenced.
+    """
+    if source:
+        model = source
+
+    if isinstance(bbox, str):
+        # Called as bbox_to_geojson(image_path, bbox, ...)
+        image_path, bbox = bbox, transform
+        transform = None
+
+    if not bbox or len(bbox) < 4:
+        return None
+
+    if image_path and (transform is None or crs is None or width is None or height is None):
+        try:
+            with rasterio.open(image_path) as src:
+                if crs is None and src.crs:
+                    crs = src.crs
+                if transform is None and src.transform:
+                    transform = src.transform
+                if width is None:
+                    width = src.width
+                if height is None:
+                    height = src.height
+        except Exception:
+            pass
+
+    if crs is None or transform is None or width is None or height is None:
+        return None
+
+    ymin, xmin, ymax, xmax = [float(c) for c in bbox[:4]]
+    ymin = max(0.0, min(1.0, ymin))
+    xmin = max(0.0, min(1.0, xmin))
+    ymax = max(0.0, min(1.0, ymax))
+    xmax = max(0.0, min(1.0, xmax))
+
+    px_y1 = ymin * height
+    px_x1 = xmin * width
+    px_y2 = ymax * height
+    px_x2 = xmax * width
+
+    # 4 corners in native coordinates using exact continuous coordinates (offset="ul")
+    ul_x, ul_y = rasterio.transform.xy(transform, px_y1, px_x1, offset="ul")
+    ur_x, ur_y = rasterio.transform.xy(transform, px_y1, px_x2, offset="ul")
+    lr_x, lr_y = rasterio.transform.xy(transform, px_y2, px_x2, offset="ul")
+    ll_x, ll_y = rasterio.transform.xy(transform, px_y2, px_x1, offset="ul")
+
+    # Calculate physical area in hectares
+    area_ha = None
+    try:
+        if crs.is_projected:
+            w_m = float(np.hypot(ur_x - ul_x, ur_y - ul_y))
+            h_m = float(np.hypot(ll_x - ul_x, ll_y - ul_y))
+            area_ha = round((w_m * h_m) / 10000.0, 3)
+        else:
+            from geo_engine.quantification import determine_utm_crs_from_bounds
+            utm_crs = determine_utm_crs_from_bounds((min(ul_x, lr_x), min(ul_y, lr_y), max(ul_x, lr_x), max(ul_y, lr_y)))
+            from rasterio.warp import transform as warp_transform
+            xs, ys = warp_transform(crs, utm_crs, [ul_x, ur_x, lr_x, ll_x], [ul_y, ur_y, lr_y, ll_y])
+            w_m = float(np.hypot(xs[1] - xs[0], ys[1] - ys[0]))
+            h_m = float(np.hypot(xs[3] - xs[0], ys[3] - ys[0]))
+            area_ha = round((w_m * h_m) / 10000.0, 3)
+    except Exception:
+        pass
+
+    raw_polygon = {
+        "type": "Polygon",
+        "coordinates": [[[ul_x, ul_y], [ur_x, ur_y], [lr_x, lr_y], [ll_x, ll_y], [ul_x, ul_y]]]
+    }
+
+    wgs84_crs = CRS.from_epsg(4326)
+    need_reproject = to_wgs84 and (crs != wgs84_crs)
+    if need_reproject:
+        try:
+            poly_geom = transform_geom(crs, wgs84_crs, raw_polygon)
+        except Exception:
+            poly_geom = raw_polygon
+    else:
+        poly_geom = raw_polygon
+
+    feature = {
+        "type": "Feature",
+        "id": 1,
+        "geometry": poly_geom,
+        "properties": {
+            "feature_id": 1,
+            "layer_type": "grounding",
+            "label": label or "Target Object",
+            "model": model,
+            "source": model,
+            "bbox_normalized": [round(c, 4) for c in [ymin, xmin, ymax, xmax]],
+            "area_ha": area_ha,
+        }
+    }
+
+    crs_name = "urn:ogc:def:crs:OGC:1.3:CRS84" if to_wgs84 else crs.to_string()
+    return {
+        "type": "FeatureCollection",
+        "crs": {"type": "name", "properties": {"name": crs_name}},
+        "features": [feature]
+    }

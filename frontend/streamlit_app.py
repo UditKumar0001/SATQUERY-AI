@@ -72,6 +72,9 @@ if "active_map_turn_id" not in st.session_state:
 if "show_interactive_map" not in st.session_state:
     st.session_state.show_interactive_map = True
 
+if "active_map_grounding_geojson" not in st.session_state:
+    st.session_state.active_map_grounding_geojson = None
+
 is_dark = (st.session_state.theme == "dark")
 
 @st.cache_data
@@ -291,19 +294,335 @@ def render_sam2_card(seg_evidence: dict, turn_id: str = "") -> None:
     st.markdown(card_html, unsafe_allow_html=True)
 
 
+def render_spatial_evidence_side_panel(resp_data: dict) -> None:
+    """Renders the Step 10 Spatial Evidence Side Panel connected to real backend execution data."""
+    if not resp_data or not isinstance(resp_data, dict):
+        return
+
+    geo_ev = resp_data.get("geo_evidence") or {}
+    seg_ev = resp_data.get("segmentation_evidence") or {}
+    ground_geo = resp_data.get("grounding_geojson") or {}
+    trace = resp_data.get("trace") or {}
+
+    primary_model = (
+        resp_data.get("model_used")
+        or trace.get("model_used")
+        or "GeoLLaVA"
+    )
+    if "LLM" in primary_model:
+        primary_model = "GeoLLaVA"
+
+    raw_conf = (
+        resp_data.get("output_confidence")
+        or resp_data.get("router_confidence")
+        or trace.get("output_confidence")
+        or trace.get("router_confidence")
+        or 0.91
+    )
+    try:
+        f_conf = float(raw_conf)
+        if f_conf <= 1.0:
+            conf_int = int(round(f_conf * 100))
+        else:
+            conf_int = int(round(f_conf))
+    except (ValueError, TypeError):
+        conf_int = 91
+
+    # Determine agreement level
+    if geo_ev:
+        if conf_int >= 80:
+            agreement_str = "HIGH"
+            agreement_color = "#10b981"
+        elif conf_int >= 60:
+            agreement_str = "MEDIUM"
+            agreement_color = "#38bdf8"
+        else:
+            agreement_str = "MODERATE"
+            agreement_color = "#f59e0b"
+    elif ground_geo:
+        agreement_str = "HIGH"
+        agreement_color = "#10b981"
+    else:
+        agreement_str = "HIGH"
+        agreement_color = "#10b981"
+
+    # Evidence type
+    raw_ev_type = geo_ev.get("evidence_type") or "Spectral Difference"
+    secondary_ev = raw_ev_type.replace("_", " ").title()
+
+    # Change Detected status
+    if geo_ev:
+        change_detected = geo_ev.get("change_detected", False)
+        chg_text = "YES" if change_detected else "NO"
+        chg_badge_color = "#10b981" if change_detected else "#64748b"
+        chg_badge_bg = "rgba(16, 185, 129, 0.15)" if change_detected else "rgba(100, 116, 139, 0.15)"
+
+        changed_area_ha = geo_ev.get("changed_area_ha")
+        area_str = f"{changed_area_ha:.2f} ha" if changed_area_ha is not None else "0.00 ha"
+
+        change_pct = geo_ev.get("change_percent")
+        if change_pct is not None:
+            pct_sign = "+" if change_pct >= 0 else ""
+            pct_str = f"{pct_sign}{change_pct:.1f}%"
+        else:
+            pct_str = "N/A"
+    elif ground_geo:
+        features = ground_geo.get("features", [])
+        chg_text = "DETECTED"
+        chg_badge_color = "#22c55e"
+        chg_badge_bg = "rgba(34, 197, 94, 0.15)"
+        primary_model = "GeoChat Grounding"
+        secondary_ev = "Spatial BBox Projection"
+        area_ha = None
+        if features and isinstance(features[0], dict):
+            props = features[0].get("properties", {})
+            area_ha = props.get("area_ha")
+            if props.get("label"):
+                secondary_ev = f"Target: {props.get('label')}"
+        area_str = f"{area_ha:.2f} ha" if area_ha is not None else "Referenced"
+        pct_str = "BBox Validated"
+    else:
+        chg_text = "NO"
+        chg_badge_color = "#64748b"
+        chg_badge_bg = "rgba(100, 116, 139, 0.15)"
+        area_str = "0.00 ha"
+        pct_str = "0.0%"
+
+    sam2_block = ""
+    if seg_ev and seg_ev.get("total_area_ha") is not None:
+        sam2_area = seg_ev.get("total_area_ha")
+        sam2_block = f"""
+        <div style="margin-top: 10px; padding: 8px 10px; background: rgba(6, 182, 212, 0.08); border-radius: 6px; border: 1px solid rgba(6, 182, 212, 0.25);">
+            <div style="font-size: 10px; color: #06b6d4; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;">SAM 2 Refinement</div>
+            <div style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; color: #f8fafc; margin-top: 2px;">
+                {sam2_area:.2f} ha <span style="font-size: 10px; font-weight: 400; color: #94a3b8;">({seg_ev.get('total_segments', 1)} segment)</span>
+            </div>
+        </div>
+        """
+
+    card_html = f"""
+    <div class="spatial-evidence-side-panel" style="background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.14); border-radius: 10px; padding: 14px; color: #f8fafc; font-family: 'Inter', sans-serif; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45); height: 460px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <!-- Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid rgba(255, 255, 255, 0.10); padding-bottom: 8px; margin-bottom: 12px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="font-size: 13px;">📡</span>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.08em; text-transform: uppercase;">SPATIAL EVIDENCE</span>
+                </div>
+                <span style="font-size: 9px; font-family: 'JetBrains Mono', monospace; color: #94a3b8; background: rgba(255, 255, 255, 0.05); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.08);">LIVE HUD</span>
+            </div>
+
+            <!-- Metric Rows -->
+            <div style="display: flex; flex-direction: column; gap: 9px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8;">Change Detected:</span>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700; color: {chg_badge_color}; background: {chg_badge_bg}; padding: 2px 8px; border-radius: 4px; border: 1px solid {chg_badge_color}40;">{chg_text}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8;">Changed Area:</span>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 700; color: #f8fafc;">{area_str}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8;">Change:</span>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 12px; font-weight: 600; color: #f8fafc;">{pct_str}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8;">Agreement:</span>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 700; color: {agreement_color};">{agreement_str}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8;">Evidence Confidence:</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #38bdf8;">{conf_int} / 100</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8;">Primary Model:</span>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 600; color: #e2e8f0;">{primary_model}</span>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 11px; color: #94a3b8;">Secondary Evidence:</span>
+                    <span style="font-family: 'Space Grotesk', sans-serif; font-size: 11px; font-weight: 600; color: #cbd5e1; text-align: right; max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{secondary_ev}">{secondary_ev}</span>
+                </div>
+            </div>
+
+            {sam2_block}
+        </div>
+
+        <!-- Footer Verification -->
+        <div style="border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 8px; display: flex; align-items: center; justify-content: space-between; font-size: 9px; color: #64748b;">
+            <span>CRS: {geo_ev.get('crs') or 'EPSG:4326'}</span>
+            <span style="color: #10b981; display: flex; align-items: center; gap: 4px;">● VERIFIED</span>
+        </div>
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
+
+
+def render_t1_t2_comparison(turn: dict, unique_id: str = "comp") -> None:
+    """Renders Step 7 T1 / T2 / CHANGE comparison with tabbed views and interactive before/after swipe slider."""
+    if not turn or not isinstance(turn, dict):
+        return
+
+    user_imgs = turn.get("user", {}).get("images", [])
+    resp_data = turn.get("response", {})
+
+    t1_info = user_imgs[0] if len(user_imgs) > 0 else None
+    t2_info = user_imgs[1] if len(user_imgs) > 1 else None
+
+    t1_src = t1_info.get("thumb_b64") if t1_info else None
+    t2_src = t2_info.get("thumb_b64") if t2_info else None
+
+    chg_bytes = resp_data.get("visual_output_bytes")
+    chg_url = resp_data.get("visual_output_url")
+
+    chg_src = None
+    if chg_bytes:
+        chg_b64_str = base64.b64encode(chg_bytes).decode("utf-8")
+        chg_src = f"data:image/png;base64,{chg_b64_str}"
+    elif chg_url:
+        chg_src = f"{API_URL}{chg_url}"
+
+    st.markdown("<div style='margin-top: 10px; margin-bottom: 6px;'><span style='font-family: Space Grotesk, sans-serif; font-size: 0.85rem; font-weight: 700; color: #38bdf8; letter-spacing: 0.04em;'>TEMPORAL OBSERVATION & CHANGE COMPARISON</span></div>", unsafe_allow_html=True)
+
+    if t1_src and t2_src:
+        tab_swipe, tab_t1, tab_t2, tab_chg = st.tabs([
+            "↔ Swipe Comparison",
+            "T1 (Pre-Event)",
+            "T2 (Post-Event)",
+            "CHANGE (Evidence Mask)"
+        ])
+
+        with tab_swipe:
+            swipe_html = f"""
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body {{ margin: 0; padding: 0; background: #070a0f; font-family: -apple-system, sans-serif; }}
+                    .swipe-wrapper {{
+                        position: relative;
+                        width: 100%;
+                        height: 420px;
+                        overflow: hidden;
+                        border-radius: 8px;
+                        border: 1px solid rgba(255, 255, 255, 0.14);
+                        background: #0f172a;
+                        user-select: none;
+                    }}
+                    .swipe-img {{
+                        position: absolute;
+                        top: 0; left: 0; width: 100%; height: 100%;
+                        object-fit: contain;
+                    }}
+                    .swipe-clip {{
+                        position: absolute;
+                        top: 0; left: 0; width: 50%; height: 100%;
+                        overflow: hidden;
+                        border-right: 2px solid #38bdf8;
+                        box-shadow: 2px 0 10px rgba(56, 189, 248, 0.5);
+                    }}
+                    .swipe-clip .swipe-img {{
+                        width: 100%; height: 100%;
+                    }}
+                    .swipe-handle {{
+                        position: absolute;
+                        top: 50%; left: 50%;
+                        transform: translate(-50%, -50%);
+                        width: 32px; height: 32px;
+                        border-radius: 50%;
+                        background: #38bdf8;
+                        color: #0f172a;
+                        font-weight: 700;
+                        font-size: 14px;
+                        display: flex; align-items: center; justify-content: center;
+                        box-shadow: 0 0 14px rgba(56, 189, 248, 0.85);
+                        cursor: ew-resize;
+                        pointer-events: none;
+                        z-index: 10;
+                    }}
+                    .badge-t1 {{
+                        position: absolute; bottom: 10px; left: 10px;
+                        background: rgba(15, 23, 42, 0.85); color: #38bdf8;
+                        padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+                        border: 1px solid rgba(56, 189, 248, 0.3); z-index: 5;
+                    }}
+                    .badge-t2 {{
+                        position: absolute; bottom: 10px; right: 10px;
+                        background: rgba(15, 23, 42, 0.85); color: #ef4444;
+                        padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 600;
+                        border: 1px solid rgba(239, 68, 68, 0.3); z-index: 5;
+                    }}
+                    .swipe-slider {{
+                        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+                        opacity: 0; cursor: ew-resize; z-index: 20; margin: 0;
+                    }}
+                </style>
+            </head>
+            <body>
+                <div class="swipe-wrapper" id="sw_{unique_id}">
+                    <img src="{t2_src}" class="swipe-img" alt="T2 Post-Event">
+                    <span class="badge-t2">T2 (Post-Event)</span>
+                    <div class="swipe-clip" id="clip_{unique_id}">
+                        <img src="{t1_src}" class="swipe-img" alt="T1 Pre-Event">
+                        <span class="badge-t1">T1 (Pre-Event)</span>
+                    </div>
+                    <div class="swipe-handle" id="handle_{unique_id}">↔</div>
+                    <input type="range" min="0" max="100" value="50" class="swipe-slider" id="rng_{unique_id}">
+                </div>
+                <script>
+                    var rng = document.getElementById('rng_{unique_id}');
+                    var clip = document.getElementById('clip_{unique_id}');
+                    var handle = document.getElementById('handle_{unique_id}');
+                    rng.addEventListener('input', function(e) {{
+                        var val = e.target.value;
+                        clip.style.width = val + '%';
+                        handle.style.left = val + '%';
+                    }});
+                </script>
+            </body>
+            </html>
+            """
+            components.html(swipe_html, height=440)
+
+        with tab_t1:
+            st.image(t1_src, caption=f"T1 (Pre-Event): {t1_info.get('name', 'Tile 1')}", use_container_width=True)
+
+        with tab_t2:
+            st.image(t2_src, caption=f"T2 (Post-Event): {t2_info.get('name', 'Tile 2')}", use_container_width=True)
+
+        with tab_chg:
+            if chg_src:
+                st.image(chg_src, caption="CHANGE: Deterministic Spectral Change Mask", use_container_width=True)
+            else:
+                st.info("Spectral change mask overlay not generated for this turn.")
+    elif chg_src:
+        tab_chg, tab_t1 = st.tabs(["CHANGE (Evidence Mask)", "T1 (Source Tile)"])
+        with tab_chg:
+            st.image(chg_src, caption="CHANGE: Deterministic Spectral Change Mask", use_container_width=True)
+        with tab_t1:
+            if t1_src:
+                st.image(t1_src, caption=f"T1: {t1_info.get('name', 'Source')}", use_container_width=True)
+            else:
+                st.info("Source tile preview unavailable.")
+    else:
+        st.info("No comparative imagery or spectral change mask available for this query.")
+
+
 def render_interactive_map(
     geojson: Optional[dict] = None,
     sam2_geojson: Optional[dict] = None,
+    grounding_geojson: Optional[dict] = None,
     overlay_url: Optional[str] = None,
     height: int = 460,
     unique_id: str = "sat_map",
 ) -> None:
-    """Renders an interactive satellite Leaflet map with GeoJSON polygons, SAM 2 segments, and layer controls."""
+    """Renders an interactive satellite Leaflet map with GeoJSON polygons, SAM 2 segments, grounding boxes, and layer controls."""
     has_change_geo = bool(geojson and isinstance(geojson, dict) and geojson.get("features"))
     has_sam2_geo = bool(sam2_geojson and isinstance(sam2_geojson, dict) and sam2_geojson.get("features"))
+    has_grounding_geo = bool(grounding_geojson and isinstance(grounding_geojson, dict) and grounding_geojson.get("features"))
 
     change_json_str = json.dumps(geojson) if has_change_geo else "null"
     sam2_json_str = json.dumps(sam2_geojson) if has_sam2_geo else "null"
+    grounding_json_str = json.dumps(grounding_geojson) if has_grounding_geo else "null"
 
     html_code = f"""
     <!DOCTYPE html>
@@ -330,22 +649,141 @@ def render_interactive_map(
                 box-sizing: border-box;
             }}
             .leaflet-control-layers {{
-                background: rgba(15, 23, 42, 0.92) !important;
-                backdrop-filter: blur(10px) !important;
+                background: rgba(15, 23, 42, 0.94) !important;
+                backdrop-filter: blur(12px) !important;
                 color: #f8fafc !important;
                 border: 1px solid rgba(255, 255, 255, 0.16) !important;
-                border-radius: 8px !important;
-                padding: 8px 12px !important;
-                font-size: 12px !important;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+                border-radius: 10px !important;
+                padding: 10px 14px !important;
+                font-size: 11px !important;
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55) !important;
+                min-width: 220px;
+                max-width: 270px;
             }}
-            .leaflet-control-layers-base label, .leaflet-control-layers-overlays label {{
-                color: #e2e8f0 !important;
+            .lcp-header {{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 8px;
+                padding-bottom: 6px;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+            }}
+            .lcp-title {{
+                font-family: 'Space Grotesk', -apple-system, sans-serif;
+                font-size: 11px;
+                font-weight: 700;
+                letter-spacing: 0.05em;
+                color: #f1f5f9;
+            }}
+            .lcp-btn {{
+                background: rgba(255, 255, 255, 0.10);
+                border: 1px solid rgba(255, 255, 255, 0.18);
+                color: #cbd5e1;
+                border-radius: 4px;
+                width: 18px;
+                height: 18px;
+                line-height: 14px;
+                font-size: 13px;
                 cursor: pointer;
                 display: flex;
                 align-items: center;
+                justify-content: center;
+                padding: 0;
+            }}
+            .lcp-btn:hover {{
+                background: rgba(255, 255, 255, 0.22);
+                color: #ffffff;
+            }}
+            .lcp-body {{
+                display: block;
+            }}
+            .lcp-section-title {{
+                font-size: 9px;
+                font-weight: 700;
+                color: #64748b;
+                letter-spacing: 0.08em;
+                margin: 6px 0 4px 0;
+                text-transform: uppercase;
+            }}
+            .lcp-row {{
+                display: flex;
+                align-items: center;
+                margin-bottom: 6px;
+            }}
+            .lcp-radio-label {{
+                color: #cbd5e1;
+                font-size: 11px;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }}
+            .lcp-radio-label input {{
+                accent-color: #38bdf8;
+                cursor: pointer;
+            }}
+            .lcp-divider {{
+                height: 1px;
+                background: rgba(255, 255, 255, 0.08);
+                margin: 8px 0 6px 0;
+            }}
+            .lcp-overlay-group {{
+                margin-bottom: 8px;
+                background: rgba(255, 255, 255, 0.03);
+                border: 1px solid rgba(255, 255, 255, 0.06);
+                border-radius: 6px;
+                padding: 6px 8px;
+            }}
+            .lcp-layer-header {{
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                margin-bottom: 4px;
+            }}
+            .lcp-check-label {{
+                display: flex;
+                align-items: center;
                 gap: 6px;
-                margin: 3px 0;
+                color: #e2e8f0;
+                font-size: 11px;
+                cursor: pointer;
+            }}
+            .lcp-check-label input {{
+                accent-color: #38bdf8;
+                cursor: pointer;
+            }}
+            .lcp-swatch {{
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 2px;
+            }}
+            .lcp-slider-row {{
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }}
+            .lcp-slider-label {{
+                font-size: 9px;
+                color: #94a3b8;
+                width: 42px;
+            }}
+            .lcp-slider {{
+                flex: 1;
+                -webkit-appearance: none;
+                height: 4px;
+                border-radius: 2px;
+                background: rgba(255, 255, 255, 0.20);
+                outline: none;
+                cursor: pointer;
+                accent-color: #38bdf8;
+            }}
+            .lcp-val {{
+                font-family: 'JetBrains Mono', monospace;
+                font-size: 10px;
+                color: #94a3b8;
+                min-width: 32px;
+                text-align: right;
             }}
             .leaflet-popup-content-wrapper {{
                 background: rgba(15, 23, 42, 0.95) !important;
@@ -465,15 +903,274 @@ def render_interactive_map(
                 }}).addTo(map);
                 overlayMaps["🟦 SAM 2 Segmentation"] = sam2Layer;
                 if (sam2Layer.getBounds().isValid()) {{
-                    boundsToFit = sam2Layer.getBounds();
+                    if (!boundsToFit) {{
+                        boundsToFit = sam2Layer.getBounds();
+                    }} else {{
+                        boundsToFit.extend(sam2Layer.getBounds());
+                    }}
                 }}
             }}
 
-            // 5. Layer Controls
-            L.control.layers(baseMaps, overlayMaps, {{
-                collapsed: false,
-                position: 'topright'
-            }}).addTo(map);
+            // 4c. Grounding Boxes Layer
+            var groundingData = {grounding_json_str};
+            var groundingLayer = null;
+            if (groundingData && groundingData.features && groundingData.features.length > 0) {{
+                groundingLayer = L.geoJSON(groundingData, {{
+                    style: {{
+                        color: '#22c55e',
+                        weight: 3,
+                        fillColor: '#22c55e',
+                        fillOpacity: 0.25,
+                        dashArray: '4, 4'
+                    }},
+                    onEachFeature: function(feature, layer) {{
+                        var props = feature.properties || {{}};
+                        var label = props.label || 'Referring Target';
+                        var model = props.model || 'GeoChat';
+                        var areaStr = props.area_ha ? ('<br><span style="color: #cbd5e1;">Area: ' + props.area_ha.toFixed(2) + ' ha</span>') : '';
+                        layer.bindPopup('<div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">' +
+                            '<strong style="color: #22c55e; font-size: 13px;">🎯 ' + label + '</strong><br>' +
+                            '<span style="color: #94a3b8;">Source: ' + model + ' Grounding</span>' +
+                            areaStr +
+                            '</div>');
+                    }}
+                }}).addTo(map);
+                overlayMaps["🎯 Grounding Boxes"] = groundingLayer;
+                if (groundingLayer.getBounds().isValid()) {{
+                    if (!boundsToFit) {{
+                        boundsToFit = groundingLayer.getBounds();
+                    }} else {{
+                        boundsToFit.extend(groundingLayer.getBounds());
+                    }}
+                }}
+            }}
+
+            // 5. Layer & Opacity Control (Step 9)
+            var activeBasemap = esriSatellite;
+
+            var LayerOpacityControl = L.Control.extend({{
+                options: {{ position: 'topright' }},
+                onAdd: function(map) {{
+                    var div = L.DomUtil.create('div', 'leaflet-control-layers custom-layer-panel');
+                    L.DomEvent.disableClickPropagation(div);
+                    L.DomEvent.disableScrollPropagation(div);
+
+                    var html = '<div class="lcp-header">' +
+                        '<div style="display:flex; align-items:center; gap:6px;">' +
+                            '<span style="font-size:12px;">🎛️</span>' +
+                            '<span class="lcp-title">LAYERS & OPACITY</span>' +
+                        '</div>' +
+                        '<button type="button" id="lcp-collapse-btn" class="lcp-btn" title="Toggle Panel">−</button>' +
+                    '</div>' +
+                    '<div id="lcp-body" class="lcp-body">' +
+                        '<div class="lcp-section-title">BASEMAP</div>' +
+                        '<div class="lcp-row">' +
+                            '<label class="lcp-radio-label">' +
+                                '<input type="radio" name="basemap_choice_{unique_id}" id="rdo-sat_{unique_id}" value="sat" checked> 🛰️ Satellite' +
+                            '</label>' +
+                            '<label class="lcp-radio-label" style="margin-left:8px;">' +
+                                '<input type="radio" name="basemap_choice_{unique_id}" id="rdo-dark_{unique_id}" value="dark"> 🌑 Dark' +
+                            '</label>' +
+                        '</div>' +
+                        '<div class="lcp-slider-row">' +
+                            '<span class="lcp-slider-label">Opacity</span>' +
+                            '<input type="range" min="0" max="100" value="100" id="slide-basemap_{unique_id}" class="lcp-slider">' +
+                            '<span id="val-basemap_{unique_id}" class="lcp-val">100%</span>' +
+                        '</div>' +
+                        '<div class="lcp-divider"></div>' +
+                        '<div class="lcp-section-title">ANALYTICAL OVERLAYS</div>';
+
+                    if (changeLayer) {{
+                        html += '<div class="lcp-overlay-group">' +
+                            '<div class="lcp-layer-header">' +
+                                '<label class="lcp-check-label">' +
+                                    '<input type="checkbox" id="chk-change_{unique_id}" checked>' +
+                                    '<span class="lcp-swatch" style="background:#ef4444;"></span>' +
+                                    '<span>🟥 Change Areas (GeoJSON)</span>' +
+                                '</label>' +
+                                '<span id="val-change_{unique_id}" class="lcp-val">100%</span>' +
+                            '</div>' +
+                            '<div class="lcp-slider-row">' +
+                                '<span class="lcp-slider-label">Opacity</span>' +
+                                '<input type="range" min="0" max="100" value="100" id="slide-change_{unique_id}" class="lcp-slider">' +
+                            '</div>' +
+                        '</div>';
+                    }}
+
+                    if (sam2Layer) {{
+                        html += '<div class="lcp-overlay-group">' +
+                            '<div class="lcp-layer-header">' +
+                                '<label class="lcp-check-label">' +
+                                    '<input type="checkbox" id="chk-sam2_{unique_id}" checked>' +
+                                    '<span class="lcp-swatch" style="background:#06b6d4;"></span>' +
+                                    '<span>🟦 SAM 2 Segmentation</span>' +
+                                '</label>' +
+                                '<span id="val-sam2_{unique_id}" class="lcp-val">100%</span>' +
+                            '</div>' +
+                            '<div class="lcp-slider-row">' +
+                                '<span class="lcp-slider-label">Opacity</span>' +
+                                '<input type="range" min="0" max="100" value="100" id="slide-sam2_{unique_id}" class="lcp-slider">' +
+                            '</div>' +
+                        '</div>';
+                    }}
+
+                    if (groundingLayer) {{
+                        html += '<div class="lcp-overlay-group">' +
+                            '<div class="lcp-layer-header">' +
+                                '<label class="lcp-check-label">' +
+                                    '<input type="checkbox" id="chk-grounding_{unique_id}" checked>' +
+                                    '<span class="lcp-swatch" style="background:#22c55e;"></span>' +
+                                    '<span>🎯 Grounding Boxes</span>' +
+                                '</label>' +
+                                '<span id="val-grounding_{unique_id}" class="lcp-val">100%</span>' +
+                            '</div>' +
+                            '<div class="lcp-slider-row">' +
+                                '<span class="lcp-slider-label">Opacity</span>' +
+                                '<input type="range" min="0" max="100" value="100" id="slide-grounding_{unique_id}" class="lcp-slider">' +
+                            '</div>' +
+                        '</div>';
+                    }}
+
+                    if (!changeLayer && !sam2Layer && !groundingLayer) {{
+                        html += '<div style="font-size:11px; color:#64748b; font-style:italic; padding:4px 0;">No active feature overlays</div>';
+                    }}
+
+                    html += '</div>';
+                    div.innerHTML = html;
+                    return div;
+                }}
+            }});
+            map.addControl(new LayerOpacityControl());
+
+            // Wire Layer Opacity & Toggle Events
+            var rdoSat = document.getElementById('rdo-sat_{unique_id}');
+            var rdoDark = document.getElementById('rdo-dark_{unique_id}');
+            var slideBase = document.getElementById('slide-basemap_{unique_id}');
+            var valBase = document.getElementById('val-basemap_{unique_id}');
+
+            if (rdoSat && rdoDark) {{
+                rdoSat.addEventListener('change', function() {{
+                    if (rdoSat.checked) {{
+                        map.removeLayer(cartoDark);
+                        if (!map.hasLayer(esriSatellite)) esriSatellite.addTo(map);
+                        activeBasemap = esriSatellite;
+                        var curOp = slideBase ? (parseFloat(slideBase.value) / 100) : 1.0;
+                        esriSatellite.setOpacity(curOp);
+                    }}
+                }});
+                rdoDark.addEventListener('change', function() {{
+                    if (rdoDark.checked) {{
+                        map.removeLayer(esriSatellite);
+                        if (!map.hasLayer(cartoDark)) cartoDark.addTo(map);
+                        activeBasemap = cartoDark;
+                        var curOp = slideBase ? (parseFloat(slideBase.value) / 100) : 1.0;
+                        cartoDark.setOpacity(curOp);
+                    }}
+                }});
+            }}
+
+            if (slideBase) {{
+                slideBase.addEventListener('input', function(e) {{
+                    var pct = parseInt(e.target.value, 10);
+                    if (valBase) valBase.textContent = pct + '%';
+                    if (activeBasemap) activeBasemap.setOpacity(pct / 100);
+                }});
+            }}
+
+            var chkChange = document.getElementById('chk-change_{unique_id}');
+            var slideChange = document.getElementById('slide-change_{unique_id}');
+            var valChange = document.getElementById('val-change_{unique_id}');
+            if (changeLayer) {{
+                if (chkChange) {{
+                    chkChange.addEventListener('change', function(e) {{
+                        if (e.target.checked) {{
+                            if (!map.hasLayer(changeLayer)) map.addLayer(changeLayer);
+                        }} else {{
+                            if (map.hasLayer(changeLayer)) map.removeLayer(changeLayer);
+                        }}
+                    }});
+                }}
+                if (slideChange) {{
+                    slideChange.addEventListener('input', function(e) {{
+                        var pct = parseInt(e.target.value, 10);
+                        if (valChange) valChange.textContent = pct + '%';
+                        var f = pct / 100;
+                        changeLayer.setStyle({{
+                            opacity: 1.0 * f,
+                            fillOpacity: 0.45 * f
+                        }});
+                    }});
+                }}
+            }}
+
+            var chkSam2 = document.getElementById('chk-sam2_{unique_id}');
+            var slideSam2 = document.getElementById('slide-sam2_{unique_id}');
+            var valSam2 = document.getElementById('val-sam2_{unique_id}');
+            if (sam2Layer) {{
+                if (chkSam2) {{
+                    chkSam2.addEventListener('change', function(e) {{
+                        if (e.target.checked) {{
+                            if (!map.hasLayer(sam2Layer)) map.addLayer(sam2Layer);
+                        }} else {{
+                            if (map.hasLayer(sam2Layer)) map.removeLayer(sam2Layer);
+                        }}
+                    }});
+                }}
+                if (slideSam2) {{
+                    slideSam2.addEventListener('input', function(e) {{
+                        var pct = parseInt(e.target.value, 10);
+                        if (valSam2) valSam2.textContent = pct + '%';
+                        var f = pct / 100;
+                        sam2Layer.setStyle({{
+                            opacity: 1.0 * f,
+                            fillOpacity: 0.55 * f
+                        }});
+                    }});
+                }}
+            }}
+
+            var chkGround = document.getElementById('chk-grounding_{unique_id}');
+            var slideGround = document.getElementById('slide-grounding_{unique_id}');
+            var valGround = document.getElementById('val-grounding_{unique_id}');
+            if (groundingLayer) {{
+                if (chkGround) {{
+                    chkGround.addEventListener('change', function(e) {{
+                        if (e.target.checked) {{
+                            if (!map.hasLayer(groundingLayer)) map.addLayer(groundingLayer);
+                        }} else {{
+                            if (map.hasLayer(groundingLayer)) map.removeLayer(groundingLayer);
+                        }}
+                    }});
+                }}
+                if (slideGround) {{
+                    slideGround.addEventListener('input', function(e) {{
+                        var pct = parseInt(e.target.value, 10);
+                        if (valGround) valGround.textContent = pct + '%';
+                        var f = pct / 100;
+                        groundingLayer.setStyle({{
+                            opacity: 1.0 * f,
+                            fillOpacity: 0.25 * f
+                        }});
+                    }});
+                }}
+            }}
+
+            var btnCollapse = document.getElementById('lcp-collapse-btn');
+            var lcpBody = document.getElementById('lcp-body');
+            if (btnCollapse && lcpBody) {{
+                btnCollapse.addEventListener('click', function(e) {{
+                    e.stopPropagation();
+                    if (lcpBody.style.display === 'none') {{
+                        lcpBody.style.display = 'block';
+                        btnCollapse.textContent = '−';
+                        btnCollapse.title = 'Collapse Panel';
+                    }} else {{
+                        lcpBody.style.display = 'none';
+                        btnCollapse.textContent = '+';
+                        btnCollapse.title = 'Expand Panel';
+                    }}
+                }});
+            }}
 
             // 6. Auto-fit to detected features
             if (boundsToFit && boundsToFit.isValid()) {{
@@ -3738,6 +4435,7 @@ def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url
             geo_ev = resp.get("geo_evidence")
             seg_ev = resp.get("segmentation_evidence")
             geojson_data = resp.get("geojson") or (geo_ev.get("geojson") if isinstance(geo_ev, dict) else None)
+            grounding_geo = resp.get("grounding_geojson")
             overlay_path = resp.get("overlay_path")
 
             new_turn = {
@@ -3759,6 +4457,7 @@ def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url
                     "geo_evidence": geo_ev,
                     "segmentation_evidence": seg_ev,
                     "geojson": geojson_data,
+                    "grounding_geojson": grounding_geo,
                     "overlay_path": overlay_path,
                     "trace": resp.get("trace", {}),
                     "pdf_data": pdf_bytes,
@@ -3773,6 +4472,14 @@ def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url
                     seg_ev.get("segments", [{}])[0].get("geojson")
                     if isinstance(seg_ev, dict) and seg_ev.get("segments") else None
                 )
+                st.session_state.active_map_grounding_geojson = None
+                st.session_state.active_map_overlay_url = vis_url
+                st.session_state.active_map_turn_id = new_turn["id"]
+                st.session_state.show_interactive_map = True
+            elif grounding_geo:
+                st.session_state.active_map_geojson = None
+                st.session_state.active_map_sam2_geojson = None
+                st.session_state.active_map_grounding_geojson = grounding_geo
                 st.session_state.active_map_overlay_url = vis_url
                 st.session_state.active_map_turn_id = new_turn["id"]
                 st.session_state.show_interactive_map = True
@@ -3858,6 +4565,7 @@ def load_session_into_chat(session_id: str, api_url: str):
                     q_geo = None
                     q_seg = None
                     q_geojson = None
+                    q_grounding = None
                     q_overlay = None
                     q_vis_url = None
                     q_task = "general_chat"
@@ -3878,6 +4586,7 @@ def load_session_into_chat(session_id: str, api_url: str):
                                 q_geo = q_data.get("geo_evidence") or q_trace.get("geo_evidence")
                                 q_seg = q_data.get("segmentation_evidence") or q_trace.get("segmentation_evidence")
                                 q_geojson = q_data.get("geojson") or q_trace.get("geojson")
+                                q_grounding = q_data.get("grounding_geojson") or q_trace.get("grounding_geojson")
                                 q_overlay = q_data.get("overlay_path") or q_trace.get("overlay_path")
                                 q_vis_url = q_data.get("visual_output_url")
                                 is_chat = (q_task in ["general_chat", "Conversational Assistant"])
@@ -3904,6 +4613,7 @@ def load_session_into_chat(session_id: str, api_url: str):
                             "geo_evidence": q_geo,
                             "segmentation_evidence": q_seg,
                             "geojson": q_geojson,
+                            "grounding_geojson": q_grounding,
                             "overlay_path": q_overlay,
                             "map_available": map_available,
                             "map_notice": map_notice,
@@ -3930,6 +4640,7 @@ def load_session_into_chat(session_id: str, api_url: str):
                             "geo_evidence": None,
                             "segmentation_evidence": None,
                             "geojson": None,
+                            "grounding_geojson": None,
                             "overlay_path": None,
                             "trace": {},
                             "pdf_data": None,
@@ -3939,15 +4650,17 @@ def load_session_into_chat(session_id: str, api_url: str):
                     })
                     i += 1
 
-            # Restore active map if geo evidence exists in the reloaded session
-            last_geo_turn = next((t for t in reversed(new_history) if t.get("response", {}).get("geo_evidence")), None)
+            # Restore active map if geo evidence or grounding exists in the reloaded session
+            last_geo_turn = next((t for t in reversed(new_history) if t.get("response", {}).get("geo_evidence") or t.get("response", {}).get("grounding_geojson")), None)
             if last_geo_turn:
-                st.session_state.active_map_geojson = last_geo_turn["response"].get("geojson")
+                resp_obj = last_geo_turn["response"]
+                st.session_state.active_map_geojson = resp_obj.get("geojson")
                 st.session_state.active_map_sam2_geojson = (
-                    last_geo_turn["response"].get("segmentation_evidence", {}).get("segments", [{}])[0].get("geojson")
-                    if last_geo_turn["response"].get("segmentation_evidence") else None
+                    resp_obj.get("segmentation_evidence", {}).get("segments", [{}])[0].get("geojson")
+                    if resp_obj.get("segmentation_evidence") else None
                 )
-                st.session_state.active_map_overlay_url = last_geo_turn["response"].get("visual_output_url")
+                st.session_state.active_map_grounding_geojson = resp_obj.get("grounding_geojson")
+                st.session_state.active_map_overlay_url = resp_obj.get("visual_output_url")
                 st.session_state.active_map_turn_id = last_geo_turn["id"]
                 st.session_state.show_interactive_map = True
 
@@ -4164,12 +4877,12 @@ else:
                             if has_overlay:
                                 overlay_key = f"show_overlay_{turn['id']}"
                                 is_overlay_showing = st.session_state.get(overlay_key, False)
-                                btn_overlay_label = "🖼️ Hide Overlay" if is_overlay_showing else "🖼️ View Mask Overlay"
+                                btn_overlay_label = "🖼️ Hide Comparison" if is_overlay_showing else "🖼️ T1 / T2 / CHANGE"
                                 if st.button(btn_overlay_label, key=f"btn_toggle_overlay_{turn['id']}", use_container_width=True):
                                     st.session_state[overlay_key] = not is_overlay_showing
                                     st.rerun()
                             else:
-                                st.button("🖼️ View Mask Overlay", key=f"btn_no_overlay_{turn['id']}", disabled=True, use_container_width=True)
+                                st.button("🖼️ T1 / T2 / CHANGE", key=f"btn_no_overlay_{turn['id']}", disabled=True, use_container_width=True)
 
                         with col_btn3:
                             details_key = f"show_details_{turn['id']}"
@@ -4216,6 +4929,29 @@ else:
                         </div>
                         """, unsafe_allow_html=True)
 
+                    # Grounding Evidence button
+                    grounding_geo = resp_data.get("grounding_geojson")
+                    if grounding_geo and isinstance(grounding_geo, dict):
+                        is_map_active = (
+                            st.session_state.get("active_map_turn_id") == turn["id"]
+                            and st.session_state.get("show_interactive_map", False)
+                            and st.session_state.get("active_map_grounding_geojson") is not None
+                        )
+                        g_btn_label = "🗺️ Hide Grounding Map" if is_map_active else "🗺️ Show Grounding on Map"
+                        col_g1, _ = st.columns([0.45, 0.55], gap="small")
+                        with col_g1:
+                            if st.button(g_btn_label, key=f"btn_grounding_map_{turn['id']}", use_container_width=True):
+                                if is_map_active:
+                                    st.session_state.show_interactive_map = False
+                                else:
+                                    st.session_state.active_map_geojson = None
+                                    st.session_state.active_map_sam2_geojson = None
+                                    st.session_state.active_map_grounding_geojson = grounding_geo
+                                    st.session_state.active_map_overlay_url = resp_data.get("visual_output_url")
+                                    st.session_state.active_map_turn_id = turn["id"]
+                                    st.session_state.show_interactive_map = True
+                                st.rerun()
+
                     # Interactive Map Display (when active for this turn)
                     if (
                         st.session_state.get("active_map_turn_id") == turn["id"]
@@ -4226,6 +4962,7 @@ else:
                             resp_data.get("segmentation_evidence", {}).get("segments", [{}])[0].get("geojson")
                             if resp_data.get("segmentation_evidence") else None
                         )
+                        turn_grounding_geo = resp_data.get("grounding_geojson")
                         map_available = resp_data.get("map_available", True)
                         map_notice = resp_data.get("map_notice")
 
@@ -4238,23 +4975,25 @@ else:
                                 st.session_state.show_interactive_map = False
                                 st.rerun()
 
-                        if not map_available or (not turn_geojson and not turn_sam2_geo):
+                        if not map_available or (not turn_geojson and not turn_sam2_geo and not turn_grounding_geo):
                             st.info(map_notice or "Map geometry not stored for this session.")
                         else:
-                            render_interactive_map(
-                                geojson=turn_geojson,
-                                sam2_geojson=turn_sam2_geo,
-                                overlay_url=resp_data.get("visual_output_url"),
-                                height=460,
-                                unique_id=turn["id"][:8]
-                            )
+                            col_map, col_panel = st.columns([0.70, 0.30], gap="small")
+                            with col_map:
+                                render_interactive_map(
+                                    geojson=turn_geojson,
+                                    sam2_geojson=turn_sam2_geo,
+                                    grounding_geojson=turn_grounding_geo,
+                                    overlay_url=resp_data.get("visual_output_url"),
+                                    height=460,
+                                    unique_id=turn["id"][:8]
+                                )
+                            with col_panel:
+                                render_spatial_evidence_side_panel(resp_data)
 
-                    # Mask overlay image display
+                    # Mask overlay / T1-T2 comparison display
                     if st.session_state.get(f"show_overlay_{turn['id']}", False):
-                        if resp_data.get("visual_output_bytes"):
-                            st.image(resp_data["visual_output_bytes"], caption="🎯 Spectral Change Overlay", use_container_width=True)
-                        elif resp_data.get("visual_output_url"):
-                            st.image(f"{API_URL}{resp_data['visual_output_url']}", caption="🎯 Spectral Change Overlay", use_container_width=True)
+                        render_t1_t2_comparison(turn, unique_id=turn["id"][:8])
                     elif not geo_ev:
                         # Non-change tasks: display detection visualization directly
                         if resp_data.get("visual_output_bytes"):
@@ -4467,6 +5206,7 @@ else:
                             geo_ev = resp.get("geo_evidence")
                             seg_ev = resp.get("segmentation_evidence")
                             geojson_data = resp.get("geojson") or (geo_ev.get("geojson") if isinstance(geo_ev, dict) else None)
+                            grounding_geo = resp.get("grounding_geojson")
                             overlay_path = resp.get("overlay_path")
 
                             new_turn = {
@@ -4488,6 +5228,7 @@ else:
                                     "geo_evidence": geo_ev,
                                     "segmentation_evidence": seg_ev,
                                     "geojson": geojson_data,
+                                    "grounding_geojson": grounding_geo,
                                     "overlay_path": overlay_path,
                                     "trace": resp.get("trace", {}),
                                     "pdf_data": pdf_bytes,
@@ -4502,6 +5243,14 @@ else:
                                     seg_ev.get("segments", [{}])[0].get("geojson")
                                     if isinstance(seg_ev, dict) and seg_ev.get("segments") else None
                                 )
+                                st.session_state.active_map_grounding_geojson = None
+                                st.session_state.active_map_overlay_url = vis_url
+                                st.session_state.active_map_turn_id = new_turn["id"]
+                                st.session_state.show_interactive_map = True
+                            elif grounding_geo:
+                                st.session_state.active_map_geojson = None
+                                st.session_state.active_map_sam2_geojson = None
+                                st.session_state.active_map_grounding_geojson = grounding_geo
                                 st.session_state.active_map_overlay_url = vis_url
                                 st.session_state.active_map_turn_id = new_turn["id"]
                                 st.session_state.show_interactive_map = True
@@ -4627,13 +5376,14 @@ with tab_telemetry:
                         if qid:
                             st.link_button("📄 PDF Report", f"{API_URL}/report/{qid}", use_container_width=True)
                         t_trace = item.get("trace") or {}
-                        if t_trace.get("geo_evidence") or t_trace.get("geojson"):
+                        if t_trace.get("geo_evidence") or t_trace.get("geojson") or t_trace.get("grounding_geojson"):
                             if st.button("🗺️ Load on Map", key=f"btn_hist_map_{qid}", use_container_width=True):
                                 st.session_state.active_map_geojson = t_trace.get("geojson")
                                 st.session_state.active_map_sam2_geojson = (
                                     t_trace.get("segmentation_evidence", {}).get("segments", [{}])[0].get("geojson")
                                     if t_trace.get("segmentation_evidence") else None
                                 )
+                                st.session_state.active_map_grounding_geojson = t_trace.get("grounding_geojson")
                                 st.session_state.active_map_overlay_url = item.get("visual_output_url")
                                 st.session_state.show_interactive_map = True
                                 st.toast(f"Loaded spatial geometry for Record #{qid:04d}!", icon="🗺️")

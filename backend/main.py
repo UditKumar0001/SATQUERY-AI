@@ -271,6 +271,24 @@ async def handle_query(
             vis_path = None
             vis_url = None
 
+    # Generate grounding GeoJSON if grounding task and bounding box returned
+    grounding_geojson = None
+    if final_state.get("task") == "vqa_caption_ground" and saved_paths:
+        bbox = result.get("bbox")
+        if bbox:
+            try:
+                from geo_engine.spatial import bbox_to_geojson
+                grounding_geojson = bbox_to_geojson(
+                    bbox=bbox,
+                    image_path=saved_paths[0],
+                    label=query[:40] if query else "Target Object",
+                    model=trace.get("model_used") or "GeoChat",
+                    to_wgs84=True
+                )
+            except Exception as e:
+                print(f"[Grounding] GeoJSON conversion skipped: {e}")
+                grounding_geojson = None
+
     # Persist structured evidence in execution trace for historical audit retrieval
     if final_state.get("geo_evidence"):
         trace["geo_evidence"] = final_state["geo_evidence"]
@@ -280,6 +298,8 @@ async def handle_query(
         trace["geojson"] = final_state["geojson"]
     if final_state.get("overlay_path"):
         trace["overlay_path"] = final_state["overlay_path"]
+    if grounding_geojson:
+        trace["grounding_geojson"] = grounding_geojson
 
     # 5. Persist execution and audit records into database
     query_record = Query(
@@ -327,6 +347,7 @@ async def handle_query(
         "geo_evidence": final_state.get("geo_evidence"),
         "segmentation_evidence": final_state.get("segmentation_evidence"),
         "geojson": final_state.get("geojson"),
+        "grounding_geojson": grounding_geojson,
         "overlay_path": final_state.get("overlay_path"),
         "visual_output_path": vis_path,
         "visual_output_url": vis_url,
@@ -421,6 +442,7 @@ def get_query_detail(query_id: int, db: Session = Depends(get_db)):
         "geo_evidence": trace_data.get("geo_evidence") if isinstance(trace_data, dict) else None,
         "segmentation_evidence": trace_data.get("segmentation_evidence") if isinstance(trace_data, dict) else None,
         "geojson": trace_data.get("geojson") if isinstance(trace_data, dict) else None,
+        "grounding_geojson": trace_data.get("grounding_geojson") if isinstance(trace_data, dict) else None,
         "overlay_path": trace_data.get("overlay_path") if isinstance(trace_data, dict) else None,
     }
 

@@ -10,6 +10,10 @@ import os
 import uuid
 import pytest
 from PIL import Image
+import numpy as np
+import rasterio
+from rasterio.crs import CRS
+from rasterio.transform import from_origin
 from starlette.testclient import TestClient
 from backend.main import app
 from orchestrator.db import SessionLocal, Query, Conversation, ChatMessage
@@ -26,6 +30,34 @@ def test_optical_img(tmp_path):
     img = Image.new("RGB", (256, 256), color=(50, 150, 70))
     img.save(p, "PNG")
     return p
+
+
+@pytest.fixture
+def test_bitemporal_geotiffs(tmp_path):
+    p1 = str(tmp_path / "epoch1.tif")
+    p2 = str(tmp_path / "epoch2.tif")
+    crs = CRS.from_epsg(32633)
+    transform = from_origin(500000.0, 3000000.0, 20.0, 20.0)
+    t1_data = np.full((5, 32, 32), 0.2, dtype=np.float32)
+    t1_data[3, 5:15, 5:15] = 0.8
+    t1_data[0, 5:15, 5:15] = 0.2
+    t2_data = t1_data.copy()
+    t2_data[3, 5:15, 5:15] = 0.2
+    t2_data[0, 5:15, 5:15] = 0.7
+    prof = {
+        "driver": "GTiff",
+        "height": 32,
+        "width": 32,
+        "count": 5,
+        "dtype": rasterio.float32,
+        "crs": crs,
+        "transform": transform,
+    }
+    with rasterio.open(p1, "w", **prof) as dst:
+        dst.write(t1_data)
+    with rasterio.open(p2, "w", **prof) as dst:
+        dst.write(t2_data)
+    return p1, p2
 
 
 @pytest.fixture
@@ -101,12 +133,13 @@ def test_task_a_optical_vqa_and_grounding(client, test_optical_img):
         assert "image" in img_res.headers.get("content-type", "")
 
 
-def test_task_b_change_detection(client, test_optical_img, test_optical_img2):
+def test_task_b_change_detection(client, test_bitemporal_geotiffs):
     """Test Task B bi-temporal change detection with 3-panel heatmap visual."""
-    with open(test_optical_img, "rb") as f1, open(test_optical_img2, "rb") as f2:
+    p1, p2 = test_bitemporal_geotiffs
+    with open(p1, "rb") as f1, open(p2, "rb") as f2:
         files = [
-            ("files", ("epoch1.png", io.BytesIO(f1.read()), "image/png")),
-            ("files", ("epoch2.png", io.BytesIO(f2.read()), "image/png")),
+            ("files", ("epoch1.tif", io.BytesIO(f1.read()), "image/tiff")),
+            ("files", ("epoch2.tif", io.BytesIO(f2.read()), "image/tiff")),
         ]
 
     resp = client.post("/query", data={"query": "Identify urban construction delta between images"}, files=files)

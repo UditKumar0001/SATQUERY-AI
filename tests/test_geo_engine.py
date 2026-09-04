@@ -624,3 +624,77 @@ def test_ndbi_built_up_increase_classification(tmp_path):
     assert result["change_detected"] is True
     assert result["change_type"] == "built_up_spectral_increase"
     assert result["changed_pixels"] == 16
+
+
+def test_bbox_to_geojson_georeferenced(tmp_path):
+    """Verify bbox_to_geojson produces valid WGS84 GeoJSON polygon with area_ha."""
+    from geo_engine.spatial import bbox_to_geojson
+
+    tif_path = str(tmp_path / "georef_sample.tif")
+    height, width = 100, 100
+    crs = CRS.from_epsg(32633)  # UTM Zone 33N
+    # 10m pixel resolution
+    transform = from_origin(500000, 3000000, 10.0, 10.0)
+
+    profile = {
+        "driver": "GTiff",
+        "height": height,
+        "width": width,
+        "count": 1,
+        "dtype": rasterio.uint8,
+        "crs": crs,
+        "transform": transform,
+    }
+    with rasterio.open(tif_path, "w", **profile) as ds:
+        ds.write(np.zeros((1, height, width), dtype=np.uint8))
+
+    # Normalized bbox [ymin, xmin, ymax, xmax]: [0.2, 0.2, 0.8, 0.8]
+    # Pixels: y from 20 to 80 (60 px), x from 20 to 80 (60 px)
+    # 60 px * 10m = 600m by 600m = 360,000 m2 = 36.0 ha
+    bbox = [0.2, 0.2, 0.8, 0.8]
+    fc = bbox_to_geojson(tif_path, bbox, label="detected_structure", source="GeoChat")
+
+    assert fc is not None
+    assert fc["type"] == "FeatureCollection"
+    assert len(fc["features"]) == 1
+    feat = fc["features"][0]
+    assert feat["type"] == "Feature"
+    assert feat["geometry"]["type"] == "Polygon"
+    coords = feat["geometry"]["coordinates"][0]
+    assert len(coords) == 5  # closed polygon
+    props = feat["properties"]
+    assert props["label"] == "detected_structure"
+    assert props["source"] == "GeoChat"
+    assert np.isclose(props["area_ha"], 36.0, atol=0.5)
+
+
+def test_bbox_to_geojson_non_georeferenced(tmp_path):
+    """Verify bbox_to_geojson returns None when raster has no CRS (Rule 6)."""
+    from geo_engine.spatial import bbox_to_geojson
+
+    tif_path = str(tmp_path / "non_georef.tif")
+    height, width = 50, 50
+    # No CRS or transform
+    profile = {
+        "driver": "GTiff",
+        "height": height,
+        "width": width,
+        "count": 1,
+        "dtype": rasterio.uint8,
+    }
+    with rasterio.open(tif_path, "w", **profile) as ds:
+        ds.write(np.zeros((1, height, width), dtype=np.uint8))
+
+    fc = bbox_to_geojson(tif_path, [0.1, 0.1, 0.9, 0.9])
+    assert fc is None
+
+
+def test_bbox_to_geojson_invalid_inputs():
+    """Verify bbox_to_geojson handles missing file and invalid bbox gracefully."""
+    from geo_engine.spatial import bbox_to_geojson
+
+    assert bbox_to_geojson("non_existent_file.tif", [0, 0, 1, 1]) is None
+    assert bbox_to_geojson(None, [0, 0, 1, 1]) is None
+    assert bbox_to_geojson("dummy.tif", None) is None
+    assert bbox_to_geojson("dummy.tif", [0, 0]) is None
+

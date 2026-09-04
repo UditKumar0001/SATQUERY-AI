@@ -4,6 +4,10 @@ import json
 import os
 import pytest
 from PIL import Image
+import numpy as np
+import rasterio
+from rasterio.crs import CRS
+from rasterio.transform import from_origin
 from starlette.testclient import TestClient
 from backend.main import app
 from orchestrator.db import Base, Query, UploadedImage, ExecutionTrace, SessionLocal, engine
@@ -134,17 +138,34 @@ def test_in_process_e2e_lifecycle(client):
 
 def test_in_process_e2e_change_detection(client, tmp_path):
     """Verify bi-temporal change detection end-to-end execution and 3-panel visualization."""
-    p1 = str(tmp_path / "t1.png")
-    p2 = str(tmp_path / "t2.png")
-    im1 = Image.new("RGB", (256, 256), color=(50, 150, 50))
-    im2 = Image.new("RGB", (256, 256), color=(200, 100, 50))
-    im1.save(p1, format="PNG")
-    im2.save(p2, format="PNG")
+    p1 = str(tmp_path / "t1.tif")
+    p2 = str(tmp_path / "t2.tif")
+    crs = CRS.from_epsg(32633)
+    transform = from_origin(500000.0, 3000000.0, 20.0, 20.0)
+    t1_data = np.full((5, 32, 32), 0.2, dtype=np.float32)
+    t1_data[3, 5:15, 5:15] = 0.8
+    t1_data[0, 5:15, 5:15] = 0.2
+    t2_data = t1_data.copy()
+    t2_data[3, 5:15, 5:15] = 0.2
+    t2_data[0, 5:15, 5:15] = 0.7
+    prof = {
+        "driver": "GTiff",
+        "height": 32,
+        "width": 32,
+        "count": 5,
+        "dtype": rasterio.float32,
+        "crs": crs,
+        "transform": transform,
+    }
+    with rasterio.open(p1, "w", **prof) as dst:
+        dst.write(t1_data)
+    with rasterio.open(p2, "w", **prof) as dst:
+        dst.write(t2_data)
 
     with open(p1, "rb") as f1, open(p2, "rb") as f2:
         files = [
-            ("files", ("t1.png", io.BytesIO(f1.read()), "image/png")),
-            ("files", ("t2.png", io.BytesIO(f2.read()), "image/png"))
+            ("files", ("t1.tif", io.BytesIO(f1.read()), "image/tiff")),
+            ("files", ("t2.tif", io.BytesIO(f2.read()), "image/tiff"))
         ]
         resp = client.post("/query", data={"query": "Detect and quantify changes between T1 and T2"}, files=files)
 

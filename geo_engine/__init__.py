@@ -40,6 +40,7 @@ from geo_engine.spatial import (
     mask_to_polygons,
     mask_to_geojson,
     create_overlay,
+    bbox_to_geojson,
 )
 
 
@@ -217,6 +218,7 @@ __all__ = [
     "mask_to_polygons",
     "mask_to_geojson",
     "create_overlay",
+    "bbox_to_geojson",
     # Pipeline
     "run_change_detection_pipeline",
 ]

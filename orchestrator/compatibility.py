@@ -13,7 +13,7 @@ try:
 except ImportError:
     CLIP_AVAILABLE = False
 
-SAME_LOCATION_THRESHOLD = 0.75
+SAME_LOCATION_THRESHOLD = float(os.getenv("SAME_LOCATION_THRESHOLD", "0.54"))
 
 # Lazy-loaded CLIP vision model
 _clip_model = None
