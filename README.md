@@ -10,28 +10,38 @@ SatQuery AI routes and validates satellite imagery queries across specialized to
 2. **Bi-Temporal Change Analysis**: Topological change detection and difference reasoning across timestamps via GeoLLaVA.
 3. **Multi-Sensor Fusion**: Joint reasoning over co-registered Optical spectrum and Synthetic Aperture Radar (SAR) backscatter via EarthGPT.
 
-## API Documentation
+## API Documentation & Endpoints
 
 - **Swagger UI**: `/docs`
 - **ReDoc**: `/redoc`
 - **Health & Readiness Check**: `GET /health`
-- **Query & Analysis**: `POST /query`
+- **Query & Multimodal Analysis**: `POST /query`
+- **Conversational Assistant**: `POST /chat` and `GET /chat/{session_id}`
 - **Audit History**: `GET /history`
 - **PDF Report Download**: `GET /report/{query_id}`
 
-## Deployment
+## Running Frontend & Backend Together
 
-### Deploying to Hugging Face Spaces
+### 1. Single Command (Recommended)
+Run both FastAPI orchestrator daemon and Streamlit ground station console together:
+```bash
+python run_app.py
+```
+This automatically verifies backend health on `http://127.0.0.1:8000/health` before starting the Streamlit console on `http://127.0.0.1:8501`.
+
+### 2. Docker Compose
+Launch both containerized services:
+```bash
+docker-compose up --build
+```
+- **Backend API**: `http://localhost:8000`
+- **Frontend Console**: `http://localhost:8501`
+
+### 3. Deploying to Hugging Face Spaces
 1. Create a new Space on [Hugging Face Spaces](https://huggingface.co/new-space) selecting **Docker** SDK.
 2. Add your Space remote and push:
    ```bash
    git remote add hf https://huggingface.co/spaces/<your-username>/satquery-backend
    git push hf main
    ```
-3. Set your `GEMINI_API_KEY` in the Space's **Settings -> Variables and Secrets**.
-
-### Deploying via Docker Locally or on Cloud VPS
-```bash
-docker build -t satquery-backend .
-docker run -p 7860:7860 -e GEMINI_API_KEY="your-key" satquery-backend
-```
+3. Set your `OPENAI_API_KEY` in the Space's **Settings -> Variables and Secrets**.

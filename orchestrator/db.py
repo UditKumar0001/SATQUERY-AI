@@ -84,6 +84,19 @@ class ExecutionTrace(Base):
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    # Ensure backward-compatible schema migration for SQLite
+    try:
+        with engine.connect() as conn:
+            from sqlalchemy import text
+            res = conn.execute(text("PRAGMA table_info(queries)"))
+            cols = [row[1] for row in res.fetchall()]
+            if cols and "visual_output_path" not in cols:
+                conn.execute(text("ALTER TABLE queries ADD COLUMN visual_output_path VARCHAR"))
+            if cols and "visual_output_url" not in cols:
+                conn.execute(text("ALTER TABLE queries ADD COLUMN visual_output_url VARCHAR"))
+            conn.commit()
+    except Exception as e:
+        print(f"[DB] Migration notice: {e}")
 
 
 # Auto-initialize SQLite database tables on module load

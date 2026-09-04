@@ -94,7 +94,7 @@ def health_check(db: Session = Depends(get_db)):
     """Comprehensive health and readiness diagnostic endpoint."""
     import torch
     from sqlalchemy import text
-    from orchestrator.registry import list_tools
+    from orchestrator.registry import list_tools, TOOL_REGISTRY
 
     # 1. Database connectivity check
     try:
@@ -112,14 +112,25 @@ def health_check(db: Session = Depends(get_db)):
     }
 
     # 3. Router configuration check
-    api_key_set = bool(os.getenv("OPENAI_API_KEY"))
+    api_key = os.getenv("OPENAI_API_KEY", "")
+    api_key_valid = bool(api_key and not api_key.startswith("your-") and not api_key.startswith("placeholder") and len(api_key) > 10)
+
+    # 4. Registered tools with structured details
+    tool_list = []
+    for task_name, meta in TOOL_REGISTRY.items():
+        tool_list.append({
+            "task": task_name,
+            "model": meta.get("model", "N/A"),
+            "model_wrapper": meta.get("model", "N/A"),
+            "description": meta.get("description", "")
+        })
 
     return {
         "status": "healthy" if db_status == "connected" else "degraded",
         "database": db_status,
         "hardware": device_info,
-        "router_llm_ready": api_key_set,
-        "registered_tools": list_tools(),
+        "router_llm_ready": api_key_valid,
+        "registered_tools": tool_list,
         "version": "1.0.0"
     }
 
@@ -468,21 +479,44 @@ async def chat_endpoint(
                 temperature=0.7,
                 max_tokens=500
             )
-            assistant_reply = response.choices[0].message.content.strip()
+            raw_content = response.choices[0].message.content
+            if isinstance(raw_content, str) and raw_content.strip():
+                assistant_reply = raw_content.strip()
         except Exception as e:
             print(f"[ChatEndpoint] OpenAI generation error: {e}")
 
-    if not assistant_reply:
-        if req.query_id:
+    if not isinstance(assistant_reply, str) or not assistant_reply.strip():
+        msg_lower = req.message.strip().lower()
+        if any(greet in msg_lower for greet in ["hello", "hi", "hey", "greetings", "good morning", "good evening"]):
             assistant_reply = (
-                f"Regarding query #{req.query_id} ('{req.message}'): The satellite imagery "
-                "and processing metrics show consistent backscatter and reflectance signatures across "
+                "👋 **Hello! Welcome to SatQuery AI.**\n\n"
+                "I am your Earth Observation and Satellite Imagery Intelligence Assistant. "
+                "I can assist you with:\n\n"
+                "- ✈️ **Visual Question Answering & Object Grounding** (e.g. runway aircraft detection, port infrastructure)\n"
+                "- 🗺️ **Bi-Temporal Change Detection** (e.g. urban expansion, deforestation, disaster assessment)\n"
+                "- 🛰️ **Multi-Sensor Fusion** (combining Sentinel-2 Optical and Sentinel-1 SAR imagery)\n\n"
+                "You can ask me questions about remote sensing analysis, or attach satellite image tiles to run full VLM inference pipelines!"
+            )
+        elif "help" in msg_lower:
+            assistant_reply = (
+                "### 🛰️ SatQuery AI Guidance\n\n"
+                "Here is how you can interact with SatQuery AI:\n\n"
+                "1. **Conversational Assistance**: Ask questions about remote sensing, satellite sensors (Sentinel, Landsat, SAR), or mission analysis.\n"
+                "2. **Imagery Analysis**: Attach satellite tiles (optical `.png`/`.tif` or SAR backscatter) in the chat input and specify directives like *'Detect all aircraft parked at terminals'* or *'Identify new building constructions'*.\n"
+                "3. **Audit Reports**: Every imagery analysis automatically produces downloadable PDF audit reports and verifiable telemetry traces."
+            )
+        elif req.query_id:
+            assistant_reply = (
+                f"Regarding telemetry record **#{req.query_id}** (`{req.message}`):\n\n"
+                "The satellite imagery and processing metrics show consistent backscatter and reflectance signatures across "
                 "the monitored region. What specific land-cover or feature details would you like to explore further?"
             )
         else:
             assistant_reply = (
-                f"SatQuery AI Assistant: I received your inquiry ('{req.message}'). You can upload satellite "
-                "imagery (optical and/or SAR) to analyze urban expansion, bi-temporal changes, or target grounding."
+                f"I received your inquiry regarding **\"{req.message}\"**.\n\n"
+                "SatQuery AI specializes in multimodal satellite intelligence. To analyze specific regions, "
+                "you can upload satellite imagery tiles (optical and/or SAR) using the attach option in the chat console, "
+                "or ask me domain questions about remote sensing sensors, spectral bands, and change detection algorithms."
             )
 
     # 5. Persist user and assistant messages
@@ -510,6 +544,43 @@ async def chat_endpoint(
         "history_count": len(past_messages) + 2,
         "created_at": assistant_msg_record.created_at.isoformat()
     }
+
+
+@app.get("/conversations")
+def list_conversations(limit: int = 20, db: Session = Depends(get_db)):
+    """List recent conversation sessions with preview and message counts."""
+    convs = (
+        db.query(Conversation)
+        .order_by(Conversation.created_at.desc())
+        .limit(limit)
+        .all()
+    )
+    result = []
+    for c in convs:
+        msgs = (
+            db.query(ChatMessage)
+            .filter(ChatMessage.conversation_id == c.id)
+            .order_by(ChatMessage.created_at.asc())
+            .all()
+        )
+        preview = ""
+        first_user = next((m for m in msgs if m.role == "user"), None)
+        if first_user:
+            preview = first_user.content[:80] + ("..." if len(first_user.content) > 80 else "")
+        elif msgs:
+            preview = msgs[0].content[:80] + ("..." if len(msgs[0].content) > 80 else "")
+        else:
+            preview = "Empty conversation"
+
+        result.append({
+            "id": c.id,
+            "session_id": c.session_id,
+            "created_at": c.created_at.isoformat() if c.created_at else None,
+            "message_count": len(msgs),
+            "preview": preview,
+            "last_active": msgs[-1].created_at.isoformat() if msgs and msgs[-1].created_at else (c.created_at.isoformat() if c.created_at else None)
+        })
+    return {"conversations": result, "total": len(result)}
 
 
 @app.get("/chat/{session_id}")

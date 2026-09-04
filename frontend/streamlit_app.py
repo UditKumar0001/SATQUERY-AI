@@ -52,7 +52,7 @@ if "show_attach_popover" not in st.session_state:
     st.session_state.show_attach_popover = False
 
 if "chat_opened" not in st.session_state:
-    st.session_state.chat_opened = False
+    st.session_state.chat_opened = True
 
 is_dark = (st.session_state.theme == "dark")
 
@@ -1855,10 +1855,21 @@ st.markdown(f"""
         box-sizing: border-box;
         transition: border-color 0.2s ease;
     }}
-    @media (max-width: 768px) {{
-        .chat-bubble {{
-            max-width: 96%;
-        }}
+    [data-testid="stChatMessage"] {{
+        background: rgba(15, 23, 42, 0.70) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
+        margin-bottom: 12px !important;
+        backdrop-filter: blur(8px);
+    }}
+    [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) {{
+        border-color: rgba(59, 130, 246, 0.3) !important;
+        background: linear-gradient(135deg, rgba(20, 30, 48, 0.85) 0%, rgba(12, 18, 28, 0.85) 100%) !important;
+    }}
+    [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) {{
+        border-left: 3px solid #1D6FD8 !important;
+        background: rgba(12, 17, 24, 0.85) !important;
     }}
     .user-bubble {{
         background: linear-gradient(135deg, rgba(20, 30, 48, 0.95) 0%, rgba(12, 18, 28, 0.95) 100%);
@@ -2888,6 +2899,15 @@ with st.sidebar:
             value=default_api_url,
             help="Target FastAPI orchestrator endpoint"
         ).rstrip("/")
+        if st.button("🧹 Purge Stale Uploads (24h)", key="btn_admin_purge", use_container_width=True):
+            try:
+                cl_resp = requests.post(f"{API_URL}/admin/cleanup?max_age_hours=24", timeout=5)
+                if cl_resp.status_code == 200:
+                    st.success("Stale cache and uploads purged.")
+                else:
+                    st.warning(f"Purge returned status {cl_resp.status_code}")
+            except Exception as e:
+                st.error(f"Purge error: {e}")
 
     st.markdown("<div class='ref-sidebar-kicker'>SYSTEM HEALTH</div>", unsafe_allow_html=True)
     
@@ -2909,11 +2929,21 @@ with st.sidebar:
             if router_ready:
                 st.markdown("<div style='font-family: \"Inter\", sans-serif; font-size: 0.82rem; margin-bottom: 12px;'>Router LLM: <span class='ref-task-badge'>Ready</span></div>", unsafe_allow_html=True)
             else:
-                st.markdown("<div style='font-family: \"Inter\", sans-serif; font-size: 0.82rem; margin-bottom: 12px;'>Router LLM: <span style='background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 8px; border-radius: 9999px; font-size: 0.70rem; font-weight: 600;'>Key Pending</span></div>", unsafe_allow_html=True)
+                st.markdown("<div style='font-family: \"Inter\", sans-serif; font-size: 0.82rem; margin-bottom: 12px;'>Router LLM: <span style='background: rgba(245, 158, 11, 0.12); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); padding: 2px 8px; border-radius: 9999px; font-size: 0.70rem; font-weight: 600;'>Domain Fallback</span></div>", unsafe_allow_html=True)
 
-            with st.expander("Active Tool Registry", expanded=False):
-                for tool in health.get("registered_tools", []):
-                    st.code(f"{tool['task']} -> {tool['model_wrapper']}", language="bash")
+            try:
+                tools_list = health.get("registered_tools", [])
+                if tools_list:
+                    with st.expander("Active Tool Registry", expanded=False):
+                        for tool in tools_list:
+                            if isinstance(tool, dict):
+                                t_task = tool.get("task", "unknown")
+                                t_wrapper = tool.get("model_wrapper") or tool.get("model") or "N/A"
+                                st.code(f"{t_task} -> {t_wrapper}", language="bash")
+                            else:
+                                st.code(str(tool), language="bash")
+            except Exception:
+                pass
         else:
             st.markdown(f"""
             <div class="ref-status-pill status-pill-offline">
@@ -3159,6 +3189,211 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+
+def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url: str):
+    """Submits imagery files and prompt to FastAPI backend /query endpoint."""
+    with st.spinner("Dispatching to orchestrator: routing multi-modal reasoning pipeline..."):
+        try:
+            files_payload = []
+            user_imgs = []
+            for item in files_list:
+                name, raw_b, ctype = item[0], item[1], item[2]
+                files_payload.append(("files", (name, raw_b, ctype)))
+                user_imgs.append({
+                    "name": name,
+                    "size_kb": round(len(raw_b) / 1024, 1),
+                    "thumb_b64": make_thumbnail_b64(name, raw_b)
+                })
+
+            data_payload = {"query": query_text_to_send}
+            response = requests.post(f"{api_url}/query", data=data_payload, files=files_payload, timeout=120)
+
+            if response.status_code != 200:
+                st.error(f"[SYSTEM FAULT] HTTP {response.status_code}: {response.text}")
+                return
+
+            resp = response.json()
+            is_rejected = (
+                not resp.get("validation_ok", True)
+                or resp.get("selected_task") == "reject"
+                or resp.get("status") == "rejected"
+            )
+
+            pdf_bytes = None
+            query_id = resp.get("query_id")
+            if query_id and not is_rejected:
+                st.session_state["last_query_id"] = query_id
+                try:
+                    rep_resp = requests.get(f"{api_url}/report/{query_id}", timeout=10)
+                    if rep_resp.status_code == 200:
+                        pdf_bytes = rep_resp.content
+                except Exception:
+                    pass
+
+            vis_url = resp.get("visual_output_url")
+            vis_bytes = None
+            if vis_url and not is_rejected:
+                try:
+                    vis_resp = requests.get(f"{api_url}{vis_url}", timeout=10)
+                    if vis_resp.status_code == 200:
+                        vis_bytes = vis_resp.content
+                except Exception:
+                    pass
+
+            result_data = resp.get("result", {})
+            answer_text = result_data.get("text") if isinstance(result_data, dict) else str(result_data)
+            conf = resp.get("trace", {}).get("output_confidence")
+            conf_val = f"{conf:.0%}" if isinstance(conf, (int, float)) else "N/A"
+
+            new_turn = {
+                "id": str(uuid.uuid4()),
+                "timestamp": datetime.now().strftime("%H:%M:%S UTC"),
+                "user": {
+                    "text": query_text_to_send,
+                    "images": user_imgs
+                },
+                "response": {
+                    "is_rejected": is_rejected,
+                    "is_chat": False,
+                    "validation_msg": resp.get("validation_msg") or resp.get("guardrail_message") or "Request geometry or sensor modality incompatible with tool registry.",
+                    "selected_task": resp.get("selected_task", "N/A"),
+                    "model_used": resp.get("model_used", "N/A"),
+                    "confidence": conf_val,
+                    "query_id": query_id,
+                    "answer": answer_text or "No textual telemetry generated.",
+                    "trace": resp.get("trace", {}),
+                    "pdf_data": pdf_bytes,
+                    "visual_output_url": vis_url,
+                    "visual_output_bytes": vis_bytes
+                }
+            }
+            st.session_state.chat_history.append(new_turn)
+            st.session_state.chat_opened = True
+            st.rerun()
+
+        except requests.exceptions.RequestException as req_err:
+            st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
+
+
+def dispatch_chat_to_backend(message: str, api_url: str):
+    """Sends conversational message to FastAPI /chat endpoint."""
+    with st.spinner("Dispatching to SatQuery AI Assistant..."):
+        try:
+            chat_session_id = st.session_state.setdefault("chat_session_id", uuid.uuid4().hex[:12])
+            last_qid = st.session_state.get("last_query_id")
+            chat_payload = {
+                "message": message,
+                "session_id": chat_session_id,
+                "query_id": last_qid
+            }
+            response = requests.post(f"{api_url}/chat", json=chat_payload, timeout=60)
+            if response.status_code != 200:
+                st.error(f"[CHAT FAULT] HTTP {response.status_code}: {response.text}")
+                return
+
+            c_data = response.json()
+            st.session_state.chat_session_id = c_data.get("session_id", chat_session_id)
+            new_turn = {
+                "id": str(uuid.uuid4()),
+                "timestamp": datetime.now().strftime("%H:%M:%S UTC"),
+                "user": {
+                    "text": message,
+                    "images": []
+                },
+                "response": {
+                    "is_rejected": False,
+                    "is_chat": True,
+                    "validation_msg": "",
+                    "selected_task": "Conversational Assistant",
+                    "model_used": "OpenAI LLM",
+                    "confidence": "Verified",
+                    "query_id": c_data.get("query_id"),
+                    "answer": c_data.get("response", "No response received."),
+                    "trace": {},
+                    "pdf_data": None,
+                    "visual_output_url": None,
+                    "visual_output_bytes": None
+                }
+            }
+            st.session_state.chat_history.append(new_turn)
+            st.session_state.chat_opened = True
+            st.rerun()
+        except requests.exceptions.RequestException as req_err:
+            st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
+
+
+def load_session_into_chat(session_id: str, api_url: str):
+    """Loads a past multi-turn chat session into active Streamlit chat state."""
+    try:
+        resp = requests.get(f"{api_url}/chat/{session_id}", timeout=10)
+        if resp.status_code == 200:
+            c_data = resp.json()
+            messages = c_data.get("messages", [])
+            new_history = []
+            i = 0
+            while i < len(messages):
+                msg = messages[i]
+                if msg["role"] == "user":
+                    user_text = msg["content"]
+                    ts = msg.get("created_at", "")[:19].replace("T", " ") if msg.get("created_at") else ""
+                    ans_text = ""
+                    qid = msg.get("query_id")
+                    if i + 1 < len(messages) and messages[i + 1]["role"] == "assistant":
+                        ans_text = messages[i + 1]["content"]
+                        qid = qid or messages[i + 1].get("query_id")
+                        i += 2
+                    else:
+                        i += 1
+                    new_history.append({
+                        "id": str(uuid.uuid4()),
+                        "timestamp": ts,
+                        "user": {"text": user_text, "images": []},
+                        "response": {
+                            "is_rejected": False,
+                            "is_chat": True,
+                            "validation_msg": "",
+                            "selected_task": "Conversational Assistant",
+                            "model_used": "SatQuery AI",
+                            "confidence": "Verified",
+                            "query_id": qid,
+                            "answer": ans_text,
+                            "trace": {},
+                            "pdf_data": None,
+                            "visual_output_url": None,
+                            "visual_output_bytes": None
+                        }
+                    })
+                else:
+                    new_history.append({
+                        "id": str(uuid.uuid4()),
+                        "timestamp": msg.get("created_at", "")[:19].replace("T", " ") if msg.get("created_at") else "",
+                        "user": {"text": "(Context)", "images": []},
+                        "response": {
+                            "is_rejected": False,
+                            "is_chat": True,
+                            "validation_msg": "",
+                            "selected_task": "Conversational Assistant",
+                            "model_used": "SatQuery AI",
+                            "confidence": "Verified",
+                            "query_id": msg.get("query_id"),
+                            "answer": msg["content"],
+                            "trace": {},
+                            "pdf_data": None,
+                            "visual_output_url": None,
+                            "visual_output_bytes": None
+                        }
+                    })
+                    i += 1
+            st.session_state.chat_history = new_history
+            st.session_state.chat_session_id = session_id
+            st.session_state.chat_opened = True
+            st.rerun()
+        else:
+            st.error(f"Failed to load session {session_id}: HTTP {resp.status_code}")
+    except Exception as e:
+        st.error(f"Error loading session: {e}")
+
+
 # Check whether chat is active (either user explicitly opened it, or conversation history exists)
 is_chat_opened = st.session_state.get("chat_opened", False) or bool(st.session_state.get("chat_history"))
 
@@ -3269,101 +3504,117 @@ else:
 </div>"""
         st.markdown(previews_html, unsafe_allow_html=True)
 
+        st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+        col_d1, col_d2, col_d3 = st.columns(3, gap="small")
+        with col_d1:
+            if st.button("▶  Run Optical VQA Demo", key="btn_run_demo_optical", use_container_width=True, help="Analyze runway aircraft sample using GeoChat"):
+                demo_path = os.path.join("data", "raw", "vrsbench", "sample_001.png")
+                if os.path.exists(demo_path):
+                    with open(demo_path, "rb") as df:
+                        raw_b = df.read()
+                    dispatch_query_to_backend("Detect and count the aircraft parked at the airport terminals.", [("sample_001.png", raw_b, "image/png")], API_URL)
+                else:
+                    st.warning("Demo image not found at data/raw/vrsbench/sample_001.png")
+        with col_d2:
+            if st.button("▶  Run Change Detection Demo", key="btn_run_demo_change", use_container_width=True, help="Analyze bi-temporal urban delta using GeoLLaVA"):
+                p1 = os.path.join("data", "raw", "cdvqa", "pair_004_before.png")
+                p2 = os.path.join("data", "raw", "cdvqa", "pair_004_after.png")
+                if os.path.exists(p1) and os.path.exists(p2):
+                    with open(p1, "rb") as f1, open(p2, "rb") as f2:
+                        b1 = f1.read()
+                        b2 = f2.read()
+                    dispatch_query_to_backend("Compare both images and identify newly constructed buildings or infrastructure.", [("before.png", b1, "image/png"), ("after.png", b2, "image/png")], API_URL)
+                else:
+                    st.warning("Demo images not found in data/raw/cdvqa/")
+        with col_d3:
+            if st.button("▶  Run Optical-SAR Fusion Demo", key="btn_run_demo_fusion", use_container_width=True, help="Analyze joint Optical and SAR backscatter using EarthGPT"):
+                p_opt = os.path.join("data", "raw", "bigearthnet", "tile_001_s2_optical.png")
+                p_sar = os.path.join("data", "raw", "bigearthnet", "tile_001_s1_sar.png")
+                if os.path.exists(p_opt) and os.path.exists(p_sar):
+                    with open(p_opt, "rb") as f1, open(p_sar, "rb") as f2:
+                        b_opt = f1.read()
+                        b_sar = f2.read()
+                    dispatch_query_to_backend("Perform joint optical and radar fusion over this scene.", [("optical.png", b_opt, "image/png"), ("sar.png", b_sar, "image/png")], API_URL)
+                else:
+                    st.warning("Demo images not found in data/raw/bigearthnet/")
+
     else:
         for idx, turn in enumerate(st.session_state.chat_history):
             user_turn = turn["user"]
             ts = turn.get("timestamp", "")
 
-            # Render User message bubble
-            user_imgs_html = ""
-            if user_turn.get("images"):
-                user_imgs_html = '<div class="user-bubble-imgs">'
-                for img_info in user_turn["images"]:
-                    thumb = f'<img src="{img_info["thumb_b64"]}" class="user-bubble-thumb" />' if img_info.get("thumb_b64") else ''
-                    user_imgs_html += f"""
-                    <div class="user-bubble-img-item">
-                        {thumb}
-                        <span class="user-bubble-img-name">{html.escape(img_info['name'])}</span>
-                        <span class="user-bubble-img-size">({img_info.get('size_kb', 0)} KB)</span>
-                    </div>
-                    """
-                user_imgs_html += '</div>'
+            # 1. Native Streamlit User Chat Message
+            with st.chat_message("user"):
+                if user_turn.get("images"):
+                    img_cols = st.columns(min(len(user_turn["images"]), 3))
+                    for idx_img, img_info in enumerate(user_turn["images"]):
+                        with img_cols[idx_img % len(img_cols)]:
+                            if img_info.get("thumb_b64"):
+                                st.image(img_info["thumb_b64"], caption=f"{img_info['name']} ({img_info.get('size_kb', 0)} KB)", width=140)
+                            else:
+                                st.caption(f"📁 {img_info['name']}")
+                st.markdown(user_turn.get("text", ""))
+                if ts:
+                    st.caption(f"🕒 {ts}")
 
-            st.markdown(f"""
-            <div class="chat-row chat-row-user">
-                <div class="user-bubble">
-                    {user_imgs_html}
-                    <div class="user-bubble-text">{html.escape(user_turn['text'])}</div>
-                    <div class="chat-timestamp">{ts}</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-
-            # Render AI response bubble
+            # 2. Native Streamlit Assistant Chat Message
             resp_data = turn["response"]
-            if resp_data.get("is_rejected"):
-                val_msg = html.escape(str(resp_data.get("validation_msg", "Request geometry or sensor modality incompatible with tool registry.")))
-                st.markdown(f"""
-                <div class="chat-row chat-row-ai">
-                    <div class="ai-bubble ai-bubble-rejection">
-                        <div class="ai-rejection-header">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="12"></line>
-                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                            </svg>
-                            <span>[GUARDRAIL REJECTION // REQUEST TERMINATED]</span>
-                        </div>
-                        <div class="ai-rejection-body">
-                            {val_msg}
-                        </div>
-                        <div class="chat-timestamp" style="margin-top: 8px;">{ts}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-                if resp_data.get("trace"):
-                    with st.expander(f"[AUDIT TELEMETRY TRACE #{idx+1}]"):
-                        st.json(resp_data["trace"])
-            else:
-                task_str = html.escape(str(resp_data.get("selected_task", "N/A")))
-                model_str = html.escape(str(resp_data.get("model_used", "N/A")))
-                conf_str = html.escape(str(resp_data.get("confidence", "N/A")))
-                qid_str = html.escape(str(resp_data.get("query_id", "N/A")))
-                ans_text = html.escape(str(resp_data.get("answer", "")))
+            with st.chat_message("assistant", avatar="🛰️"):
+                if resp_data.get("is_rejected"):
+                    val_msg = str(resp_data.get("validation_msg", "Request geometry or sensor modality incompatible with tool registry."))
+                    st.error(f"🛡️ **Guardrail Notice:** {val_msg}")
+                    if resp_data.get("trace"):
+                        with st.expander("Audit Telemetry Trace", expanded=False):
+                            st.json(resp_data["trace"])
+                else:
+                    # Model & Task telemetry pill row (for VLM or query tasks)
+                    meta_parts = []
+                    t_task = resp_data.get("selected_task")
+                    if t_task and t_task not in ["N/A", "Conversational Assistant"]:
+                        meta_parts.append(f"**Task:** `{t_task}`")
+                    t_model = resp_data.get("model_used")
+                    if t_model and t_model not in ["N/A", "OpenAI LLM", "SatQuery AI"]:
+                        meta_parts.append(f"**Model:** `{t_model}`")
+                    t_conf = resp_data.get("confidence")
+                    if t_conf and t_conf not in ["N/A", "Verified"]:
+                        meta_parts.append(f"**Confidence:** `{t_conf}`")
+                    t_qid = resp_data.get("query_id")
+                    if t_qid:
+                        meta_parts.append(f"**Record:** `#{t_qid}`")
 
-                st.markdown(f"""
-                <div class="chat-row chat-row-ai">
-                    <div class="ai-bubble">
-                        <div class="ai-badge-row">
-                            <div class="ai-meta-badge"><span class="badge-lbl">MODEL:</span> <span class="badge-val">{model_str}</span></div>
-                            <div class="ai-meta-badge"><span class="badge-lbl">TASK:</span> <span class="badge-val">{task_str}</span></div>
-                            <div class="ai-confidence-pill"><span class="conf-dot"></span>{conf_str} CONFIDENCE</div>
-                            <div class="ai-meta-badge" style="margin-left: auto;"><span class="badge-lbl">RECORD:</span> <span class="badge-val">#{qid_str}</span></div>
-                        </div>
-                        <div class="ai-synthesis-body">
-                            {ans_text}
-                        </div>
-                        <div class="chat-timestamp" style="margin-top: 10px;">{ts}</div>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
+                    if meta_parts:
+                        st.caption(" • ".join(meta_parts))
 
-                col_dl, col_blank = st.columns([0.32, 0.68])
-                if resp_data.get("pdf_data"):
-                    with col_dl:
+                    # Markdown Assistant Response
+                    ans_text = resp_data.get("answer", "")
+                    st.markdown(ans_text)
+
+                    # Spatial visualization
+                    if resp_data.get("visual_output_bytes"):
+                        st.image(resp_data["visual_output_bytes"], caption="🎯 Spatial Detection & Telemetry Visualization", use_container_width=True)
+                    elif resp_data.get("visual_output_url"):
+                        st.image(f"{API_URL}{resp_data['visual_output_url']}", caption="🎯 Spatial Detection & Telemetry Visualization", use_container_width=True)
+
+                    # PDF report export
+                    if resp_data.get("pdf_data"):
                         st.download_button(
-                            label="📥  Export Audit Report (PDF)",
+                            label="📥 Export Audit Report (PDF)",
                             data=resp_data["pdf_data"],
                             file_name=f"satquery_audit_report_{resp_data.get('query_id')}.pdf",
                             mime="application/pdf",
                             key=f"dl_pdf_{turn['id']}",
-                            use_container_width=True
+                            use_container_width=False
                         )
-                if resp_data.get("trace"):
-                    with st.expander(f"[AUDIT TELEMETRY TRACE — RECORD #{qid_str}]"):
-                        st.json(resp_data["trace"])
 
-        st.markdown("<div style='height: 24px;'></div>", unsafe_allow_html=True)
+                    # Execution trace expander
+                    if resp_data.get("trace"):
+                        with st.expander(f"Audit Telemetry Trace (Record #{t_qid or idx+1})", expanded=False):
+                            st.json(resp_data["trace"])
+
+                if ts:
+                    st.caption(f"🕒 {ts}")
+
+        st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
         st.markdown("""<div class="chat-engine-tag-bar">
 <span class="chat-engine-badge"><span class="chat-engine-dot"></span>MULTIMODAL VLM ROUTER</span>
 <span class="chat-engine-models">GeoChat • GeoLLaVA • EarthGPT</span>
@@ -3372,14 +3623,14 @@ else:
         chat_col, _ = st.columns([0.999, 0.001])
         with chat_col:
             prompt = st.chat_input(
-                placeholder="How can I help you today?",
+                placeholder="How can I help you today? Ask questions or upload satellite imagery...",
                 accept_file="multiple",
                 file_type=["tif", "tiff", "png", "jpg", "jpeg"],
                 key="main_chat_input"
             )
 
         selected_preset = st.session_state.setdefault("selected_preset", "air")
-        st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         c_pad_l, c_p1, c_p2, c_p3, c_pad_r = st.columns([0.22, 0.18, 0.20, 0.18, 0.22], gap="small")
         with c_p1:
             is_sel = (selected_preset == "air")
@@ -3400,188 +3651,324 @@ else:
                 st.session_state.selected_preset = "change"
                 st.rerun()
 
-    # --- Chat Input Submission Execution ---
+    # --- Chat Input Submission Execution with Immediate User Display & Spinner ---
     if prompt:
         effective_query = (prompt.text or "").strip()
         attached_files = prompt.files or []
 
-        if not attached_files:
-            st.warning("⚠️ Please attach satellite/aerial raster tiles (GeoTIFF, TIFF, PNG, JPG) using the + icon inside the input card before submitting your query.")
-        else:
-            files_payload = []
-            user_imgs = []
-            for f in attached_files[:2]:
-                raw_b = f.getvalue()
-                files_payload.append(
-                    ("files", (f.name, raw_b, f.type or "application/octet-stream"))
-                )
-                user_imgs.append({
-                    "name": f.name,
-                    "size_kb": round(len(raw_b) / 1024, 1),
-                    "thumb_b64": make_thumbnail_b64(f.name, raw_b)
-                })
+        if not effective_query and not attached_files:
+            st.warning("⚠️ Please enter a directive or attach satellite imagery tiles before submitting.")
+        elif not attached_files:
+            # 1. Immediately render User message
+            with st.chat_message("user"):
+                st.markdown(effective_query)
 
+            # 2. Immediately render Assistant response with spinner
+            with st.chat_message("assistant", avatar="🛰️"):
+                with st.spinner("SatQuery AI is formulating response..."):
+                    chat_session_id = st.session_state.setdefault("chat_session_id", uuid.uuid4().hex[:12])
+                    last_qid = st.session_state.get("last_query_id")
+                    chat_payload = {
+                        "message": effective_query,
+                        "session_id": chat_session_id,
+                        "query_id": last_qid
+                    }
+                    try:
+                        response = requests.post(f"{API_URL}/chat", json=chat_payload, timeout=60)
+                        if response.status_code == 200:
+                            c_data = response.json()
+                            st.session_state.chat_session_id = c_data.get("session_id", chat_session_id)
+                            ans = c_data.get("response", "No response received.")
+                            st.markdown(ans)
+                            new_turn = {
+                                "id": str(uuid.uuid4()),
+                                "timestamp": datetime.now().strftime("%H:%M:%S UTC"),
+                                "user": {
+                                    "text": effective_query,
+                                    "images": []
+                                },
+                                "response": {
+                                    "is_rejected": False,
+                                    "is_chat": True,
+                                    "validation_msg": "",
+                                    "selected_task": "Conversational Assistant",
+                                    "model_used": "SatQuery AI",
+                                    "confidence": "Verified",
+                                    "query_id": c_data.get("query_id"),
+                                    "answer": ans,
+                                    "trace": {},
+                                    "pdf_data": None,
+                                    "visual_output_url": None,
+                                    "visual_output_bytes": None
+                                }
+                            }
+                            st.session_state.chat_history.append(new_turn)
+                            st.session_state.chat_opened = True
+                            st.rerun()
+                        else:
+                            st.error(f"[CHAT FAULT] HTTP {response.status_code}: {response.text}")
+                    except requests.exceptions.RequestException as req_err:
+                        st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
+        else:
             preset_prompts = {
                 "air": "Detect and count the aircraft parked at the airport terminals.",
                 "land": "Identify the dominant land cover and vegetation types across this scene.",
                 "change": "Compare both images and identify newly constructed buildings or infrastructure."
             }
             query_text_to_send = effective_query if effective_query else preset_prompts.get(st.session_state.get("selected_preset", "air"), "Analyze attached imagery.")
+            files_payload_tuples = [
+                (f.name, f.getvalue(), f.type or "application/octet-stream")
+                for f in attached_files[:2]
+            ]
+            # 1. Immediately render User message with uploaded imagery
+            with st.chat_message("user"):
+                u_imgs = []
+                col_imgs = st.columns(min(len(attached_files), 3))
+                for idx_f, f in enumerate(attached_files[:3]):
+                    fb = f.getvalue()
+                    with col_imgs[idx_f]:
+                        st.caption(f"📁 {f.name} ({len(fb) // 1024} KB)")
+                    u_imgs.append({
+                        "name": f.name,
+                        "size_kb": round(len(fb) / 1024, 1),
+                        "thumb_b64": make_thumbnail_b64(f.name, fb)
+                    })
+                st.markdown(query_text_to_send)
 
-            with st.spinner("Dispatching to orchestrator: routing multi-modal reasoning pipeline..."):
-                try:
-                    data_payload = {"query": query_text_to_send}
-                    response = requests.post(f"{API_URL}/query", data=data_payload, files=files_payload, timeout=120)
+            # 2. Immediately render Assistant response with spinner
+            with st.chat_message("assistant", avatar="🛰️"):
+                with st.spinner("SatQuery AI orchestrator: routing multi-modal reasoning pipeline..."):
+                    try:
+                        multipart_files = []
+                        for item in files_payload_tuples:
+                            name, raw_b, ctype = item[0], item[1], item[2]
+                            multipart_files.append(("files", (name, raw_b, ctype)))
 
-                    if response.status_code != 200:
-                        st.error(f"[SYSTEM FAULT] HTTP {response.status_code}: {response.text}")
-                    else:
-                        resp = response.json()
-                        is_rejected = (
-                            not resp.get("validation_ok", True)
-                            or resp.get("selected_task") == "reject"
-                            or resp.get("status") == "rejected"
-                        )
+                        data_payload = {"query": query_text_to_send}
+                        response = requests.post(f"{API_URL}/query", data=data_payload, files=multipart_files, timeout=120)
+                        if response.status_code != 200:
+                            st.error(f"[SYSTEM FAULT] HTTP {response.status_code}: {response.text}")
+                        else:
+                            resp = response.json()
+                            is_rejected = (
+                                not resp.get("validation_ok", True)
+                                or resp.get("selected_task") == "reject"
+                                or resp.get("status") == "rejected"
+                            )
+                            pdf_bytes = None
+                            query_id = resp.get("query_id")
+                            if query_id and not is_rejected:
+                                st.session_state["last_query_id"] = query_id
+                                try:
+                                    rep_resp = requests.get(f"{API_URL}/report/{query_id}", timeout=10)
+                                    if rep_resp.status_code == 200:
+                                        pdf_bytes = rep_resp.content
+                                except Exception:
+                                    pass
 
-                        pdf_bytes = None
-                        query_id = resp.get("query_id")
-                        if query_id and not is_rejected:
-                            try:
-                                rep_resp = requests.get(f"{API_URL}/report/{query_id}", timeout=10)
-                                if rep_resp.status_code == 200:
-                                    pdf_bytes = rep_resp.content
-                            except Exception:
-                                pass
+                            vis_url = resp.get("visual_output_url")
+                            vis_bytes = None
+                            if vis_url and not is_rejected:
+                                try:
+                                    vis_resp = requests.get(f"{API_URL}{vis_url}", timeout=10)
+                                    if vis_resp.status_code == 200:
+                                        vis_bytes = vis_resp.content
+                                except Exception:
+                                    pass
 
-                        result_data = resp.get("result", {})
-                        answer_text = result_data.get("text") if isinstance(result_data, dict) else str(result_data)
-                        conf = resp.get("trace", {}).get("output_confidence")
-                        conf_val = f"{conf:.0%}" if isinstance(conf, (int, float)) else "N/A"
+                            result_data = resp.get("result", {})
+                            answer_text = result_data.get("text") if isinstance(result_data, dict) else str(result_data)
+                            conf = resp.get("trace", {}).get("output_confidence")
+                            conf_val = f"{conf:.0%}" if isinstance(conf, (int, float)) else "N/A"
 
-                        new_turn = {
-                            "id": str(uuid.uuid4()),
-                            "timestamp": datetime.now().strftime("%H:%M:%S UTC"),
-                            "user": {
-                                "text": query_text_to_send,
-                                "images": user_imgs
-                            },
-                            "response": {
-                                "is_rejected": is_rejected,
-                                "validation_msg": resp.get("validation_msg") or resp.get("guardrail_message") or "Request geometry or sensor modality incompatible with tool registry.",
-                                "selected_task": resp.get("selected_task", "N/A"),
-                                "model_used": resp.get("model_used", "N/A"),
-                                "confidence": conf_val,
-                                "query_id": query_id,
-                                "answer": answer_text or "No textual telemetry generated.",
-                                "trace": resp.get("trace", {}),
-                                "pdf_data": pdf_bytes
+                            new_turn = {
+                                "id": str(uuid.uuid4()),
+                                "timestamp": datetime.now().strftime("%H:%M:%S UTC"),
+                                "user": {
+                                    "text": query_text_to_send,
+                                    "images": u_imgs
+                                },
+                                "response": {
+                                    "is_rejected": is_rejected,
+                                    "is_chat": False,
+                                    "validation_msg": resp.get("validation_msg") or resp.get("guardrail_message") or "Request geometry or sensor modality incompatible with tool registry.",
+                                    "selected_task": resp.get("selected_task", "N/A"),
+                                    "model_used": resp.get("model_used", "N/A"),
+                                    "confidence": conf_val,
+                                    "query_id": query_id,
+                                    "answer": answer_text or "No textual telemetry generated.",
+                                    "trace": resp.get("trace", {}),
+                                    "pdf_data": pdf_bytes,
+                                    "visual_output_url": vis_url,
+                                    "visual_output_bytes": vis_bytes
+                                }
                             }
-                        }
-                        st.session_state.chat_history.append(new_turn)
-                        st.rerun()
-
-                except requests.exceptions.RequestException as req_err:
-                    st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
+                            st.session_state.chat_history.append(new_turn)
+                            st.session_state.chat_opened = True
+                            st.rerun()
+                    except requests.exceptions.RequestException as req_err:
+                        st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
 
 
 # --- Section 3: History & Audit Log ---
 st.markdown("<div style='height: 32px;'></div>", unsafe_allow_html=True)
 st.markdown("""
 <div id="section-audit" class="hud-step-header">
-    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">03</span> <span class="hud-bracket">]</span> • TELEMETRY AUDIT</div>
-    <div class="ref-section-title">Recent Queries & Audit Log</div>
-    <div class="ref-section-desc">Historical pipeline execution records, verified task traces, and generated PDF audit reports.</div>
+    <div class="ref-section-kicker"><span class="hud-dot"></span> <span class="hud-bracket">[</span> <span class="hud-step-num">03</span> <span class="hud-bracket">]</span> • AUDIT & CONVERSATIONS</div>
+    <div class="ref-section-title">Session History & Telemetry Log</div>
+    <div class="ref-section-desc">Review previous multi-turn chat sessions, reopen past conversations in the console, or inspect pipeline telemetry audit traces.</div>
     <div class="hud-scanline"></div>
 </div>
 """, unsafe_allow_html=True)
 
-try:
-    hist_resp = requests.get(f"{API_URL}/history?limit=10", timeout=5)
-    if hist_resp.status_code == 200:
-        hist_data = hist_resp.json()
-        entries = hist_data.get("history", [])
-        if not entries:
-            st.caption("No historical records detected in the audit database.")
-        else:
-            for item in entries:
-                task = item.get("selected_task", "unknown")
-                model = item.get("model_used", "unknown")
-                conf = item.get("output_confidence") or item.get("router_confidence") or 0.0
-                qid = item.get("id")
-                created = item.get("created_at", "")[:19].replace("T", " ")
+tab_conversations, tab_telemetry = st.tabs(["💬 Chat Sessions", "🛰️ Pipeline Audit & Telemetry"])
 
-                st.markdown(f"""
-                <div class="ref-history-card">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                        <span class="ref-task-badge">{task.replace('_', ' ')}</span>
-                        <span style="font-family: 'Inter', sans-serif; font-size: 0.76rem; color: var(--text-muted);">Record #{qid:04d}</span>
+with tab_conversations:
+    try:
+        conv_resp = requests.get(f"{API_URL}/conversations?limit=15", timeout=5)
+        if conv_resp.status_code == 200:
+            conv_data = conv_resp.json()
+            conv_list = conv_data.get("conversations", [])
+            if not conv_list:
+                st.caption("No chat conversations recorded yet. Start a conversation in the chat console above!")
+            else:
+                for c in conv_list:
+                    s_id = c.get("session_id")
+                    preview = c.get("preview", "Conversation session")
+                    msg_count = c.get("message_count", 0)
+                    created = c.get("created_at", "")[:19].replace("T", " ") if c.get("created_at") else ""
+
+                    st.markdown(f"""
+                    <div class="ref-history-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span class="ref-task-badge">SESSION: {s_id[:8]}</span>
+                            <span style="font-family: 'Inter', sans-serif; font-size: 0.76rem; color: var(--text-muted);">{msg_count} messages • {created} UTC</span>
+                        </div>
+                        <div class="ref-history-query" style="font-size: 0.94rem;">💬 {html.escape(preview)}</div>
                     </div>
-                    <div class="ref-history-query">{item.get('query_text')}</div>
-                    <div class="ref-history-meta">
-                        <span>Confidence: <strong>{conf:.0%}</strong></span>
-                        <span>•</span>
-                        <span>Model: <strong>{model}</strong></span>
-                        <span>•</span>
-                        <span>{created} UTC</span>
+                    """, unsafe_allow_html=True)
+
+                    col_c1, col_c2 = st.columns([0.72, 0.28])
+                    with col_c2:
+                        if st.button("💬 Reopen in Chat", key=f"btn_reopen_{s_id}", use_container_width=True, help="Load this conversation session into the chat console"):
+                            load_session_into_chat(s_id, API_URL)
+                    with col_c1:
+                        with st.expander(f"Preview Transcript ({s_id[:8]}...)", expanded=False):
+                            try:
+                                sess_resp = requests.get(f"{API_URL}/chat/{s_id}", timeout=5)
+                                if sess_resp.status_code == 200:
+                                    s_msgs = sess_resp.json().get("messages", [])
+                                    for m in s_msgs:
+                                        m_role = m.get("role", "user")
+                                        m_content = m.get("content", "")
+                                        m_time = m.get("created_at", "")[:19].replace("T", " ") if m.get("created_at") else ""
+                                        if m_role == "user":
+                                            st.markdown(f"**👤 User** *({m_time})*:\n{m_content}")
+                                        else:
+                                            st.markdown(f"**🛰️ SatQuery AI** *({m_time})*:\n{m_content}")
+                                        st.divider()
+                                else:
+                                    st.caption("Unable to fetch transcript.")
+                            except Exception as ex_t:
+                                st.caption(f"Error: {ex_t}")
+
+                    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+        else:
+            st.warning(f"Could not retrieve conversations: HTTP {conv_resp.status_code}")
+    except Exception as ex_c:
+        st.caption(f"Conversations bus offline: {ex_c}")
+
+with tab_telemetry:
+    try:
+        hist_resp = requests.get(f"{API_URL}/history?limit=10", timeout=5)
+        if hist_resp.status_code == 200:
+            hist_data = hist_resp.json()
+            entries = hist_data.get("history", [])
+            if not entries:
+                st.caption("No historical records detected in the audit database.")
+            else:
+                for item in entries:
+                    task = item.get("selected_task", "unknown")
+                    model = item.get("model_used", "unknown")
+                    conf = item.get("output_confidence") or item.get("router_confidence") or 0.0
+                    qid = item.get("id")
+                    created = item.get("created_at", "")[:19].replace("T", " ")
+
+                    st.markdown(f"""
+                    <div class="ref-history-card">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span class="ref-task-badge">{task.replace('_', ' ')}</span>
+                            <span style="font-family: 'Inter', sans-serif; font-size: 0.76rem; color: var(--text-muted);">Record #{qid:04d}</span>
+                        </div>
+                        <div class="ref-history-query">{item.get('query_text')}</div>
+                        <div class="ref-history-meta">
+                            <span>Confidence: <strong>{conf:.0%}</strong></span>
+                            <span>•</span>
+                            <span>Model: <strong>{model}</strong></span>
+                            <span>•</span>
+                            <span>{created} UTC</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    col_h1, col_h2 = st.columns([4, 1])
+                    with col_h1:
+                        if item.get("trace"):
+                            with st.expander(f"View Execution Trace (#{qid:04d})", expanded=False):
+                                st.json(item["trace"])
+                        if item.get("visual_output_url"):
+                            with st.expander(f"View Spatial Telemetry Visualization (#{qid:04d})", expanded=False):
+                                st.image(f"{API_URL}{item['visual_output_url']}", caption=f"Visual Telemetry — Record #{qid:04d}", use_container_width=True)
+                    with col_h2:
+                        if qid:
+                            st.link_button("📄 PDF Report", f"{API_URL}/report/{qid}", use_container_width=True)
+                    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+        else:
+            st.markdown(f"""
+            <div class="telemetry-status-card status-card-warn">
+                <div style="display: flex; align-items: flex-start; gap: 14px;">
+                    <div class="telemetry-status-icon-warn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+                            <line x1="12" y1="9" x2="12" y2="13"/>
+                            <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        </svg>
+                    </div>
+                    <div style="flex: 1;">
+                        <div style="font-family: 'Space Grotesk', sans-serif; font-size: 0.96rem; font-weight: 700; color: #f59e0b; letter-spacing: 0.02em;">
+                            TELEMETRY BUS DEGRADED (HTTP {hist_resp.status_code})
+                        </div>
+                        <div style="font-family: 'Inter', sans-serif; font-size: 0.84rem; color: var(--text-secondary); margin-top: 3px;">
+                            The audit bus returned a non-200 status code while querying the execution log.
+                        </div>
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
-
-                col_h1, col_h2 = st.columns([4, 1])
-                with col_h1:
-                    if item.get("trace"):
-                        with st.expander(f"View Execution Trace (#{qid:04d})", expanded=False):
-                            st.json(item["trace"])
-                with col_h2:
-                    if qid:
-                        st.link_button("📄 PDF Report", f"{API_URL}/report/{qid}", use_container_width=True)
-                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
-    else:
+            </div>
+            """, unsafe_allow_html=True)
+    except Exception as ex:
         st.markdown(f"""
         <div class="telemetry-status-card status-card-warn">
             <div style="display: flex; align-items: flex-start; gap: 14px;">
                 <div class="telemetry-status-icon-warn">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
-                        <line x1="12" y1="9" x2="12" y2="13"/>
-                        <line x1="12" y1="17" x2="12.01" y2="17"/>
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
                     </svg>
                 </div>
                 <div style="flex: 1;">
                     <div style="font-family: 'Space Grotesk', sans-serif; font-size: 0.96rem; font-weight: 700; color: #f59e0b; letter-spacing: 0.02em;">
-                        TELEMETRY BUS DEGRADED (HTTP {hist_resp.status_code})
+                        TELEMETRY CONNECTION STANDBY
                     </div>
                     <div style="font-family: 'Inter', sans-serif; font-size: 0.84rem; color: var(--text-secondary); margin-top: 3px;">
-                        The audit bus returned a non-200 status code while querying the execution log.
+                        Audit database daemon is currently initializing or awaiting live query telemetry dispatch.
                     </div>
                 </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
-except Exception as ex:
-    st.markdown(f"""
-    <div class="telemetry-status-card status-card-warn">
-        <div style="display: flex; align-items: flex-start; gap: 14px;">
-            <div class="telemetry-status-icon-warn">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                </svg>
-            </div>
-            <div style="flex: 1;">
-                <div style="font-family: 'Space Grotesk', sans-serif; font-size: 0.96rem; font-weight: 700; color: #f59e0b; letter-spacing: 0.02em;">
-                    TELEMETRY CONNECTION STANDBY
-                </div>
-                <div style="font-family: 'Inter', sans-serif; font-size: 0.84rem; color: var(--text-secondary); margin-top: 3px;">
-                    Audit database daemon is currently initializing or awaiting live query telemetry dispatch.
-                </div>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-    with st.expander("Telemetry Diagnostics Detail", expanded=False):
-        st.code(f"Daemon trace: {ex}", language="bash")
+        with st.expander("Telemetry Diagnostics Detail", expanded=False):
+            st.code(f"Daemon trace: {ex}", language="bash")
 
 
 # --- Reference Product Footer (Planet.com Reference Style) ---
