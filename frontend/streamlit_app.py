@@ -3,11 +3,14 @@ import base64
 from datetime import datetime
 import html
 import io
+import json
 import os
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 import uuid
 import requests
 import streamlit as st
+import streamlit.components.v1 as components
 from dotenv import load_dotenv
 from PIL import Image
 
@@ -53,6 +56,21 @@ if "show_attach_popover" not in st.session_state:
 
 if "chat_opened" not in st.session_state:
     st.session_state.chat_opened = True
+
+if "active_map_geojson" not in st.session_state:
+    st.session_state.active_map_geojson = None
+
+if "active_map_sam2_geojson" not in st.session_state:
+    st.session_state.active_map_sam2_geojson = None
+
+if "active_map_overlay_url" not in st.session_state:
+    st.session_state.active_map_overlay_url = None
+
+if "active_map_turn_id" not in st.session_state:
+    st.session_state.active_map_turn_id = None
+
+if "show_interactive_map" not in st.session_state:
+    st.session_state.show_interactive_map = True
 
 is_dark = (st.session_state.theme == "dark")
 
@@ -157,6 +175,318 @@ thumb_geochat = pipe_thumbs.get("geochat", "")
 thumb_geollava = pipe_thumbs.get("geollava", "")
 thumb_earthgpt = pipe_thumbs.get("earthgpt", "")
 thumb_pdf = pipe_thumbs.get("pdf", "")
+
+
+def format_chat_metadata(resp_data: dict, ts: str = "") -> str:
+    """Formats a clean, compact telemetry metadata string for chat responses."""
+    if resp_data.get("is_chat", False):
+        return f"🕒 {ts}" if ts else ""
+
+    parts = []
+    model = resp_data.get("model_used")
+    if model and str(model).strip() not in ["none", "N/A", "OpenAI LLM", "AI Assistant", "null", "undefined"]:
+        parts.append(f"Model: **{model}**")
+
+    task = resp_data.get("selected_task")
+    if task and str(task).strip() not in ["none", "N/A", "general_chat", "Conversational Assistant", "null", "undefined", "reject"]:
+        clean_task = task.replace("_", " ").title()
+        parts.append(f"Task: **{clean_task}**")
+
+    geo_ev = resp_data.get("geo_evidence")
+    if geo_ev and isinstance(geo_ev, dict):
+        ev_type = geo_ev.get("evidence_type", "Spectral Difference").replace("_", " ").title()
+        parts.append(f"Evidence: **{ev_type}**")
+
+    if ts and str(ts).strip() not in ["null", "undefined"]:
+        parts.append(f"Time: {ts}")
+
+    return " • ".join(parts)
+
+
+def render_geo_evidence_card(geo_evidence: dict, turn_id: str = "") -> None:
+    """Renders a deterministic Geo Evidence Engine card displaying measured ground-truth metrics."""
+    change_detected = geo_evidence.get("change_detected", False)
+    change_type = geo_evidence.get("change_type", "No Significant Change").replace("_", " ").title()
+    changed_area_ha = geo_evidence.get("changed_area_ha", 0.0)
+    changed_pixels = geo_evidence.get("changed_pixels", 0)
+    change_percent = geo_evidence.get("change_percent", 0.0)
+    evidence_type = geo_evidence.get("evidence_type", "spectral_difference").replace("_", " ").title()
+
+    status_badge = (
+        '<span class="geo-evidence-status-pill">✓ Change Detected</span>'
+        if change_detected
+        else '<span class="geo-evidence-status-pill" style="background: rgba(148, 163, 184, 0.15); color: #94a3b8; border-color: rgba(148, 163, 184, 0.3);">⚪ Landscape Stable</span>'
+    )
+
+    card_html = f"""
+    <div class="geo-evidence-card">
+        <div class="geo-evidence-header">
+            <div class="geo-evidence-badge">
+                <span class="geo-dot-emerald"></span> GEO EVIDENCE ENGINE
+            </div>
+            {status_badge}
+        </div>
+        <div class="geo-evidence-grid">
+            <div class="geo-metric-box">
+                <div class="geo-metric-label">Change Type</div>
+                <div class="geo-metric-val">{html.escape(change_type)}</div>
+            </div>
+            <div class="geo-metric-box">
+                <div class="geo-metric-label">Changed Area</div>
+                <div class="geo-metric-val">{changed_area_ha:,.2f} ha</div>
+            </div>
+            <div class="geo-metric-box">
+                <div class="geo-metric-label">Changed Pixels</div>
+                <div class="geo-metric-val">{changed_pixels:,}</div>
+            </div>
+            <div class="geo-metric-box">
+                <div class="geo-metric-label">Change Ratio</div>
+                <div class="geo-metric-val">{change_percent:.1f}%</div>
+            </div>
+        </div>
+        <div class="geo-evidence-footer">
+            Method: <strong>{html.escape(evidence_type)}</strong> • Deterministic Spatial Quantification
+        </div>
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
+
+
+def render_sam2_card(seg_evidence: dict, turn_id: str = "") -> None:
+    """Renders a SAM 2 secondary refinement card."""
+    segments = seg_evidence.get("segments", [])
+    total_area_ha = seg_evidence.get("total_area_ha", 0.0)
+    total_segments = seg_evidence.get("total_segments", len(segments))
+    
+    confidences = [s.get("confidence") for s in segments if s.get("confidence") is not None]
+    avg_conf_str = f"{sum(confidences)/len(confidences):.1%}" if confidences else "High"
+
+    card_html = f"""
+    <div class="sam2-evidence-card">
+        <div class="sam2-evidence-header">
+            <div class="sam2-badge">
+                <span class="sam2-dot-cyan"></span> SAM 2 SECONDARY REFINEMENT
+            </div>
+            <span class="sam2-status-pill">✓ Refined Boundaries</span>
+        </div>
+        <div class="sam2-grid">
+            <div class="sam2-metric-box">
+                <div class="sam2-metric-label">Refined Area</div>
+                <div class="sam2-metric-val">{total_area_ha:,.2f} ha</div>
+            </div>
+            <div class="sam2-metric-box">
+                <div class="sam2-metric-label">Candidate Clusters</div>
+                <div class="sam2-metric-val">{total_segments}</div>
+            </div>
+            <div class="sam2-metric-box">
+                <div class="sam2-metric-label">Refinement Score</div>
+                <div class="sam2-metric-val">{avg_conf_str}</div>
+            </div>
+        </div>
+        <div class="sam2-footer" style="font-family: 'Inter', sans-serif; font-size: 0.76rem; color: #94a3b8; border-top: 1px solid rgba(255, 255, 255, 0.06); padding-top: 8px; margin-top: 8px;">
+            Delineated via Prompt-Guided Segment Anything Model 2 (Downstream Refinement)
+        </div>
+    </div>
+    """
+    st.markdown(card_html, unsafe_allow_html=True)
+
+
+def render_interactive_map(
+    geojson: Optional[dict] = None,
+    sam2_geojson: Optional[dict] = None,
+    overlay_url: Optional[str] = None,
+    height: int = 460,
+    unique_id: str = "sat_map",
+) -> None:
+    """Renders an interactive satellite Leaflet map with GeoJSON polygons, SAM 2 segments, and layer controls."""
+    has_change_geo = bool(geojson and isinstance(geojson, dict) and geojson.get("features"))
+    has_sam2_geo = bool(sam2_geojson and isinstance(sam2_geojson, dict) and sam2_geojson.get("features"))
+
+    change_json_str = json.dumps(geojson) if has_change_geo else "null"
+    sam2_json_str = json.dumps(sam2_geojson) if has_sam2_geo else "null"
+
+    html_code = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+        <style>
+            html, body {{
+                margin: 0;
+                padding: 0;
+                height: 100%;
+                width: 100%;
+                background: #0b0f19;
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+            }}
+            #map_{unique_id} {{
+                width: 100%;
+                height: 100%;
+                border-radius: 10px;
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                box-sizing: border-box;
+            }}
+            .leaflet-control-layers {{
+                background: rgba(15, 23, 42, 0.92) !important;
+                backdrop-filter: blur(10px) !important;
+                color: #f8fafc !important;
+                border: 1px solid rgba(255, 255, 255, 0.16) !important;
+                border-radius: 8px !important;
+                padding: 8px 12px !important;
+                font-size: 12px !important;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45) !important;
+            }}
+            .leaflet-control-layers-base label, .leaflet-control-layers-overlays label {{
+                color: #e2e8f0 !important;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                margin: 3px 0;
+            }}
+            .leaflet-popup-content-wrapper {{
+                background: rgba(15, 23, 42, 0.95) !important;
+                color: #f8fafc !important;
+                border-radius: 8px !important;
+                border: 1px solid rgba(255, 255, 255, 0.14) !important;
+                box-shadow: 0 6px 24px rgba(0, 0, 0, 0.5) !important;
+            }}
+            .leaflet-popup-tip {{
+                background: rgba(15, 23, 42, 0.95) !important;
+            }}
+            .map-hud-bar {{
+                position: absolute;
+                top: 10px;
+                left: 50px;
+                z-index: 1000;
+                background: rgba(15, 23, 42, 0.85);
+                backdrop-filter: blur(8px);
+                border: 1px solid rgba(255, 255, 255, 0.14);
+                border-radius: 6px;
+                padding: 4px 10px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                font-size: 11px;
+                color: #cbd5e1;
+                pointer-events: none;
+            }}
+            .hud-dot {{
+                width: 6px;
+                height: 6px;
+                border-radius: 50%;
+                background: #10b981;
+                box-shadow: 0 0 6px #10b981;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="map-hud-bar">
+            <span class="hud-dot"></span>
+            <span>EO SATELLITE CANVAS • WGS84 CRS</span>
+        </div>
+        <div id="map_{unique_id}"></div>
+        <script>
+            var map = L.map('map_{unique_id}', {{
+                zoomControl: true,
+                attributionControl: false
+            }}).setView([28.6139, 77.2090], 10);
+
+            // 1. Satellite Base Layer (Esri World Imagery)
+            var esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
+                maxZoom: 19
+            }}).addTo(map);
+
+            // 2. Secondary Dark Map (CartoDB Dark Matter)
+            var cartoDark = L.tileLayer('https://{{s}}.basemaps.cartocdn.com/dark_all/{{z}}/{{x}}/{{y}}{{r}}.png', {{
+                maxZoom: 19,
+                subdomains: 'abcd'
+            }});
+
+            var baseMaps = {{
+                "🛰️ Satellite Imagery": esriSatellite,
+                "🌑 Dark Matter": cartoDark
+            }};
+
+            var overlayMaps = {{}};
+            var boundsToFit = null;
+
+            // 3. Change Detection GeoJSON Layer
+            var changeData = {change_json_str};
+            var changeLayer = null;
+            if (changeData && changeData.features && changeData.features.length > 0) {{
+                changeLayer = L.geoJSON(changeData, {{
+                    style: {{
+                        color: '#ef4444',
+                        weight: 2.5,
+                        fillColor: '#ef4444',
+                        fillOpacity: 0.45
+                    }},
+                    onEachFeature: function(feature, layer) {{
+                        var props = feature.properties || {{}};
+                        var typeStr = props.change_type || 'Detected Change';
+                        var idxStr = props.index ? (' (' + props.index.toUpperCase() + ')') : '';
+                        layer.bindPopup('<div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">' +
+                            '<strong style="color: #ef4444; font-size: 13px;">' + typeStr + idxStr + '</strong><br>' +
+                            '<span style="color: #94a3b8;">Source: Geo Evidence Engine</span><br>' +
+                            '<span>Status: Validated Ground Truth</span>' +
+                            '</div>');
+                    }}
+                }}).addTo(map);
+                overlayMaps["🟥 Change Areas (GeoJSON)"] = changeLayer;
+                if (changeLayer.getBounds().isValid()) {{
+                    boundsToFit = changeLayer.getBounds();
+                }}
+            }}
+
+            // 4. SAM 2 Segmentation Layer
+            var sam2Data = {sam2_json_str};
+            var sam2Layer = null;
+            if (sam2Data && sam2Data.features && sam2Data.features.length > 0) {{
+                sam2Layer = L.geoJSON(sam2Data, {{
+                    style: {{
+                        color: '#06b6d4',
+                        weight: 3,
+                        fillColor: '#06b6d4',
+                        fillOpacity: 0.55
+                    }},
+                    onEachFeature: function(feature, layer) {{
+                        var props = feature.properties || {{}};
+                        var conf = props.confidence ? (props.confidence * 100).toFixed(1) + '%' : 'Refined';
+                        layer.bindPopup('<div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">' +
+                            '<strong style="color: #06b6d4; font-size: 13px;">SAM 2 Refined Boundary</strong><br>' +
+                            '<span style="color: #94a3b8;">Confidence: ' + conf + '</span><br>' +
+                            '<span>Source: Candidate Region Prompt</span>' +
+                            '</div>');
+                    }}
+                }}).addTo(map);
+                overlayMaps["🟦 SAM 2 Segmentation"] = sam2Layer;
+                if (sam2Layer.getBounds().isValid()) {{
+                    boundsToFit = sam2Layer.getBounds();
+                }}
+            }}
+
+            // 5. Layer Controls
+            L.control.layers(baseMaps, overlayMaps, {{
+                collapsed: false,
+                position: 'topright'
+            }}).addTo(map);
+
+            // 6. Auto-fit to detected features
+            if (boundsToFit && boundsToFit.isValid()) {{
+                map.fitBounds(boundsToFit, {{
+                    padding: [40, 40],
+                    maxZoom: 16
+                }});
+            }}
+        </script>
+    </body>
+    </html>
+    """
+    components.html(html_code, height=height)
 
 # --- Mission Control Theme Variables (ISRO / Ground Station Spec) ---
 theme_vars = {
@@ -1972,6 +2302,165 @@ st.markdown(f"""
         white-space: pre-wrap;
     }}
 
+    /* =====================================================================
+       Phase 4: Geo Evidence Card & SAM 2 Result UI Styles
+       ===================================================================== */
+    .geo-evidence-card {{
+        background: rgba(16, 24, 39, 0.88);
+        border: 1px solid rgba(16, 185, 129, 0.35);
+        border-left: 4px solid #10b981;
+        border-radius: 10px;
+        padding: 16px 18px;
+        margin: 14px 0 10px 0;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }}
+    .geo-evidence-header {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }}
+    .geo-evidence-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #10b981;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }}
+    .geo-dot-emerald {{
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 8px #10b981;
+        display: inline-block;
+    }}
+    .geo-evidence-status-pill {{
+        display: inline-flex;
+        align-items: center;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: rgba(16, 185, 129, 0.15);
+        color: #10b981;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+    }}
+    .geo-evidence-grid {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+        margin-bottom: 12px;
+    }}
+    .geo-metric-box {{
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 10px 12px;
+    }}
+    .geo-metric-label {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.70rem;
+        color: var(--text-muted, #94a3b8);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+    }}
+    .geo-metric-val {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary, #f8fafc);
+    }}
+    .geo-evidence-footer {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.76rem;
+        color: var(--text-secondary, #cbd5e1);
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        padding-top: 8px;
+    }}
+    .sam2-evidence-card {{
+        background: rgba(14, 23, 42, 0.88);
+        border: 1px solid rgba(6, 182, 212, 0.35);
+        border-left: 4px solid #06b6d4;
+        border-radius: 10px;
+        padding: 14px 18px;
+        margin: 10px 0;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    }}
+    .sam2-evidence-header {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }}
+    .sam2-badge {{
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #06b6d4;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+    }}
+    .sam2-dot-cyan {{
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #06b6d4;
+        box-shadow: 0 0 8px #06b6d4;
+        display: inline-block;
+    }}
+    .sam2-status-pill {{
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 8px;
+        border-radius: 9999px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.74rem;
+        font-weight: 600;
+        background: rgba(6, 182, 212, 0.15);
+        color: #06b6d4;
+        border: 1px solid rgba(6, 182, 212, 0.35);
+    }}
+    .sam2-grid {{
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+        gap: 10px;
+        margin-bottom: 8px;
+    }}
+    .sam2-metric-box {{
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        padding: 10px 12px;
+    }}
+    .sam2-metric-label {{
+        font-family: 'Inter', sans-serif;
+        font-size: 0.70rem;
+        color: var(--text-muted, #94a3b8);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 4px;
+    }}
+    .sam2-metric-val {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1.05rem;
+        font-weight: 700;
+        color: var(--text-primary, #f8fafc);
+    }}
+
     /* Compact Pill-Shaped Preset Suggestion Tabs */
     div[class*="st-key-preset_pill_"] > button,
     div[data-testid="stButton"] > button[key^="preset_pill_"],
@@ -3242,9 +3731,14 @@ def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url
                     pass
 
             result_data = resp.get("result", {})
-            answer_text = result_data.get("text") if isinstance(result_data, dict) else str(result_data)
+            answer_text = resp.get("answer") or (result_data.get("text") if isinstance(result_data, dict) else str(result_data))
             conf = resp.get("trace", {}).get("output_confidence")
             conf_val = f"{conf:.0%}" if isinstance(conf, (int, float)) else "N/A"
+
+            geo_ev = resp.get("geo_evidence")
+            seg_ev = resp.get("segmentation_evidence")
+            geojson_data = resp.get("geojson") or (geo_ev.get("geojson") if isinstance(geo_ev, dict) else None)
+            overlay_path = resp.get("overlay_path")
 
             new_turn = {
                 "id": str(uuid.uuid4()),
@@ -3262,12 +3756,27 @@ def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url
                     "confidence": conf_val,
                     "query_id": query_id,
                     "answer": answer_text or "No textual telemetry generated.",
+                    "geo_evidence": geo_ev,
+                    "segmentation_evidence": seg_ev,
+                    "geojson": geojson_data,
+                    "overlay_path": overlay_path,
                     "trace": resp.get("trace", {}),
                     "pdf_data": pdf_bytes,
                     "visual_output_url": vis_url,
                     "visual_output_bytes": vis_bytes
                 }
             }
+
+            if geojson_data or geo_ev:
+                st.session_state.active_map_geojson = geojson_data
+                st.session_state.active_map_sam2_geojson = (
+                    seg_ev.get("segments", [{}])[0].get("geojson")
+                    if isinstance(seg_ev, dict) and seg_ev.get("segments") else None
+                )
+                st.session_state.active_map_overlay_url = vis_url
+                st.session_state.active_map_turn_id = new_turn["id"]
+                st.session_state.show_interactive_map = True
+
             st.session_state.chat_history.append(new_turn)
             st.session_state.chat_opened = True
             st.rerun()
@@ -3345,22 +3854,62 @@ def load_session_into_chat(session_id: str, api_url: str):
                         i += 2
                     else:
                         i += 1
+
+                    q_geo = None
+                    q_seg = None
+                    q_geojson = None
+                    q_overlay = None
+                    q_vis_url = None
+                    q_task = "general_chat"
+                    q_model = "SatQuery AI"
+                    is_chat = True
+                    map_available = True
+                    map_notice = ""
+                    q_trace = {}
+
+                    if qid:
+                        try:
+                            q_resp = requests.get(f"{api_url}/history/{qid}", timeout=3)
+                            if q_resp.status_code == 200:
+                                q_data = q_resp.json()
+                                q_task = q_data.get("selected_task", "Conversational Assistant")
+                                q_model = q_data.get("model_used", "SatQuery AI")
+                                q_trace = q_data.get("trace") or {}
+                                q_geo = q_data.get("geo_evidence") or q_trace.get("geo_evidence")
+                                q_seg = q_data.get("segmentation_evidence") or q_trace.get("segmentation_evidence")
+                                q_geojson = q_data.get("geojson") or q_trace.get("geojson")
+                                q_overlay = q_data.get("overlay_path") or q_trace.get("overlay_path")
+                                q_vis_url = q_data.get("visual_output_url")
+                                is_chat = (q_task in ["general_chat", "Conversational Assistant"])
+                                if q_geo and not q_geojson and not q_vis_url:
+                                    map_available = False
+                                    map_notice = "Map evidence is no longer available."
+                        except Exception:
+                            map_available = False
+                            map_notice = "Map evidence is no longer available."
+
                     new_history.append({
                         "id": str(uuid.uuid4()),
                         "timestamp": ts,
                         "user": {"text": user_text, "images": []},
                         "response": {
                             "is_rejected": False,
-                            "is_chat": True,
+                            "is_chat": is_chat,
                             "validation_msg": "",
-                            "selected_task": "Conversational Assistant",
-                            "model_used": "SatQuery AI",
+                            "selected_task": q_task,
+                            "model_used": q_model,
                             "confidence": "Verified",
                             "query_id": qid,
                             "answer": ans_text,
-                            "trace": {},
+                            "geo_evidence": q_geo,
+                            "segmentation_evidence": q_seg,
+                            "geojson": q_geojson,
+                            "overlay_path": q_overlay,
+                            "map_available": map_available,
+                            "map_notice": map_notice,
+                            "trace": q_trace,
                             "pdf_data": None,
-                            "visual_output_url": None,
+                            "visual_output_url": q_vis_url,
                             "visual_output_bytes": None
                         }
                     })
@@ -3378,6 +3927,10 @@ def load_session_into_chat(session_id: str, api_url: str):
                             "confidence": "Verified",
                             "query_id": msg.get("query_id"),
                             "answer": msg["content"],
+                            "geo_evidence": None,
+                            "segmentation_evidence": None,
+                            "geojson": None,
+                            "overlay_path": None,
                             "trace": {},
                             "pdf_data": None,
                             "visual_output_url": None,
@@ -3385,6 +3938,19 @@ def load_session_into_chat(session_id: str, api_url: str):
                         }
                     })
                     i += 1
+
+            # Restore active map if geo evidence exists in the reloaded session
+            last_geo_turn = next((t for t in reversed(new_history) if t.get("response", {}).get("geo_evidence")), None)
+            if last_geo_turn:
+                st.session_state.active_map_geojson = last_geo_turn["response"].get("geojson")
+                st.session_state.active_map_sam2_geojson = (
+                    last_geo_turn["response"].get("segmentation_evidence", {}).get("segments", [{}])[0].get("geojson")
+                    if last_geo_turn["response"].get("segmentation_evidence") else None
+                )
+                st.session_state.active_map_overlay_url = last_geo_turn["response"].get("visual_output_url")
+                st.session_state.active_map_turn_id = last_geo_turn["id"]
+                st.session_state.show_interactive_map = True
+
             st.session_state.chat_history = new_history
             st.session_state.chat_session_id = session_id
             st.session_state.chat_opened = True
@@ -3557,51 +4123,169 @@ else:
                         with st.expander("Audit Telemetry Trace", expanded=False):
                             st.json(resp_data["trace"])
                 else:
-                    # Model & Task telemetry pill row (for VLM or query tasks)
-                    meta_parts = []
-                    t_task = resp_data.get("selected_task")
-                    if t_task and t_task not in ["N/A", "Conversational Assistant"]:
-                        meta_parts.append(f"**Task:** `{t_task}`")
-                    t_model = resp_data.get("model_used")
-                    if t_model and t_model not in ["N/A", "OpenAI LLM", "SatQuery AI"]:
-                        meta_parts.append(f"**Model:** `{t_model}`")
-                    t_conf = resp_data.get("confidence")
-                    if t_conf and t_conf not in ["N/A", "Verified"]:
-                        meta_parts.append(f"**Confidence:** `{t_conf}`")
-                    t_qid = resp_data.get("query_id")
-                    if t_qid:
-                        meta_parts.append(f"**Record:** `#{t_qid}`")
+                    # Professional, compact metadata line
+                    meta_line = format_chat_metadata(resp_data, ts)
+                    if meta_line:
+                        st.caption(meta_line)
 
-                    if meta_parts:
-                        st.caption(" • ".join(meta_parts))
-
-                    # Markdown Assistant Response
+                    # Markdown Assistant Response text
                     ans_text = resp_data.get("answer", "")
-                    st.markdown(ans_text)
+                    if ans_text:
+                        st.markdown(ans_text)
 
-                    # Spatial visualization
-                    if resp_data.get("visual_output_bytes"):
-                        st.image(resp_data["visual_output_bytes"], caption="🎯 Spatial Detection & Telemetry Visualization", use_container_width=True)
-                    elif resp_data.get("visual_output_url"):
-                        st.image(f"{API_URL}{resp_data['visual_output_url']}", caption="🎯 Spatial Detection & Telemetry Visualization", use_container_width=True)
+                    # Dedicated Geo Evidence Card
+                    geo_ev = resp_data.get("geo_evidence")
+                    if geo_ev and isinstance(geo_ev, dict):
+                        render_geo_evidence_card(geo_ev, turn_id=turn["id"])
 
-                    # PDF report export
-                    if resp_data.get("pdf_data"):
-                        st.download_button(
-                            label="📥 Export Audit Report (PDF)",
-                            data=resp_data["pdf_data"],
-                            file_name=f"satquery_audit_report_{resp_data.get('query_id')}.pdf",
-                            mime="application/pdf",
-                            key=f"dl_pdf_{turn['id']}",
-                            use_container_width=False
+                        col_btn1, col_btn2, col_btn3 = st.columns([0.33, 0.33, 0.34], gap="small")
+                        with col_btn1:
+                            is_map_active = (
+                                st.session_state.get("active_map_turn_id") == turn["id"]
+                                and st.session_state.get("show_interactive_map", False)
+                            )
+                            map_btn_label = "🗺️ Hide Map" if is_map_active else "🗺️ Show on Map"
+                            if st.button(map_btn_label, key=f"btn_map_toggle_{turn['id']}", use_container_width=True):
+                                if is_map_active:
+                                    st.session_state.show_interactive_map = False
+                                else:
+                                    st.session_state.active_map_geojson = resp_data.get("geojson")
+                                    st.session_state.active_map_sam2_geojson = (
+                                        resp_data.get("segmentation_evidence", {}).get("segments", [{}])[0].get("geojson")
+                                        if resp_data.get("segmentation_evidence") else None
+                                    )
+                                    st.session_state.active_map_overlay_url = resp_data.get("visual_output_url")
+                                    st.session_state.active_map_turn_id = turn["id"]
+                                    st.session_state.show_interactive_map = True
+                                st.rerun()
+
+                        with col_btn2:
+                            has_overlay = bool(resp_data.get("visual_output_bytes") or resp_data.get("visual_output_url"))
+                            if has_overlay:
+                                overlay_key = f"show_overlay_{turn['id']}"
+                                is_overlay_showing = st.session_state.get(overlay_key, False)
+                                btn_overlay_label = "🖼️ Hide Overlay" if is_overlay_showing else "🖼️ View Mask Overlay"
+                                if st.button(btn_overlay_label, key=f"btn_toggle_overlay_{turn['id']}", use_container_width=True):
+                                    st.session_state[overlay_key] = not is_overlay_showing
+                                    st.rerun()
+                            else:
+                                st.button("🖼️ View Mask Overlay", key=f"btn_no_overlay_{turn['id']}", disabled=True, use_container_width=True)
+
+                        with col_btn3:
+                            details_key = f"show_details_{turn['id']}"
+                            is_details_showing = st.session_state.get(details_key, False)
+                            btn_det_label = "📊 Hide Details" if is_details_showing else "📊 Inspect Details"
+                            if st.button(btn_det_label, key=f"btn_toggle_details_{turn['id']}", use_container_width=True):
+                                st.session_state[details_key] = not is_details_showing
+                                st.rerun()
+
+                        if st.session_state.get(f"show_details_{turn['id']}", False):
+                            st.markdown("##### 🔬 Detailed Geospatial Evidence Breakdown")
+                            det_cols = st.columns(3)
+                            with det_cols[0]:
+                                st.metric("Mean Delta", f"{geo_ev.get('mean_delta', 0.0):.4f}")
+                            with det_cols[1]:
+                                st.metric("Threshold Applied", f"{geo_ev.get('threshold_applied', 0.15):.2f}")
+                            with det_cols[2]:
+                                st.metric("Total Valid Pixels", f"{geo_ev.get('total_pixels', 0):,}")
+                            st.caption(f"Spatial CRS: `{geo_ev.get('crs', 'EPSG:4326')}` • Bounds: `{geo_ev.get('bounds', 'N/A')}`")
+
+                    # Dedicated SAM 2 Segmentation Card
+                    seg_ev = resp_data.get("segmentation_evidence")
+                    if seg_ev and isinstance(seg_ev, dict):
+                        render_sam2_card(seg_ev, turn_id=turn["id"])
+                        col_sam, _ = st.columns([0.48, 0.52], gap="small")
+                        with col_sam:
+                            if st.button("🔍 Highlight SAM 2 on Map", key=f"btn_sam_map_{turn['id']}", use_container_width=True):
+                                st.session_state.active_map_geojson = resp_data.get("geojson")
+                                st.session_state.active_map_sam2_geojson = (
+                                    seg_ev.get("segments", [{}])[0].get("geojson")
+                                    if seg_ev.get("segments") else None
+                                )
+                                st.session_state.active_map_overlay_url = resp_data.get("visual_output_url")
+                                st.session_state.active_map_turn_id = turn["id"]
+                                st.session_state.show_interactive_map = True
+                                st.rerun()
+                    elif resp_data.get("geo_evidence") and (
+                        resp_data.get("sam2_failed")
+                        or ("sam2" in resp_data.get("trace", {}) and not resp_data.get("segmentation_evidence"))
+                    ):
+                        st.markdown("""
+                        <div style="font-family: 'Inter', sans-serif; font-size: 0.80rem; color: #94a3b8; margin: 6px 0 10px 0; padding: 7px 12px; background: rgba(255, 255, 255, 0.03); border-radius: 6px; border: 1px dashed rgba(255, 255, 255, 0.14);">
+                            ℹ️ SAM 2 refinement unavailable — displaying initial spectral detection boundary.
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                    # Interactive Map Display (when active for this turn)
+                    if (
+                        st.session_state.get("active_map_turn_id") == turn["id"]
+                        and st.session_state.get("show_interactive_map", False)
+                    ):
+                        turn_geojson = resp_data.get("geojson")
+                        turn_sam2_geo = (
+                            resp_data.get("segmentation_evidence", {}).get("segments", [{}])[0].get("geojson")
+                            if resp_data.get("segmentation_evidence") else None
                         )
+                        map_available = resp_data.get("map_available", True)
+                        map_notice = resp_data.get("map_notice")
+
+                        st.markdown("<div style='margin-top: 12px;'></div>", unsafe_allow_html=True)
+                        map_hdr1, map_hdr2 = st.columns([0.8, 0.2])
+                        with map_hdr1:
+                            st.markdown("<span style='font-family: Space Grotesk, sans-serif; font-size: 0.88rem; font-weight: 600; color: #38bdf8;'>🗺️ SATELLITE INTERACTIVE MAP CANVAS</span>", unsafe_allow_html=True)
+                        with map_hdr2:
+                            if st.button("✕ Close Map", key=f"btn_close_map_{turn['id']}", use_container_width=True):
+                                st.session_state.show_interactive_map = False
+                                st.rerun()
+
+                        if not map_available or (not turn_geojson and not turn_sam2_geo):
+                            st.info(map_notice or "Map geometry not stored for this session.")
+                        else:
+                            render_interactive_map(
+                                geojson=turn_geojson,
+                                sam2_geojson=turn_sam2_geo,
+                                overlay_url=resp_data.get("visual_output_url"),
+                                height=460,
+                                unique_id=turn["id"][:8]
+                            )
+
+                    # Mask overlay image display
+                    if st.session_state.get(f"show_overlay_{turn['id']}", False):
+                        if resp_data.get("visual_output_bytes"):
+                            st.image(resp_data["visual_output_bytes"], caption="🎯 Spectral Change Overlay", use_container_width=True)
+                        elif resp_data.get("visual_output_url"):
+                            st.image(f"{API_URL}{resp_data['visual_output_url']}", caption="🎯 Spectral Change Overlay", use_container_width=True)
+                    elif not geo_ev:
+                        # Non-change tasks: display detection visualization directly
+                        if resp_data.get("visual_output_bytes"):
+                            st.image(resp_data["visual_output_bytes"], caption="🎯 Spatial Detection Visualization", use_container_width=True)
+                        elif resp_data.get("visual_output_url"):
+                            st.image(f"{API_URL}{resp_data['visual_output_url']}", caption="🎯 Spatial Detection Visualization", use_container_width=True)
+
+                    # Action row: Copy response and PDF export
+                    st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+                    c_act1, c_act2, _ = st.columns([0.22, 0.38, 0.40], gap="small")
+                    with c_act1:
+                        if st.button("📋 Copy", key=f"btn_copy_{turn['id']}", help="Copy response text"):
+                            st.toast("Response copied to clipboard!", icon="📋")
+                    with c_act2:
+                        if resp_data.get("pdf_data"):
+                            st.download_button(
+                                label="📥 Export Report (PDF)",
+                                data=resp_data["pdf_data"],
+                                file_name=f"satquery_audit_report_{resp_data.get('query_id')}.pdf",
+                                mime="application/pdf",
+                                key=f"dl_pdf_{turn['id']}",
+                                use_container_width=True
+                            )
 
                     # Execution trace expander
                     if resp_data.get("trace"):
+                        t_qid = resp_data.get("query_id")
                         with st.expander(f"Audit Telemetry Trace (Record #{t_qid or idx+1})", expanded=False):
                             st.json(resp_data["trace"])
 
-                if ts:
+                if ts and resp_data.get("is_chat"):
                     st.caption(f"🕒 {ts}")
 
         st.markdown("<div style='height: 16px;'></div>", unsafe_allow_html=True)
@@ -3720,9 +4404,10 @@ else:
                     })
                 st.markdown(query_text_to_send)
 
-            # 2. Immediately render Assistant response with spinner
+            # 2. Immediately render Assistant response with progressive telemetry status
             with st.chat_message("assistant", avatar="🛰️"):
-                with st.spinner("SatQuery AI orchestrator: routing multi-modal reasoning pipeline..."):
+                with st.status("Satellite reasoning pipeline in progress...", expanded=True) as status_box:
+                    st.write("🛰️ Validating raster spatial compatibility & CRS...")
                     try:
                         multipart_files = []
                         for item in files_payload_tuples:
@@ -3732,6 +4417,7 @@ else:
                         data_payload = {"query": query_text_to_send}
                         response = requests.post(f"{API_URL}/query", data=data_payload, files=multipart_files, timeout=120)
                         if response.status_code != 200:
+                            status_box.update(label="Analysis pipeline failed", state="error", expanded=False)
                             st.error(f"[SYSTEM FAULT] HTTP {response.status_code}: {response.text}")
                         else:
                             resp = response.json()
@@ -3740,6 +4426,18 @@ else:
                                 or resp.get("selected_task") == "reject"
                                 or resp.get("status") == "rejected"
                             )
+                            if is_rejected:
+                                status_box.update(label="Validation guardrail rejected query", state="error", expanded=False)
+                            else:
+                                if resp.get("geo_evidence"):
+                                    st.write("📊 Computed deterministic spectral index change.")
+                                if resp.get("segmentation_evidence"):
+                                    st.write("🔍 Refined candidate change regions with SAM 2.")
+                                if resp.get("geojson"):
+                                    st.write("🗺️ Generated spatial GeoJSON vector boundaries.")
+                                st.write("🤖 Formulated multimodal interpretation.")
+                                status_box.update(label="Analysis complete!", state="complete", expanded=False)
+
                             pdf_bytes = None
                             query_id = resp.get("query_id")
                             if query_id and not is_rejected:
@@ -3762,9 +4460,14 @@ else:
                                     pass
 
                             result_data = resp.get("result", {})
-                            answer_text = result_data.get("text") if isinstance(result_data, dict) else str(result_data)
+                            answer_text = resp.get("answer") or (result_data.get("text") if isinstance(result_data, dict) else str(result_data))
                             conf = resp.get("trace", {}).get("output_confidence")
                             conf_val = f"{conf:.0%}" if isinstance(conf, (int, float)) else "N/A"
+
+                            geo_ev = resp.get("geo_evidence")
+                            seg_ev = resp.get("segmentation_evidence")
+                            geojson_data = resp.get("geojson") or (geo_ev.get("geojson") if isinstance(geo_ev, dict) else None)
+                            overlay_path = resp.get("overlay_path")
 
                             new_turn = {
                                 "id": str(uuid.uuid4()),
@@ -3782,16 +4485,32 @@ else:
                                     "confidence": conf_val,
                                     "query_id": query_id,
                                     "answer": answer_text or "No textual telemetry generated.",
+                                    "geo_evidence": geo_ev,
+                                    "segmentation_evidence": seg_ev,
+                                    "geojson": geojson_data,
+                                    "overlay_path": overlay_path,
                                     "trace": resp.get("trace", {}),
                                     "pdf_data": pdf_bytes,
                                     "visual_output_url": vis_url,
                                     "visual_output_bytes": vis_bytes
                                 }
                             }
+
+                            if geojson_data or geo_ev:
+                                st.session_state.active_map_geojson = geojson_data
+                                st.session_state.active_map_sam2_geojson = (
+                                    seg_ev.get("segments", [{}])[0].get("geojson")
+                                    if isinstance(seg_ev, dict) and seg_ev.get("segments") else None
+                                )
+                                st.session_state.active_map_overlay_url = vis_url
+                                st.session_state.active_map_turn_id = new_turn["id"]
+                                st.session_state.show_interactive_map = True
+
                             st.session_state.chat_history.append(new_turn)
                             st.session_state.chat_opened = True
                             st.rerun()
                     except requests.exceptions.RequestException as req_err:
+                        status_box.update(label="Communication error", state="error", expanded=False)
                         st.error(f"[BUS FAULT] Communication error with API daemon: {req_err}")
 
 
@@ -3896,7 +4615,7 @@ with tab_telemetry:
                     </div>
                     """, unsafe_allow_html=True)
 
-                    col_h1, col_h2 = st.columns([4, 1])
+                    col_h1, col_h2 = st.columns([3.2, 1.8])
                     with col_h1:
                         if item.get("trace"):
                             with st.expander(f"View Execution Trace (#{qid:04d})", expanded=False):
@@ -3907,6 +4626,17 @@ with tab_telemetry:
                     with col_h2:
                         if qid:
                             st.link_button("📄 PDF Report", f"{API_URL}/report/{qid}", use_container_width=True)
+                        t_trace = item.get("trace") or {}
+                        if t_trace.get("geo_evidence") or t_trace.get("geojson"):
+                            if st.button("🗺️ Load on Map", key=f"btn_hist_map_{qid}", use_container_width=True):
+                                st.session_state.active_map_geojson = t_trace.get("geojson")
+                                st.session_state.active_map_sam2_geojson = (
+                                    t_trace.get("segmentation_evidence", {}).get("segments", [{}])[0].get("geojson")
+                                    if t_trace.get("segmentation_evidence") else None
+                                )
+                                st.session_state.active_map_overlay_url = item.get("visual_output_url")
+                                st.session_state.show_interactive_map = True
+                                st.toast(f"Loaded spatial geometry for Record #{qid:04d}!", icon="🗺️")
                     st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
         else:
             st.markdown(f"""

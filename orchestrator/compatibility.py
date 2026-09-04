@@ -54,7 +54,31 @@ def _get_clip():
 
 def _to_pil(img) -> Image.Image:
     if isinstance(img, str):
-        return Image.open(img).convert("RGB")
+        try:
+            return Image.open(img).convert("RGB")
+        except Exception:
+            try:
+                import rasterio
+                with rasterio.open(img) as src:
+                    arr = src.read()
+                    if arr.ndim == 3 and arr.shape[0] >= 3:
+                        rgb = np.transpose(arr[:3], (1, 2, 0))
+                    elif arr.ndim == 3 and arr.shape[0] == 1:
+                        rgb = np.repeat(arr[0][:, :, None], 3, axis=2)
+                    elif arr.ndim == 2:
+                        rgb = np.repeat(arr[:, :, None], 3, axis=2)
+                    else:
+                        rgb = np.zeros((src.height, src.width, 3), dtype=np.uint8)
+
+                    if rgb.dtype != np.uint8:
+                        p_low, p_high = float(np.nanmin(rgb)), float(np.nanmax(rgb))
+                        if p_high > p_low:
+                            rgb = np.clip((rgb - p_low) / (p_high - p_low) * 255.0, 0, 255).astype(np.uint8)
+                        else:
+                            rgb = np.zeros_like(rgb, dtype=np.uint8)
+                    return Image.fromarray(rgb).convert("RGB")
+            except Exception:
+                raise
     elif isinstance(img, Image.Image):
         return img.convert("RGB")
     elif isinstance(img, np.ndarray):
@@ -69,6 +93,19 @@ def _to_pil(img) -> Image.Image:
 
 def same_location_score(img1, img2) -> float:
     """Compute visual/structural cosine similarity between two images to verify co-location."""
+    # If both inputs are GeoTIFF filepaths, check native geospatial georeferencing first
+    if isinstance(img1, str) and isinstance(img2, str) and os.path.isfile(img1) and os.path.isfile(img2):
+        try:
+            import rasterio
+            with rasterio.open(img1) as s1, rasterio.open(img2) as s2:
+                if s1.crs and s2.crs and s1.crs == s2.crs:
+                    b1 = list(s1.bounds)
+                    b2 = list(s2.bounds)
+                    if np.allclose(b1, b2, rtol=1e-3, atol=1e-3):
+                        return 1.0
+        except Exception:
+            pass
+
     im1 = _to_pil(img1)
     im2 = _to_pil(img2)
 

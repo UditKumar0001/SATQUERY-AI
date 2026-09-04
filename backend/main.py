@@ -211,10 +211,14 @@ async def handle_query(
 
     # Ensure final_state is a valid dict (fallback if langgraph is mocked in test environment)
     if not isinstance(final_state, dict):
-        from orchestrator.nodes import classify_node, validate_node, dispatch_node, combine_node
+        from orchestrator.nodes import classify_node, validate_node, geo_evidence_node, sam2_node, dispatch_node, combine_node
         st = classify_node(initial_state)
         st = validate_node(st)
         if st.get("validation_ok"):
+            if st.get("task") == "change_analysis":
+                st = geo_evidence_node(st)
+                if st.get("requires_segmentation") and st.get("geo_evidence", {}).get("change_detected"):
+                    st = sam2_node(st)
             st = dispatch_node(st)
         st = combine_node(st)
         final_state = st
@@ -239,12 +243,20 @@ async def handle_query(
                     out_path=os.path.join(_vis_static_dir, f"grounding_{session_id}.png")
                 )
             elif task == "change_analysis" and len(saved_paths) >= 2:
-                vis_path = render_change_heatmap(
-                    saved_paths[0],
-                    saved_paths[1],
-                    change_mask=result.get("change_mask"),
-                    out_path=os.path.join(_vis_static_dir, f"change_{session_id}.png")
-                )
+                # If deterministic Geo Evidence Engine generated an overlay, prefer it
+                if final_state.get("overlay_path") and os.path.exists(final_state["overlay_path"]):
+                    vis_path = os.path.join(_vis_static_dir, f"change_overlay_{session_id}.png")
+                    try:
+                        shutil.copyfile(final_state["overlay_path"], vis_path)
+                    except Exception:
+                        vis_path = final_state["overlay_path"]
+                else:
+                    vis_path = render_change_heatmap(
+                        saved_paths[0],
+                        saved_paths[1],
+                        change_mask=result.get("change_mask"),
+                        out_path=os.path.join(_vis_static_dir, f"change_{session_id}.png")
+                    )
             elif task == "optical_sar_fusion" and len(saved_paths) >= 2:
                 vis_path = render_fused_composite(
                     saved_paths[0],
@@ -258,6 +270,16 @@ async def handle_query(
             print(f"[Visualization] Rendering failed: {e}")
             vis_path = None
             vis_url = None
+
+    # Persist structured evidence in execution trace for historical audit retrieval
+    if final_state.get("geo_evidence"):
+        trace["geo_evidence"] = final_state["geo_evidence"]
+    if final_state.get("segmentation_evidence"):
+        trace["segmentation_evidence"] = final_state["segmentation_evidence"]
+    if final_state.get("geojson"):
+        trace["geojson"] = final_state["geojson"]
+    if final_state.get("overlay_path"):
+        trace["overlay_path"] = final_state["overlay_path"]
 
     # 5. Persist execution and audit records into database
     query_record = Query(
@@ -301,6 +323,11 @@ async def handle_query(
         "validation_ok": final_state.get("validation_ok"),
         "validation_msg": query_record.validation_msg,
         "result": result,
+        "answer": result.get("answer") or result.get("text"),
+        "geo_evidence": final_state.get("geo_evidence"),
+        "segmentation_evidence": final_state.get("segmentation_evidence"),
+        "geojson": final_state.get("geojson"),
+        "overlay_path": final_state.get("overlay_path"),
         "visual_output_path": vis_path,
         "visual_output_url": vis_url,
         "trace": trace,
@@ -390,7 +417,11 @@ def get_query_detail(query_id: int, db: Session = Depends(get_db)):
                 "timestamp_tag": img.timestamp_tag
             } for img in q.images
         ],
-        "trace": trace_data
+        "trace": trace_data,
+        "geo_evidence": trace_data.get("geo_evidence") if isinstance(trace_data, dict) else None,
+        "segmentation_evidence": trace_data.get("segmentation_evidence") if isinstance(trace_data, dict) else None,
+        "geojson": trace_data.get("geojson") if isinstance(trace_data, dict) else None,
+        "overlay_path": trace_data.get("overlay_path") if isinstance(trace_data, dict) else None,
     }
 
 

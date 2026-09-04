@@ -3,7 +3,15 @@ from typing import List, Optional
 from langgraph.graph import StateGraph, END
 from .graph_state import AgentState, create_initial_state
 from .metadata import extract_metadata
-from .nodes import classify_node, validate_node, dispatch_node, combine_node, reject_node
+from .nodes import (
+    classify_node,
+    validate_node,
+    geo_evidence_node,
+    sam2_node,
+    dispatch_node,
+    combine_node,
+    reject_node,
+)
 
 
 def after_classify(state: AgentState) -> str:
@@ -13,8 +21,21 @@ def after_classify(state: AgentState) -> str:
 
 
 def after_validate(state: AgentState) -> str:
-    """Conditional branching after validate: route to dispatch if validated, else reject."""
-    return "dispatch" if state.get("validation_ok") else "reject"
+    """Conditional branching after validate: route to geo_evidence if change_analysis, else dispatch."""
+    if not state.get("validation_ok"):
+        return "reject"
+    if state.get("task") == "change_analysis":
+        return "geo_evidence"
+    return "dispatch"
+
+
+def after_geo_evidence(state: AgentState) -> str:
+    """Conditional branching after geo_evidence: route to sam2 if segmentation requested and change detected."""
+    if not state.get("validation_ok"):
+        return "reject"
+    if state.get("requires_segmentation") and state.get("geo_evidence", {}).get("change_detected"):
+        return "sam2"
+    return "dispatch"
 
 
 # Build the StateGraph
@@ -23,6 +44,8 @@ graph = StateGraph(AgentState)
 # Add nodes
 graph.add_node("classify", classify_node)
 graph.add_node("validate", validate_node)
+graph.add_node("geo_evidence", geo_evidence_node)
+graph.add_node("sam2", sam2_node)
 graph.add_node("dispatch", dispatch_node)
 graph.add_node("combine", combine_node)
 graph.add_node("reject", reject_node)
@@ -39,10 +62,16 @@ graph.add_conditional_edges(
 graph.add_conditional_edges(
     "validate",
     after_validate,
-    {"dispatch": "dispatch", "reject": "reject"}
+    {"geo_evidence": "geo_evidence", "dispatch": "dispatch", "reject": "reject"}
+)
+graph.add_conditional_edges(
+    "geo_evidence",
+    after_geo_evidence,
+    {"sam2": "sam2", "dispatch": "dispatch", "reject": "reject"}
 )
 
 # Connect downstream nodes
+graph.add_edge("sam2", "dispatch")
 graph.add_edge("dispatch", "combine")
 graph.add_edge("combine", END)
 graph.add_edge("reject", END)

@@ -14,6 +14,12 @@ class AgentState(TypedDict, total=False):
     validation_msg: Optional[str]
     result: Optional[Dict[str, Any]]
     trace: Optional[Dict[str, Any]]
+    requires_segmentation: Optional[bool]
+    geo_evidence: Optional[Dict[str, Any]]
+    segmentation_evidence: Optional[Dict[str, Any]]
+    change_mask: Optional[Any]
+    geojson: Optional[Dict[str, Any]]
+    overlay_path: Optional[str]
 
 
 def create_initial_state(
@@ -33,4 +39,10 @@ def create_initial_state(
         "validation_msg": None,
         "result": None,
         "trace": None,
+        "requires_segmentation": None,
+        "geo_evidence": None,
+        "segmentation_evidence": None,
+        "change_mask": None,
+        "geojson": None,
+        "overlay_path": None,
     }

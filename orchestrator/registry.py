@@ -23,7 +23,7 @@ TOOL_REGISTRY: Dict[str, Dict[str, Any]] = {
         },
         "params": ["query"],
         "valid_modes": [None, "change"],
-        "output": ["text", "change_mask"]
+        "output": ["text", "change_mask", "geo_evidence", "segmentation_evidence", "geojson", "overlay_path"]
     },
     "optical_sar_fusion": {
         "model": "EarthGPT",
