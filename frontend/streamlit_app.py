@@ -75,6 +75,12 @@ if "show_interactive_map" not in st.session_state:
 if "active_map_grounding_geojson" not in st.session_state:
     st.session_state.active_map_grounding_geojson = None
 
+if "active_map_raster_center" not in st.session_state:
+    st.session_state.active_map_raster_center = None
+
+if "active_map_raster_bounds" not in st.session_state:
+    st.session_state.active_map_raster_bounds = None
+
 is_dark = (st.session_state.theme == "dark")
 
 @st.cache_data
@@ -317,23 +323,24 @@ def render_spatial_evidence_side_panel(resp_data: dict) -> None:
         or resp_data.get("router_confidence")
         or trace.get("output_confidence")
         or trace.get("router_confidence")
-        or 0.91
     )
-    try:
-        f_conf = float(raw_conf)
-        if f_conf <= 1.0:
-            conf_int = int(round(f_conf * 100))
-        else:
-            conf_int = int(round(f_conf))
-    except (ValueError, TypeError):
-        conf_int = 91
+    conf_int = None
+    if raw_conf is not None:
+        try:
+            f_conf = float(raw_conf)
+            if f_conf <= 1.0:
+                conf_int = int(round(f_conf * 100))
+            else:
+                conf_int = int(round(f_conf))
+        except (ValueError, TypeError):
+            conf_int = None
 
     # Determine agreement level
     if geo_ev:
-        if conf_int >= 80:
+        if conf_int is not None and conf_int >= 80:
             agreement_str = "HIGH"
             agreement_color = "#10b981"
-        elif conf_int >= 60:
+        elif conf_int is not None and conf_int >= 60:
             agreement_str = "MEDIUM"
             agreement_color = "#38bdf8"
         else:
@@ -345,6 +352,8 @@ def render_spatial_evidence_side_panel(resp_data: dict) -> None:
     else:
         agreement_str = "HIGH"
         agreement_color = "#10b981"
+
+    conf_display = f"{conf_int} / 100" if conf_int is not None else "N/A"
 
     # Evidence type
     raw_ev_type = geo_ev.get("evidence_type") or "Spectral Difference"
@@ -432,7 +441,7 @@ def render_spatial_evidence_side_panel(resp_data: dict) -> None:
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 11px; color: #94a3b8;">Evidence Confidence:</span>
-                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #38bdf8;">{conf_int} / 100</span>
+                    <span style="font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 700; color: #38bdf8;">{conf_display}</span>
                 </div>
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <span style="font-size: 11px; color: #94a3b8;">Primary Model:</span>
@@ -614,6 +623,9 @@ def render_interactive_map(
     overlay_url: Optional[str] = None,
     height: int = 460,
     unique_id: str = "sat_map",
+    raster_center: Optional[list] = None,
+    raster_bounds: Optional[list] = None,
+    geo_evidence: Optional[dict] = None,
 ) -> None:
     """Renders an interactive satellite Leaflet map with GeoJSON polygons, SAM 2 segments, grounding boxes, and layer controls."""
     has_change_geo = bool(geojson and isinstance(geojson, dict) and geojson.get("features"))
@@ -623,6 +635,40 @@ def render_interactive_map(
     change_json_str = json.dumps(geojson) if has_change_geo else "null"
     sam2_json_str = json.dumps(sam2_geojson) if has_sam2_geo else "null"
     grounding_json_str = json.dumps(grounding_geojson) if has_grounding_geo else "null"
+
+    # Compute fallback map view from raster metadata or use New Delhi as world-centre default
+    if raster_center and len(raster_center) == 2:
+        _map_lat = raster_center[0]
+        _map_lon = raster_center[1]
+        _map_zoom = 12
+    else:
+        _map_lat = 28.6139
+        _map_lon = 77.2090
+        _map_zoom = 10
+
+    # Raster-derived fallback bounds for fitBounds [W, S, E, N] → Leaflet [S, W] / [N, E]
+    if raster_bounds and len(raster_bounds) == 4:
+        _rb_west  = raster_bounds[0]
+        _rb_south = raster_bounds[1]
+        _rb_east  = raster_bounds[2]
+        _rb_north = raster_bounds[3]
+        _has_raster_bounds = "true"
+    else:
+        _rb_west = _rb_south = _rb_east = _rb_north = 0.0
+        _has_raster_bounds = "false"
+
+    # Aggregate geo_evidence values for per-polygon popup enrichment
+    _geo_area_ha = geo_evidence.get("changed_area_ha") if isinstance(geo_evidence, dict) else None
+    _geo_pct     = geo_evidence.get("change_percent")  if isinstance(geo_evidence, dict) else None
+    _geo_model   = (geo_evidence.get("evidence_type") or "Geo Evidence Engine") if isinstance(geo_evidence, dict) else "Geo Evidence Engine"
+    _popup_area  = f"{_geo_area_ha:.2f} ha" if _geo_area_ha is not None else None
+    if _geo_pct is not None:
+        _popup_pct = f"+{_geo_pct:.1f}%" if _geo_pct >= 0 else f"{_geo_pct:.1f}%"
+    else:
+        _popup_pct = None
+    _popup_area_js  = f'"{_popup_area}"'  if _popup_area is not None else "null"
+    _popup_pct_js   = f'"{_popup_pct}"'   if _popup_pct  is not None else "null"
+    _popup_model_js = json.dumps(_geo_model.replace("_", " ").title())
 
     html_code = f"""
     <!DOCTYPE html>
@@ -831,7 +877,7 @@ def render_interactive_map(
             var map = L.map('map_{unique_id}', {{
                 zoomControl: true,
                 attributionControl: false
-            }}).setView([28.6139, 77.2090], 10);
+            }}).setView([{_map_lat}, {_map_lon}], {_map_zoom});
 
             // 1. Satellite Base Layer (Esri World Imagery)
             var esriSatellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{{z}}/{{y}}/{{x}}', {{
@@ -867,10 +913,16 @@ def render_interactive_map(
                         var props = feature.properties || {{}};
                         var typeStr = props.change_type || 'Detected Change';
                         var idxStr = props.index ? (' (' + props.index.toUpperCase() + ')') : '';
-                        layer.bindPopup('<div style="font-family: sans-serif; font-size: 12px; line-height: 1.4;">' +
-                            '<strong style="color: #ef4444; font-size: 13px;">' + typeStr + idxStr + '</strong><br>' +
-                            '<span style="color: #94a3b8;">Source: Geo Evidence Engine</span><br>' +
-                            '<span>Status: Validated Ground Truth</span>' +
+                        var areaHa  = props.area_ha   != null ? props.area_ha.toFixed(2)   + ' ha'  : ({_popup_area_js});
+                        var pctStr  = props.change_pct != null ? (props.change_pct >= 0 ? '+' : '') + props.change_pct.toFixed(1) + '%' : ({_popup_pct_js});
+                        var mdlStr  = props.model  || {_popup_model_js};
+                        var areaLine  = areaHa ? '<br><span style=\"color:#cbd5e1;\">Area: '  + areaHa + '</span>' : '';
+                        var pctLine   = pctStr  ? '<br><span style=\"color:#cbd5e1;\">Change: ' + pctStr  + '</span>' : '';
+                        var modelLine = mdlStr  ? '<br><span style=\"color:#94a3b8;\">Model: '  + mdlStr  + '</span>' : '';
+                        layer.bindPopup('<div style=\"font-family: sans-serif; font-size: 12px; line-height: 1.6;\">' +
+                            '<strong style=\"color: #ef4444; font-size: 13px;\">' + typeStr + idxStr + '</strong>' +
+                            areaLine + pctLine + modelLine +
+                            '<br><span style=\"color: #10b981; font-size: 10px;\">✓ Validated Ground Truth</span>' +
                             '</div>');
                     }}
                 }}).addTo(map);
@@ -1172,12 +1224,17 @@ def render_interactive_map(
                 }});
             }}
 
-            // 6. Auto-fit to detected features
+            // 6. Auto-fit: prefer feature bounds, fall back to raster extent
             if (boundsToFit && boundsToFit.isValid()) {{
-                map.fitBounds(boundsToFit, {{
-                    padding: [40, 40],
-                    maxZoom: 16
-                }});
+                map.fitBounds(boundsToFit, {{ padding: [40, 40], maxZoom: 16 }});
+            }} else if ({_has_raster_bounds}) {{
+                var rasterBounds = L.latLngBounds(
+                    L.latLng({_rb_south}, {_rb_west}),
+                    L.latLng({_rb_north}, {_rb_east})
+                );
+                if (rasterBounds.isValid()) {{
+                    map.fitBounds(rasterBounds, {{ padding: [30, 30], maxZoom: 14 }});
+                }}
             }}
         </script>
     </body>
@@ -4462,10 +4519,14 @@ def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url
                     "trace": resp.get("trace", {}),
                     "pdf_data": pdf_bytes,
                     "visual_output_url": vis_url,
-                    "visual_output_bytes": vis_bytes
+                    "visual_output_bytes": vis_bytes,
+                    "raster_center": resp.get("raster_center"),
+                    "raster_bounds": resp.get("raster_bounds"),
                 }
             }
 
+            _raster_center = resp.get("raster_center")
+            _raster_bounds = resp.get("raster_bounds")
             if geojson_data or geo_ev:
                 st.session_state.active_map_geojson = geojson_data
                 st.session_state.active_map_sam2_geojson = (
@@ -4475,6 +4536,8 @@ def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url
                 st.session_state.active_map_grounding_geojson = None
                 st.session_state.active_map_overlay_url = vis_url
                 st.session_state.active_map_turn_id = new_turn["id"]
+                st.session_state.active_map_raster_center = _raster_center
+                st.session_state.active_map_raster_bounds = _raster_bounds
                 st.session_state.show_interactive_map = True
             elif grounding_geo:
                 st.session_state.active_map_geojson = None
@@ -4482,6 +4545,8 @@ def dispatch_query_to_backend(query_text_to_send: str, files_list: list, api_url
                 st.session_state.active_map_grounding_geojson = grounding_geo
                 st.session_state.active_map_overlay_url = vis_url
                 st.session_state.active_map_turn_id = new_turn["id"]
+                st.session_state.active_map_raster_center = _raster_center
+                st.session_state.active_map_raster_bounds = _raster_bounds
                 st.session_state.show_interactive_map = True
 
             st.session_state.chat_history.append(new_turn)
@@ -4986,7 +5051,16 @@ else:
                                     grounding_geojson=turn_grounding_geo,
                                     overlay_url=resp_data.get("visual_output_url"),
                                     height=460,
-                                    unique_id=turn["id"][:8]
+                                    unique_id=turn["id"][:8],
+                                    raster_center=(
+                                        resp_data.get("raster_center")
+                                        or st.session_state.get("active_map_raster_center")
+                                    ),
+                                    raster_bounds=(
+                                        resp_data.get("raster_bounds")
+                                        or st.session_state.get("active_map_raster_bounds")
+                                    ),
+                                    geo_evidence=resp_data.get("geo_evidence"),
                                 )
                             with col_panel:
                                 render_spatial_evidence_side_panel(resp_data)

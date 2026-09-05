@@ -201,6 +201,10 @@ async def handle_query(
             )
         meta_list.append(meta)
 
+    # Extract spatial center and bounds from first uploaded raster (for map auto-fit)
+    raster_center = meta_list[0].get("center_latlon") if meta_list else None
+    raster_bounds = meta_list[0].get("bounds_latlon") if meta_list else None  # [W, S, E, N] WGS84
+
     # 3. Construct state and invoke LangGraph orchestrator
     initial_state = create_initial_state(
         query=query,
@@ -352,6 +356,8 @@ async def handle_query(
         "visual_output_path": vis_path,
         "visual_output_url": vis_url,
         "trace": trace,
+        "raster_center": raster_center,
+        "raster_bounds": raster_bounds,
         "created_at": query_record.created_at.isoformat()
     }
 

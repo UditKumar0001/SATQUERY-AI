@@ -34,6 +34,12 @@ def extract_metadata(filepath: str) -> dict:
     driver = "UNKNOWN"
     timestamp = None
     opened_successfully = False
+    width = None
+    height_px = None
+    transform_list = None
+    resolution = None
+    center_latlon = None
+    bounds_latlon = None
 
     if rasterio is not None:
         try:
@@ -48,6 +54,43 @@ def extract_metadata(filepath: str) -> dict:
                     or tags.get("acquisition_date")
                     or tags.get("DATETIME")
                 )
+                width = src.width
+                height_px = src.height
+                transform_list = list(src.transform)[:6] if src.transform else None
+                resolution = abs(float(src.transform.a)) if src.transform else None
+                if src.crs and src.bounds:
+                    try:
+                        from rasterio.crs import CRS as _CRS
+                        from rasterio.warp import transform as _warp_transform
+                        _wgs84 = _CRS.from_epsg(4326)
+                        if src.crs.is_geographic:
+                            _cx = (src.bounds.left + src.bounds.right) / 2.0
+                            _cy = (src.bounds.bottom + src.bounds.top) / 2.0
+                            center_latlon = [round(_cy, 6), round(_cx, 6)]
+                            bounds_latlon = [
+                                round(src.bounds.left, 6),
+                                round(src.bounds.bottom, 6),
+                                round(src.bounds.right, 6),
+                                round(src.bounds.top, 6),
+                            ]
+                        else:
+                            _xs, _ys = _warp_transform(
+                                src.crs, _wgs84,
+                                [src.bounds.left, src.bounds.right],
+                                [src.bounds.bottom, src.bounds.top],
+                            )
+                            bounds_latlon = [
+                                round(min(_xs), 6),
+                                round(min(_ys), 6),
+                                round(max(_xs), 6),
+                                round(max(_ys), 6),
+                            ]
+                            center_latlon = [
+                                round((min(_ys) + max(_ys)) / 2.0, 6),
+                                round((min(_xs) + max(_xs)) / 2.0, 6),
+                            ]
+                    except Exception:
+                        pass
                 opened_successfully = True
         except Exception:
             opened_successfully = False
@@ -114,5 +157,11 @@ def extract_metadata(filepath: str) -> dict:
         "format": driver,
         "timestamp": timestamp,
         "modality": modality,
-        "filepath": filepath
+        "filepath": filepath,
+        "width": width,
+        "height": height_px,
+        "transform": transform_list,
+        "resolution": resolution,
+        "center_latlon": center_latlon,
+        "bounds_latlon": bounds_latlon,
     }
